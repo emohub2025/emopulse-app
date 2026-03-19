@@ -6,7 +6,7 @@ import type { RootStackParamList, SubchallengeList } from '../../navigation/type
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useCycleTimer } from '../../components/CycleTimerContext';
 import answerButton from '../../assets/buttons/answer.png';
-import { getChallengeImageSource } from '../../assets/wacky/index';
+import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
 
 // Route params type
 type SubchallengeRouteProp = RouteProp<
@@ -32,10 +32,7 @@ export default function SubchallengeScreen({
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const current: SubchallengeList = subchallenges[index];
-  const imageSource = useMemo(
-    () => getChallengeImageSource(challenge),
-    [challenge]
-  );
+  const imageSource = getChallengeImageSource(challenge);
 
   function handleAnswer(answer: string) {
     // TODO: send to backend

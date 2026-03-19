@@ -1,9 +1,18 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useEffect } from 'react';
+import * as NavigationBar from 'expo-navigation-bar';
 import { Image, View } from 'react-native';
 import { RootStackParamList } from './types';
 import HomePageScreen from '../features/users/HomePageScreen';
 import LoginScreen from '../features/users/LoginScreen';
 import SignupScreen from '../features/users/SignupScreen';
+import AccountScreen from '../features/users/AccountScreen';
+import HelpAndSupportScreen from '../features/users/HelpAndSupportScreen';
+import SettingsScreen from '../features/users/SettingsScreen';
+import ProfileScreen from '../features/users/ProfileScreen';
+import TransactionsScreen from '../features/users/TransactionsScreen';
+import AchievementsScreen from '../features/users/AchievementsScreen';
+import TeamsScreen from '../features/teams/TeamsScreen';
 import CategoryListScreen from '../features/challenge/CategoryListScreen';
 import CategoryChallengesScreen from '../features/challenge/CategoryChallengesScreen';
 import ChallengeDetailScreen from '../features/challenge/ChallengeDetailScreen';
@@ -34,6 +43,10 @@ const LogoHeader = ({ back }: { back?: boolean }) => (
 );
 
 export default function RootNavigator() {
+  useEffect(() => {
+    NavigationBar.setVisibilityAsync('hidden');
+  }, []);
+
   return (
     <Stack.Navigator
       initialRouteName="HomePage"
@@ -75,11 +88,60 @@ export default function RootNavigator() {
           headerTitle: () => <LogoHeader back={true} />,
         }}
       />
+      <Stack.Screen
+        name="Account"
+        component={AccountScreen}
+        options={{
+          headerTitle: () => <LogoHeader back={true} />
+        }}
+      />
+      <Stack.Screen
+        name="HelpAndSupport"
+        component={HelpAndSupportScreen}
+        options={{
+          headerTitle: () => <LogoHeader back={true} />
+        }}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          headerTitle: () => <LogoHeader back={true} />
+        }}
+      />
+      <Stack.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          headerTitle: () => <LogoHeader back={true} />
+        }}
+      />
+      <Stack.Screen
+        name="Achievements"
+        component={AchievementsScreen}
+        options={{
+          headerTitle: () => <LogoHeader back={true} />
+        }}
+      />
+      <Stack.Screen
+        name="Transactions"
+        component={TransactionsScreen}
+        options={{
+          headerTitle: () => <LogoHeader back={true} />
+        }}
+      />
+      <Stack.Screen
+        name="Teams"
+        component={TeamsScreen}
+        options={{
+          headerTitle: () => <LogoHeader back={true} />
+        }}
+      />
       <Stack.Screen 
         name="CategoryList" 
         component={CategoryListScreen} 
         options={{ 
-          headerTitle: () => <LogoHeader back={true} />,
+          headerTitle: () => <LogoHeader back={false} />,
         }} 
       />
       <Stack.Screen 

@@ -42,6 +42,7 @@ export default function HomePageScreen() {
 
     <Pressable
       style={styles.buttonWrapper}
+      //onPress={() => navigation.navigate('Login')}
       onPress={() => navigation.navigate('Login')}
     >
       <Image source={loginButton} style={styles.buttonImage} />
@@ -54,9 +55,9 @@ export default function HomePageScreen() {
       <Image source={signupButton} style={styles.buttonImage} />
     </Pressable>
 
-    <Pressable style={styles.buttonWrapper}>
+    {/* <Pressable style={styles.buttonWrapper}>
       <Image source={googleButton} style={styles.googleImage} />
-    </Pressable>
+    </Pressable> */}
     <Text style={styles.bottomLabel}>By continuing, you agree to our Term & Privacy Policy</Text>
   </SafeAreaView>
 

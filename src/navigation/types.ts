@@ -1,3 +1,61 @@
+export type LoginResponse = {
+  token: string;
+  userId: number;
+  walletId: number;
+};
+
+export type Transaction = {
+  id: string;
+  amount: number;
+  type: string;
+  description: string | null;
+  transaction_date: string;
+  challenge_id: string | null;
+};
+
+export interface MobileUser {
+  id: string;
+  first_name: string;
+  email: string;
+  state?: string;
+  birthdate?: string;
+  created_at?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  zip?: string;
+  tiktok_url?: string;
+  linkedin_url?: string;
+  twitter_url?: string;
+  reddit_url?: string;
+  facebook_url?: string;
+  instagram_url?: string;
+  profile_image?: string;
+  id_uuid?: string;
+  user_type: string;
+  coin_balance: string;
+  avatar_url: string;
+}
+
+export type MobileUserUpdate = {
+  first_name?: string;
+  email?: string;
+  state?: string;
+  birthdate?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  zip?: string;
+  tiktok_url?: string;
+  linkedin_url?: string;
+  twitter_url?: string;
+  reddit_url?: string;
+  facebook_url?: string;
+  instagram_url?: string;
+  profile_image?: string;
+  user_type?: string;
+};
+
 export interface Challenge {
   id: string;
   topic: string;
@@ -16,17 +74,30 @@ export interface Challenge {
 }
 
 export type RootStackParamList = {
-  CategoryList: undefined;
 
+  CategoryList: undefined;
   HomePage: undefined;
   Login: undefined;
   Signup: undefined;
+  Account: undefined;
+  HelpAndSupport: undefined;
+  Settings: undefined;
+  Teams: undefined;
+  Profile: {
+    user: MobileUser;
+    onUserUpdated: (updated: MobileUser) => void;
+  }
+  Transactions: {
+    userId: string;
+  }
+  Achievements: {
+    userId: string;
+  }
   CategoryChallenges: {
     category: string;
   };
   ChallengeDetail: {
-    id: string;
-    category: string;
+    challenge: Challenge;
   };
   Challenge: {
     challenge: Challenge;

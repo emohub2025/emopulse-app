@@ -8,7 +8,7 @@ import EmotionSelector from '../../components/EmotionSelector';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useCycleTimer } from '../../components/CycleTimerContext';
-import eventBus from '../../components/eventBus';
+import eventBus from '../../components/EventBus';
 import { postPlaceUserBet } from '../../api/postPlaceUserBet';
 import { getSubchallengeList } from '../../api/subchallenges';
 
@@ -37,11 +37,11 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
     try {
       setLoading(true);
 
-        const response = await postPlaceUserBet({
-          challenge_id: challenge.id,
-          user_id: USER_ID,
-          emotion: emotion
-        });
+      const response = await postPlaceUserBet({
+        challenge_id: challenge.id,
+        user_id: USER_ID,
+        emotion: emotion
+      });
 
       console.log("Bet placed:", response);
 

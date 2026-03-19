@@ -7,6 +7,7 @@ import type { RootStackParamList } from '../../navigation/types';
 import { getCycleStatus } from '../../api/cycleStatus';
 import type { CategoryInfo } from '../../api/cycleStatus';
 import { useCycleTimer } from '../../components/CycleTimerContext';
+import ButtonPanel from '../../components/ButtonPanel'
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -96,48 +97,54 @@ export default function CategoryListScreen() {
     return a.name.localeCompare(b.name);
   });
 
-return (
-  <ImageBackground
-    source={require('../../assets/images/background.png')}
-    style={styles.background}
-    resizeMode="cover"
-  >
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <Text style={styles.topLabel}>Current Challenges</Text>
+  return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <Text style={styles.topLabel}>Current Challenges</Text>
 
-      <FlatList
-        data={sortedCategories}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        style={styles.list}                     // ← gives it flex:1
-        columnWrapperStyle={styles.columnWrapper}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <Pressable
-            style={styles.card}
-            onPress={() =>
-              navigation.navigate('CategoryChallenges', {
-                category: item.name,
-              })
-            }
-          >
+        <FlatList
+          data={sortedCategories}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          style={styles.list}
+          columnWrapperStyle={styles.columnWrapper}
+          contentContainerStyle={styles.listContent}
+          renderItem={({ item }) => (
+            <Pressable
+              style={styles.card}
+              onPress={() =>
+                navigation.navigate('CategoryChallenges', {
+                  category: item.name,
+                })
+              }
+            >
             <ImageBackground
-              source={categoryImages[item.name]}
+              source={
+                categoryImages[item.name] ? categoryImages[item.name] : null}
               style={styles.cardBackground}
               resizeMode="stretch"
             />
-          </Pressable>
-        )}
-      />
+              {/* <ImageBackground
+                source={categoryImages[item.name]}
+                style={styles.cardBackground}
+                resizeMode="stretch"
+              /> */}
+            </Pressable>
+          )}
+        />
+
+      {/* <View style={styles.timerContainer}>
+        <Text style={styles.timer}>{formattedTime}</Text>
+      </View> */}
+
+      <View>
+        {/* your screen content */}
+
+        <ButtonPanel>
+          {/* panel content here */}
+        </ButtonPanel>
+      </View>
     </SafeAreaView>
-
-    <View style={styles.timerContainer}>
-      <Text style={styles.timer}>{formattedTime}</Text>
-    </View>
-  </ImageBackground>
-);
-
-
+  );
 }
 
 const styles = StyleSheet.create({
@@ -149,9 +156,11 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
   },
-list: {
-  flex: 1,                 // ← THIS is the missing piece
-},
+  list: {
+    flex: 1,                 // ← THIS is the missing piece
+    marginTop: -5,
+    marginBottom: 0,
+  },
   safe: {
     flex: 1,              // ← SafeAreaView fills everything above the timer
     paddingTop: 40,
@@ -164,6 +173,7 @@ list: {
     fontSize: 26,
     fontWeight: '700',
     marginTop: 25,
+    marginBottom: 15,
     textAlign: 'center',
   },
 
@@ -175,14 +185,14 @@ list: {
   listContent: {
     paddingLeft: 5,
     paddingRight: 5,
-    paddingTop: 20,
+    paddingTop: 10,
     paddingBottom: 100,   // ← ensures last row scrolls above timer
   },
 
   card: {
     height: 140,
     width: 160,
-    marginBottom: 10,
+    marginBottom: 12,
     borderRadius: 12,
     overflow: 'hidden',
   },
@@ -201,7 +211,7 @@ list: {
 
   timer: {
     color: 'yellow',
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: '600',
   },
 });

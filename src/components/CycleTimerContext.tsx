@@ -8,7 +8,7 @@ import React, {
   useCallback,
 } from 'react';
 import { getCycleStatus } from '../api/cycleStatus';
-import eventBus from './eventBus';
+import eventBus from './EventBus';
 
 export type CycleTimerContextType = {
   cycleStartTime: number | null;

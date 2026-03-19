@@ -6,6 +6,6 @@ export async function getSubchallengeResponses(
   userId: string
 ) {
   return apiGet<UserSubchallengeResponse[]>(
-    `/mobile/subchallenge/responses/${subchallengeId}?user_id=${userId}`
+    `subchallenge/responses/${subchallengeId}?user_id=${userId}`
   );
 }

@@ -9,5 +9,5 @@ export interface PostSubchallengeResponseBody {
 }
 
 export async function postSubchallengeResponse(body: PostSubchallengeResponseBody) {
-  return apiPost<void>("/mobile/subchallenge/respond", body);
+  return apiPost<void>("subchallenge/respond", body);
 }

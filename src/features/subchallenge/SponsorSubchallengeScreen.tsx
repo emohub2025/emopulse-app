@@ -61,7 +61,7 @@ export default function SponsorSubchallengeScreen() {
           USER_ID
         );
         setUserResponses(res);
-        console.log("Loaded userResponses:", res);
+        //console.log("Loaded userResponses:", res);
       } catch (err) {
         console.log("Error loading user responses:", err);
       }

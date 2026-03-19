@@ -8,7 +8,7 @@ import type { RootStackParamList } from '../../navigation/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChallengeResult, getChallengeResults } from '../../api/getChallengeResults';
 import { useCycleTimer } from '../../components/CycleTimerContext';
-import eventBus from '../../components/eventBus';
+import eventBus from '../../components/EventBus';
 import activeButton from '../../assets/buttons/active.png';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 

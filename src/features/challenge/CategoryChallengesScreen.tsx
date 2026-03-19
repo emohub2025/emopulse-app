@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ImageBackground, View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
+import { Image, ImageBackground, View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -7,7 +7,8 @@ import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList, Challenge } from '../../navigation/types';
 import { useCycleTimer } from '../../components/CycleTimerContext';
 import { getChallengesForCategory } from '../../api/getCategoryChallenges';
-import eventBus from '../../components/eventBus';
+import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
+import eventBus from '../../components/EventBus';
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -15,18 +16,6 @@ type NavProp = NativeStackNavigationProp<
 >;
 
 type RouteProps = RouteProp<RootStackParamList, 'CategoryChallenges'>;
-
-const categoryImages: Record<string, any> = {
-  Politics: require('../../assets/images/politics.png'),
-  Sports: require('../../assets/images/sports.png'),
-  Entertainment: require('../../assets/images/entertainment.png'),
-  Tech: require('../../assets/images/tech.png'),
-  Music: require('../../assets/images/category-music.png'),
-  Gaming: require('../../assets/images/gaming.png'),
-  Finance: require('../../assets/images/category-finance.png'),
-  Health: require('../../assets/images/health.png'),
-  Wacky: require('../../assets/images/wacky.png'),
-};
 
 export default function CategoryChallengesScreen() {
   const navigation = useNavigation<NavProp>();
@@ -46,12 +35,11 @@ export default function CategoryChallengesScreen() {
       try {
         const data = await getChallengesForCategory(category);
         setChallenges(data);
-        console.log("📦 Challenges fetched:\n", JSON.stringify(data, null, 2));
+        //console.log("📦 Challenges fetched:\n", JSON.stringify(data, null, 2));
         if (data.length === 1) {
           try {
             navigation.replace("ChallengeDetail", { 
-              id: data[0].id, 
-              category: data[0].category 
+              challenge: data[0]
             });
             return; // prevent outer finally
           } catch (err) {
@@ -130,25 +118,22 @@ export default function CategoryChallengesScreen() {
               data={challenges}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
-              <Pressable
-                style={styles.card}
-                onPress={() =>
-                  navigation.navigate('ChallengeDetail', {
-                    id: item.id,
-                    category: item.category
-                  })
-                }
-              >
-                <ImageBackground
-                  source={categoryImages[category]}
-                  //source={require('../../assets/images/category-challenge.png')}
-                  style={styles.cardBackground}
-                  imageStyle={styles.cardImage}
-                  resizeMode="stretch"
-                >
+                <Pressable
+                  style={styles.card}
+                  onPress={() =>
+                    navigation.navigate('ChallengeDetail', {
+                      challenge: item
+                    })
+                  }
+                  >
+                  <Image
+                    source={getChallengeImageSource(item)}
+                    style={styles.topicImage}
+                    resizeMode="cover"
+                  />
+
                   <Text style={styles.title}>{item.topic}</Text>
-                </ImageBackground>
-              </Pressable>
+                </Pressable>
               )}
             />
           )}
@@ -165,6 +150,28 @@ export default function CategoryChallengesScreen() {
 // Styles
 //
 const styles = StyleSheet.create({
+  card: {
+    backgroundColor: '#220d58',
+    borderRadius: 12,
+    marginLeft: 22,
+    marginRight: 22,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+
+  topicImage: {
+    marginTop: 10,
+    width: '70%',
+    height: 120,
+    alignSelf: 'center', 
+  },
+
+  title: {
+    padding: 12,
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#fff',
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -196,16 +203,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  card: {
-    width: 370,
-    height: 160,
-    borderRadius: 8,
-    marginLeft: 0,
-    marginRight: 0,
-    marginBottom: 0,
-    alignSelf: 'center',
-    overflow: 'hidden',
-  },
   cardBackground: {
     width: 370,
     height: 160,
@@ -215,14 +212,6 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     borderRadius: 8,           // matches the card radius
-  },
-  title: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: 10,
-    marginLeft: 20,
-    marginRight: 100,
   },
   timer: {
     color: 'yellow',

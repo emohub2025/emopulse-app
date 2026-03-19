@@ -15,5 +15,5 @@ export interface PlaceBetResponse {
 export function postPlaceUserBet(
   payload: PlaceBetRequest
 ): Promise<PlaceBetResponse> {
-  return apiPost<PlaceBetResponse>("/mobile/prediction", payload);
+  return apiPost<PlaceBetResponse>("prediction", payload);
 }

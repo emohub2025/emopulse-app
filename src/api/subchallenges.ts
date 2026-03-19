@@ -7,14 +7,15 @@ export async function getSubchallengeList(challengeId: string) {
       id: challengeId,
     }
   });
+
   return apiGet<SubchallengeList[]>(
-    `/mobile/subchallenge/list/${challengeId}`
+    `/subchallenge/list/${challengeId}`
   );
 }
 
 export async function getSubchallengeTemplate(subchallengeId: string) {
   return apiGet<SubchallengeTemplate>(
-    `/mobile/subchallenge/${subchallengeId}`
+    `/subchallenge/${subchallengeId}`
   );
 }
 
@@ -23,6 +24,6 @@ export async function getSubchallengeResponses(
   userId: string
 ) {
   return apiGet<UserSubchallengeResponse[]>(
-    `/mobile/subchallenge/responses/${subchallengeId}?user_id=${userId}`
+    `/subchallenge/responses/${subchallengeId}?user_id=${userId}`
   );
 }

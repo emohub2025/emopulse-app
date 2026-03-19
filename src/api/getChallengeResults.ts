@@ -34,10 +34,10 @@ export function getChallengeResults(
   userId?: string
 ): Promise<ChallengeResult> {
   const url = userId
-    ? `/mobile/challenge-results/${encodeURIComponent(id)}?user_id=${encodeURIComponent(
+    ? `challenge-results/${encodeURIComponent(id)}?user_id=${encodeURIComponent(
         userId
       )}`
-    : `/mobile/challenge-results/${encodeURIComponent(id)}`;
+    : `challenge-results/${encodeURIComponent(id)}`;
 
   return apiGet<ChallengeResult>(url);
 }

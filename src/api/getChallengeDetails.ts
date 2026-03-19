@@ -13,6 +13,6 @@ export interface ChallengeDetail {
 
 export function getChallengeDetails(category: string, id: string): Promise<ChallengeDetail> {
   return apiGet<ChallengeDetail>(
-    `/mobile/category/${encodeURIComponent(category)}/challenge-details/${encodeURIComponent(id)}`
+    `category/${encodeURIComponent(category)}/challenge-details/${encodeURIComponent(id)}`
   );
 }

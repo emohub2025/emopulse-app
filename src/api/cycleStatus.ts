@@ -21,5 +21,5 @@ export interface CycleStatusResponse {
 }
 
 export function getCycleStatus(): Promise<CycleStatusResponse> {
-  return apiGet<CycleStatusResponse>('/mobile/cycle-status');
+  return apiGet<CycleStatusResponse>('cycle-status');
 }

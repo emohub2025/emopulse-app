@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { View, Text, ImageBackground, StyleSheet, Image, Pressable } from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
@@ -8,10 +8,8 @@ import type { RootStackParamList } from '../../navigation/types';
 import playButton from '../../assets/buttons/play.png';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useCycleTimer } from '../../components/CycleTimerContext';
-import eventBus from '../../components/eventBus';
-import { getChallengeImageSource } from '../../assets/wacky/index';
-import { getChallengeDetails } from '../../api/getChallengeDetails';
-import type { Challenge } from "../../navigation/types";
+import eventBus from '../../components/EventBus';
+import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
 
 // Route params type
 type ChallengeDetailRouteProp = RouteProp<
@@ -30,42 +28,21 @@ export default function ChallengeDetailScreen({
 }: {
   route: ChallengeDetailRouteProp;
 }) {
-  const { id, category } = route.params;
+  const { challenge } = route.params; // ← full challenge object
   const navigation = useNavigation<NavProp>();
   const { formattedTime, isExpired } = useCycleTimer();
   const isFocused = useIsFocused();
-  const [challenge, setChallenge] = useState<Challenge | null>(null);
-
-useEffect(() => {
-    let isMounted = true;
-
-    async function load() {
-      try {
-        const data = await getChallengeDetails(category, id);
-        if (isMounted) setChallenge(data);
-      } catch (err) {
-        console.error("Failed to load challenge:", err);
-      }
-    }
-
-    load();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [id, category]);
-
-
-  const imageSource = useMemo(
-    () => getChallengeImageSource(challenge),
-    [challenge]
-  );
 
   //
-  // 1️⃣ Handle cycle expiration → go to results
+  // 1️⃣ Image source (fallback-safe)
+  //
+  const imageSource = getChallengeImageSource(challenge);
+
+  //
+  // 2️⃣ Handle cycle expiration → go to results
   //
   useEffect(() => {
-    if (!isFocused || !challenge) return;
+    if (!isFocused) return;
 
     const handler = () => {
       // navigation.navigate("ChallengeResults", { challenge });
@@ -79,26 +56,13 @@ useEffect(() => {
   }, [isFocused, challenge]);
 
   //
-  // 2️⃣ Auto-navigate if expired
+  // 3️⃣ Auto-navigate if expired
   //
   useEffect(() => {
-    if (isExpired && challenge) {
+    if (isExpired) {
       // navigation.navigate("ChallengeResults", { challenge });
     }
   }, [isExpired, challenge]);
-
-  //
-  // 3️⃣ Guard: missing challenge
-  //
-  if (!challenge) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#121212" }}>
-        <View style={styles.center}>
-          <Text style={{ color: 'white' }}>Missing challenge data</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   //
   // 4️⃣ UI
@@ -112,7 +76,11 @@ useEffect(() => {
         style={{ flex: 1 }}
         resizeMode="cover"
       >
-        <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+        {/* Dim overlay */}
+  <View style={styles.dimOverlay} />
+
+  
+        <SafeAreaView style={styles.contentWrapper} edges={["top", "bottom"]}>
           <View style={styles.container}>
 
             {/* Topic */}
@@ -127,15 +95,13 @@ useEffect(() => {
 
             {/* Image */}
             <View style={styles.imageWrapper}>
-              {imageSource && (
-                <Image source={imageSource} style={styles.image} />
-              )}
+              <Image source={imageSource} style={styles.image} />
             </View>
 
             {/* Quote or snippet */}
             <AutoShrinkBlock
               maxFontSize={22}
-              height={115}
+              height={125}
               minHeight={115}
               textAlign="left"
               fontWeight="500"
@@ -147,7 +113,7 @@ useEffect(() => {
             {/* Stats */}
             <AutoShrinkBlock
               maxFontSize={22}
-              height={100}
+              height={90}
               minHeight={100}
               textAlign="left"
               fontWeight="500"
@@ -187,6 +153,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
+    zIndex: 2,
+  },
+  dimOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "black",
+    opacity: 0.10,   // adjust to taste
+    zIndex: 1,
+  },
+  contentWrapper: {
+    flex: 1,
+    position: "relative",
+    zIndex: 2,
   },
   center: {
     flex: 1,

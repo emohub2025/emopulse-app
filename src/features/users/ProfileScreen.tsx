@@ -1,0 +1,294 @@
+import React, { useState } from "react";
+import { View, Text, Image, Pressable, ImageBackground, StyleSheet, TextInput } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { useRoute } from "@react-navigation/native";
+import { postUserInfo } from "../../api/getUserInfo";
+import StateSelector, { autoDetectStateFromZip } from "../../components/StateSelector";
+import type { MobileUser } from "../../navigation/types";
+import saveButton from "../../assets/buttons/save.png";
+
+const MIN_BIRTHDATE = new Date(1900, 0, 1);
+const MAX_BIRTHDATE = new Date();
+
+function formatPhone(input: string): string {
+  const digits = input.replace(/\D/g, "");
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+}
+
+type MobileUserUpdate = {
+  first_name?: string;
+  phone?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  birthdate?: string;
+  facebook_url?: string;
+  instagram_url?: string;
+  tiktok_url?: string;
+};
+
+// ⭐ Add callback type
+type ProfileRouteParams = {
+  user: MobileUser;
+  onUserUpdated?: (user: MobileUser) => void;
+};
+
+export default function ProfileScreen() {
+  const route = useRoute();
+  const { user: initialUser, onUserUpdated } = route.params as ProfileRouteParams;
+
+  const [showBirthdatePicker, setShowBirthdatePicker] = useState(false);
+
+  const [user, setUser] = useState<MobileUser>(initialUser);
+
+  const [update, setUpdate] = useState<MobileUserUpdate>({
+    first_name: initialUser.first_name,
+    phone: initialUser.phone,
+    city: initialUser.city,
+    state: initialUser.state,
+    zip: initialUser.zip,
+    birthdate: initialUser.birthdate,
+    facebook_url: initialUser.facebook_url,
+    instagram_url: initialUser.instagram_url,
+    tiktok_url: initialUser.tiktok_url,
+  });
+
+  return (
+    <View style={{ flex: 1, backgroundColor: "black" }}>
+      <Text style={styles.topLabel}>Profile Details</Text>
+
+      <ImageBackground
+        source={require("../../assets/images/background.png")}
+        style={{ flex: 1 }}
+        resizeMode="cover"
+      >
+        <View style={styles.dimOverlay} />
+
+        <View style={{ marginTop: 40 }}>
+          {/* First Name */}
+          <View style={styles.rowField}>
+            <Text style={styles.rowLabel}>First Name:</Text>
+            <TextInput
+              style={styles.rowInput}
+              value={update.first_name}
+              onChangeText={(text) =>
+                setUpdate((prev) => ({ ...prev, first_name: text }))
+              }
+            />
+          </View>
+
+          {/* Phone */}
+          <View style={styles.rowField}>
+            <Text style={styles.rowLabel}>Phone:</Text>
+            <TextInput
+              style={styles.rowInput}
+              keyboardType="phone-pad"
+              value={formatPhone(update.phone ?? "")}
+              onChangeText={(text) => {
+                const digits = text.replace(/\D/g, "").slice(0, 10);
+                setUpdate((prev) => ({ ...prev, phone: digits }));
+              }}
+            />
+          </View>
+
+          {/* City */}
+          <View style={styles.rowField}>
+            <Text style={styles.rowLabel}>City:</Text>
+            <TextInput
+              style={styles.rowInput}
+              value={update.city}
+              onChangeText={(text) =>
+                setUpdate((prev) => ({ ...prev, city: text }))
+              }
+            />
+          </View>
+
+          {/* State + ZIP */}
+          <View style={styles.rowField}>
+            <Text style={styles.rowLabel}>State:</Text>
+            <StateSelector
+              value={update.state ?? null}
+              onChange={(state) =>
+                setUpdate((prev) => ({ ...prev, state }))
+              }
+            />
+
+            <Text style={[styles.rowLabel, { marginLeft: 22 }]}>ZIP:</Text>
+            <TextInput
+              style={[styles.rowInput, { width: 90, marginTop: -4, marginLeft: -74 }]}
+              keyboardType="number-pad"
+              value={update.zip}
+              onChangeText={(zip) => {
+                const digits = zip.replace(/\D/g, "").slice(0, 5);
+                const detected = autoDetectStateFromZip(digits);
+                setUpdate((prev) => ({
+                  ...prev,
+                  zip: digits,
+                  state: detected ?? prev.state,
+                }));
+              }}
+            />
+          </View>
+
+          {/* Birthdate */}
+          <View style={styles.rowField}>
+            <Text style={styles.rowLabel}>Birthdate:</Text>
+
+            <Pressable
+              style={styles.rowInput}
+              onPress={() => setShowBirthdatePicker(true)}
+            >
+              <Text style={{ color: "white", fontSize: 20, fontWeight: "700" }}>
+                {update.birthdate
+                  ? new Date(update.birthdate).toLocaleDateString()
+                  : "Select birthdate"}
+              </Text>
+            </Pressable>
+
+            {showBirthdatePicker && (
+              <DateTimePicker
+                value={update.birthdate ? new Date(update.birthdate) : new Date()}
+                mode="date"
+                display="calendar"
+                minimumDate={MIN_BIRTHDATE}
+                maximumDate={MAX_BIRTHDATE}
+                onChange={(event, selectedDate) => {
+                  setShowBirthdatePicker(false);
+                  if (selectedDate) {
+                    setUpdate((prev) => ({
+                      ...prev,
+                      birthdate: selectedDate.toISOString(),
+                    }));
+                  }
+                }}
+              />
+            )}
+          </View>
+
+          {/* Facebook */}
+          <View style={styles.rowField}>
+            <Text style={styles.rowLabel}>Facebook:</Text>
+            <TextInput
+              style={styles.rowInput}
+              value={update.facebook_url}
+              onChangeText={(text) =>
+                setUpdate((prev) => ({ ...prev, facebook_url: text }))
+              }
+            />
+          </View>
+
+          {/* Instagram */}
+          <View style={styles.rowField}>
+            <Text style={styles.rowLabel}>Instagram:</Text>
+            <TextInput
+              style={styles.rowInput}
+              value={update.instagram_url}
+              onChangeText={(text) =>
+                setUpdate((prev) => ({ ...prev, instagram_url: text }))
+              }
+            />
+          </View>
+
+          {/* TikTok */}
+          <View style={styles.rowField}>
+            <Text style={styles.rowLabel}>Tiktok:</Text>
+            <TextInput
+              style={styles.rowInput}
+              value={update.tiktok_url}
+              onChangeText={(text) =>
+                setUpdate((prev) => ({ ...prev, tiktok_url: text }))
+              }
+            />
+          </View>
+
+          {/* Save Button */}
+          <Pressable
+            onPress={async () => {
+              try {
+                const updatedUser = await postUserInfo({
+                  id: user.id,
+                  ...update,
+                });
+
+                setUser(updatedUser);
+
+                // ⭐ CRITICAL FIX: push updated user back to AccountScreen
+                if (onUserUpdated) {
+                  onUserUpdated(updatedUser);
+                }
+
+                alert("Profile updated!");
+              } catch (err) {
+                console.error("❌ Failed to update user:", err);
+                alert("Failed to save changes.");
+              }
+            }}
+            style={({ pressed }) => [
+              styles.saveButtonImageWrapper,
+              pressed && { opacity: 0.6 },
+            ]}
+          >
+            <Image
+              source={saveButton}
+              style={styles.saveButtonImage}
+              resizeMode="contain"
+            />
+          </Pressable>
+        </View>
+      </ImageBackground>
+    </View>
+  );
+}
+
+// Styles unchanged
+const styles = StyleSheet.create({
+  topLabel: {
+    color: "white",
+    fontSize: 26,
+    fontWeight: "700",
+    marginTop: 95,
+    textAlign: "center",
+    backgroundColor: "black",
+  },
+  dimOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "black",
+    opacity: 0.4,
+  },
+  rowField: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+    paddingHorizontal: 20,
+  },
+  rowLabel: {
+    color: "yellow",
+    fontSize: 20,
+    fontWeight: "600",
+    marginRight: 10,
+    marginLeft: 5,
+    width: 110,
+  },
+  rowInput: {
+    flex: 1,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    color: "white",
+    fontWeight: "500",
+    fontSize: 20,
+  },
+  saveButtonImageWrapper: {
+    alignItems: "center",
+    marginTop: 25,
+  },
+  saveButtonImage: {
+    width: 280,
+    height: 47,
+  },
+});
