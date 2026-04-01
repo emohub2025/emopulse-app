@@ -1,5 +1,6 @@
 export type LoginResponse = {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
   userId: number;
   walletId: number;
 };
@@ -66,10 +67,12 @@ export interface Challenge {
   source?: string | null;
   category: string;
   status?: string;
-  expires_at?: string; // ISO timestamp
+  resolved_at?: string;
+  archived_at?: string;
   subchallenge_id?: string | null;
   external_url?: string | null;
   popularity_score?: number | null;
+  winning_emotion?: string | null;
   audit_log?: any[] | null;
 }
 
@@ -87,6 +90,9 @@ export type RootStackParamList = {
     user: MobileUser;
     onUserUpdated: (updated: MobileUser) => void;
   }
+  ResultsHistory: {
+    userId: string;
+  }
   Transactions: {
     userId: string;
   }
@@ -95,6 +101,8 @@ export type RootStackParamList = {
   }
   CategoryChallenges: {
     category: string;
+    active: Challenge[];
+    recent: Challenge[];
   };
   ChallengeDetail: {
     challenge: Challenge;
@@ -103,7 +111,9 @@ export type RootStackParamList = {
     challenge: Challenge;
   };
   ChallengeResults: {
-    challenge: Challenge;
+    challenge?: Challenge;
+    challengeId?: string;
+    fromHistory?: boolean;
   };
   Subchallenge: {
     challenge: Challenge;
@@ -114,11 +124,101 @@ export type RootStackParamList = {
   };
 };
 
+// this should be removed
 export interface SubchallengeList {
   id: string;
   question_text: string;
-  options: { text: string; label: string }[];
   sequence: number;
+  options: {
+    id: string;
+    label: string;
+    sequence: number;
+    metadata?: {
+      text?: string;
+      label?: string;
+      [key: string]: any;
+    };
+  }[];
+}
+
+export interface CycleInfo {
+  batchId: string | null;
+  startTime: number | null;
+  durationMs: number | null;
+  endTime: number | null;
+  timeRemainingMs: number | null;
+}
+
+export interface FeedCategory {
+  id: string;
+  name: string;
+  challengeCount: number;
+  active: any[];
+  recent: any[];
+}
+
+export interface FeedResponse {
+  status: "ok";
+  cycle: CycleInfo;
+  categories: FeedCategory[];
+}
+
+export interface FeedChallenge {
+  id: string;
+  category: string;
+  headline: string;
+  image_url: string | null;
+  snippet: string | null;
+  quote: string | null;
+  stat: string | null;
+  winning_emotion: string | null;   // null for active, string for recent
+  resolved_at: string | null;       // null for active, timestamp for recent
+  //subchallenges: FeedSubchallengeSummary[];
+}
+
+export interface FeedSubchallengeSummary {
+  id: string;
+  question_text: string;
+  winning_option?: {
+    id: string;
+    label: string;
+  }; // present only for RECENT challenges
+}
+
+export interface ChallengeDetail {
+  id: string;
+  category: string;
+  headline: string;
+  topic: string | null;
+  source: string | null;
+  image_url: string | null;
+  snippet: string | null;
+  quote: string | null;
+  stat: string | null;
+  winning_emotion: string | null;
+  resolved_at: string | null;
+
+  subchallenges: {
+    id: string;
+    question_text: string;
+    sequence: number;
+    options: {
+      id: string;
+      label: string;
+      sequence: number;
+      metadata?: Record<string, any>;
+    }[];
+    winning_option?: {
+      id: string;
+      label: string;
+    };
+  }[];
+
+  user_bets?: {
+    subchallenge_id: string;
+    option_id: string;
+    amount: number;
+  }[];
 }
 
 export interface SubchallengeTemplate {

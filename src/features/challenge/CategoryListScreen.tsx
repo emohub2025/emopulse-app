@@ -1,13 +1,13 @@
 import { useState, useCallback } from 'react';
-import { View, Text, ImageBackground, StyleSheet, FlatList, Pressable, Image } from 'react-native';
+import { View, Text, ImageBackground, StyleSheet, FlatList, Pressable } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
-import { getCycleStatus } from '../../api/cycleStatus';
-import type { CategoryInfo } from '../../api/cycleStatus';
 import { useCycleTimer } from '../../components/CycleTimerContext';
-import ButtonPanel from '../../components/ButtonPanel'
+import ButtonPanel from '../../components/ButtonPanel';
+import { getFeedList } from "../../api/getFeedList";
+import type { FeedCategory, FeedResponse } from "../../navigation/types";
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -40,12 +40,13 @@ const categoryImages: Record<string, any> = {
 
 export default function CategoryListScreen() {
   const navigation = useNavigation<NavProp>();
-  const { formattedTime, refreshCycle } = useCycleTimer(); // ⭐ pull refreshCycle
 
-  const [categories, setCategories] = useState<CategoryInfo[]>([]);
+  // ⭐ NEW: use applyCycleFromFeed instead of refreshCycle
+  const { applyCycleFromFeed } = useCycleTimer();
+
+  const [categories, setCategories] = useState<FeedCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ⭐ Load categories + refresh timer whenever screen becomes focused
   useFocusEffect(
     useCallback(() => {
       let isActive = true;
@@ -53,13 +54,15 @@ export default function CategoryListScreen() {
 
       async function load() {
         try {
-          // 1️⃣ refresh cycle timer context
-          await refreshCycle();
+          // ⭐ Fetch feed (cycle + categories)
+          const feed: FeedResponse = await getFeedList();
 
-          // 2️⃣ reload categories for the new cycle
-          const result = await getCycleStatus();
           if (isActive) {
-            setCategories(result.categories);
+            // ⭐ Push cycle metadata into timer context
+            applyCycleFromFeed(feed.cycle);
+
+            // ⭐ Set categories
+            setCategories(feed.categories);
           }
         } finally {
           if (isActive) {
@@ -73,7 +76,7 @@ export default function CategoryListScreen() {
       return () => {
         isActive = false;
       };
-    }, [refreshCycle])
+    }, [applyCycleFromFeed])
   );
 
   if (loading) {
@@ -86,7 +89,13 @@ export default function CategoryListScreen() {
     );
   }
 
-  const sortedCategories = [...categories].sort((a, b) => {
+  // ⭐ Normalize names to avoid trailing spaces / casing issues
+  const normalizedCategories = categories.map(c => ({
+    ...c,
+    name: c.name.trim()
+  }));
+
+  const sortedCategories = [...normalizedCategories].sort((a, b) => {
     const indexA = CATEGORY_ORDER.indexOf(a.name);
     const indexB = CATEGORY_ORDER.indexOf(b.name);
 
@@ -98,50 +107,38 @@ export default function CategoryListScreen() {
   });
 
   return (
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <Text style={styles.topLabel}>Current Challenges</Text>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <Text style={styles.topLabel}>Challenge Categories</Text>
 
-        <FlatList
-          data={sortedCategories}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          style={styles.list}
-          columnWrapperStyle={styles.columnWrapper}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <Pressable
-              style={styles.card}
-              onPress={() =>
-                navigation.navigate('CategoryChallenges', {
-                  category: item.name,
-                })
-              }
-            >
+      <FlatList
+        data={sortedCategories}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        style={styles.list}
+        columnWrapperStyle={styles.columnWrapper}
+        contentContainerStyle={styles.listContent}
+        renderItem={({ item }) => (
+          <Pressable
+            style={styles.card}
+            onPress={() =>
+              navigation.navigate('CategoryChallenges', {
+                category: item.name,
+                active: item.active,
+                recent: item.recent
+              })
+            }
+          >
             <ImageBackground
-              source={
-                categoryImages[item.name] ? categoryImages[item.name] : null}
+              source={categoryImages[item.name] ?? null}
               style={styles.cardBackground}
               resizeMode="stretch"
             />
-              {/* <ImageBackground
-                source={categoryImages[item.name]}
-                style={styles.cardBackground}
-                resizeMode="stretch"
-              /> */}
-            </Pressable>
-          )}
-        />
-
-      {/* <View style={styles.timerContainer}>
-        <Text style={styles.timer}>{formattedTime}</Text>
-      </View> */}
+          </Pressable>
+        )}
+      />
 
       <View>
-        {/* your screen content */}
-
-        <ButtonPanel>
-          {/* panel content here */}
-        </ButtonPanel>
+        <ButtonPanel />
       </View>
     </SafeAreaView>
   );
@@ -153,21 +150,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  background: {
-    flex: 1,
-  },
   list: {
-    flex: 1,                 // ← THIS is the missing piece
-    marginTop: -5,
-    marginBottom: 0,
+    flex: 1,
+    marginTop: -7,
+    marginBottom: 60,
   },
   safe: {
-    flex: 1,              // ← SafeAreaView fills everything above the timer
+    flex: 1,
     paddingTop: 40,
     paddingBottom: 0,
     backgroundColor: '#000',
   },
-
   topLabel: {
     color: 'white',
     fontSize: 26,
@@ -176,42 +169,26 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textAlign: 'center',
   },
-
   columnWrapper: {
     justifyContent: 'space-between',
     paddingHorizontal: 20,
   },
-
   listContent: {
     paddingLeft: 5,
     paddingRight: 5,
-    paddingTop: 10,
-    paddingBottom: 100,   // ← ensures last row scrolls above timer
+    paddingTop: 5,
+    paddingBottom: 40,
   },
-
   card: {
-    height: 140,
+    height: 135,
     width: 160,
     marginBottom: 12,
     borderRadius: 12,
     overflow: 'hidden',
   },
-
   cardBackground: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-
-  timerContainer: {
-    height: 60,           // ← fixed footer height
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  timer: {
-    color: 'yellow',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

@@ -1,14 +1,6 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useMemo,
-  useRef,
-  useCallback,
-} from 'react';
-import { getCycleStatus } from '../api/cycleStatus';
+import React, { createContext, useContext, useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import eventBus from './EventBus';
+import type { CycleInfo } from "../navigation/types";
 
 export type CycleTimerContextType = {
   cycleStartTime: number | null;
@@ -17,7 +9,9 @@ export type CycleTimerContextType = {
   elapsedMs: number;
   formattedTime: string | null;
   isExpired: boolean;
-  refreshCycle: () => Promise<void>;   // ⭐ NEW
+
+  // Screens call this after fetching feed
+  applyCycleFromFeed: (cycle: CycleInfo) => void;
 };
 
 const CycleTimerContext = createContext<CycleTimerContextType>({
@@ -27,7 +21,7 @@ const CycleTimerContext = createContext<CycleTimerContextType>({
   elapsedMs: 0,
   formattedTime: null,
   isExpired: false,
-  refreshCycle: async () => {},        // default no-op
+  applyCycleFromFeed: () => {}
 });
 
 interface Props {
@@ -36,53 +30,34 @@ interface Props {
 
 export function CycleTimerProvider({ children }: Props) {
   const hasFiredRef = useRef(false);
+
   const [cycleStartTime, setCycleStartTime] = useState<number | null>(null);
   const [cycleEndTime, setCycleEndTime] = useState<number | null>(null);
   const [timeRemainingMs, setTimeRemainingMs] = useState(0);
   const [elapsedMs, setElapsedMs] = useState(0);
 
   //
-  // ⭐ Unified function to load cycle times
+  // Apply cycle metadata from feed
   //
-  const refreshCycle = useCallback(async () => {
-    const result = await getCycleStatus();
-
-    const rawStart = result.cycle.startTime;
-    const rawEnd = result.cycle.endTime;
+  const applyCycleFromFeed = useCallback((cycle: CycleInfo) => {
+    const rawStart = cycle.startTime;
+    const rawEnd = cycle.endTime;
 
     let start: number | null = null;
     let end: number | null = null;
 
-    if (typeof rawStart === 'number') {
-      start = rawStart;
-    } else if (typeof rawStart === 'string') {
-      const parsed = new Date(rawStart).getTime();
-      if (!isNaN(parsed)) start = parsed;
-    }
-
-    if (typeof rawEnd === 'number') {
-      end = rawEnd;
-    } else if (typeof rawEnd === 'string') {
-      const parsed = new Date(rawEnd).getTime();
-      if (!isNaN(parsed)) end = parsed;
-    }
+    if (typeof rawStart === 'number') start = rawStart;
+    if (typeof rawEnd === 'number') end = rawEnd;
 
     if (start && end && start > 0 && end > 0) {
-      hasFiredRef.current = false; // reset expiration flag
+      hasFiredRef.current = false;
       setCycleStartTime(start);
       setCycleEndTime(end);
-    } 
+    }
   }, []);
 
   //
-  // ⭐ Initial load
-  //
-  useEffect(() => {
-    refreshCycle();
-  }, [refreshCycle]);
-
-  //
-  // ⭐ Countdown interval (unchanged)
+  // Countdown interval
   //
   useEffect(() => {
     hasFiredRef.current = false;
@@ -118,7 +93,6 @@ export function CycleTimerProvider({ children }: Props) {
 
     const totalSeconds = Math.max(0, Math.floor(timeRemainingMs / 1000));
     if (isNaN(totalSeconds)) return 'Expired';
-
     if (totalSeconds === 0) return 'Expired';
 
     const minutes = Math.floor(totalSeconds / 60);
@@ -140,7 +114,7 @@ export function CycleTimerProvider({ children }: Props) {
         elapsedMs,
         formattedTime,
         isExpired,
-        refreshCycle,   // ⭐ exposed
+        applyCycleFromFeed
       }}
     >
       {children}

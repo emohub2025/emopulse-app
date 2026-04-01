@@ -51,6 +51,14 @@ export default function ButtonPanel() {
           <Text style={styles.label}>Account</Text>
         </Pressable>
       </View>
+
+      {/* Bottom gradient line */}
+      <LinearGradient
+        colors={['#A020F0', '#D8B4FF', '#A020F0']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.bottomLine}
+      />
     </View>
   );
 }
@@ -58,10 +66,10 @@ export default function ButtonPanel() {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 40,
     left: 0,
     right: 0,
-    height: 70,
+    height: 60,
     paddingHorizontal: 16,
     backgroundColor: '#111',
     borderTopLeftRadius: 16,
@@ -80,6 +88,15 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
 
+    bottomLine: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    borderRadius: 2,
+  },
+
   row: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
@@ -91,8 +108,8 @@ const styles = StyleSheet.create({
   },
 
   icon: {
-    width: 35,
-    height: 35,
+    width: 30,
+    height: 30,
     resizeMode: 'contain',
   },
 

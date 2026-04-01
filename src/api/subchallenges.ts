@@ -13,12 +13,14 @@ export async function getSubchallengeList(challengeId: string) {
   );
 }
 
+// Sponsored challenges
 export async function getSubchallengeTemplate(subchallengeId: string) {
   return apiGet<SubchallengeTemplate>(
     `/subchallenge/${subchallengeId}`
   );
 }
 
+// Sponsored challenges
 export async function getSubchallengeResponses(
   subchallengeId: string,
   userId: string

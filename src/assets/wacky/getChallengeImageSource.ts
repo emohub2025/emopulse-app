@@ -8,7 +8,7 @@ export const WACKY_IMAGES: Record<string, any> = {
   AlienTourists: require("./aliens.png"),
   OverlyLiteralGenies: require("./genie.png"),
   HistoricalFiguresGoneWrong: require("./famous.png"),
-  SportsInImpossibleWorlds: require("./sports.png"),
+  SportsInImpossibleWorlds: require("../../assets/wacky/sports.png"),
 };
 
 export function getChallengeImageSource(challenge: Challenge | null | undefined) {
@@ -17,7 +17,7 @@ export function getChallengeImageSource(challenge: Challenge | null | undefined)
   }
 
   // ⭐ Wacky category → resolve by subgenre
-  if (challenge.category === "Wacky") {
+  if (challenge.source?.startsWith("Wacky")) {
     // Option A: subgenre comes from challenge.source ("WackyPulse:FoodThatFightsBack")
     let subgenreKey: string | undefined;
 

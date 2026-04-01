@@ -11,7 +11,7 @@ export default function HelpAndSupportScreen() {
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <ImageBackground
         source={require("../../assets/images/background.png")}
-        style={{ flex: 1 }}
+        style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
       <Text style={styles.topLabel}>Help & Support</Text>

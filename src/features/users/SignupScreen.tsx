@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, ImageBackground, StyleSheet, Pressable, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import signupButton from '../../assets/buttons/signup.png';
@@ -15,42 +15,45 @@ type NavProp = NativeStackNavigationProp<RootStackParamList>;
 export default function SignupScreen() {
   const navigation = useNavigation<NavProp>();
 
-  const [name, setName] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [showPassword, setShowPassword] = React.useState(false);
-  const [checked, setChecked] = React.useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [checked, setChecked] = useState(true);
 
-  const [loading, setLoading] = React.useState(false);   // ← double-submit protection
-  const [error, setError] = React.useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
+  // -----------------------------------------------------
+  // 🔐 Handle Signup (double-submit safe)
+  // -----------------------------------------------------
   async function handleSignup() {
-    if (loading) return; // ← HARD STOP: prevents double-submit
+    if (loading) return;
 
     setError("");
 
-    // 1️⃣ Basic required fields
+    // 1️⃣ Required fields
     if (!name || !email || !password || !confirmPassword) {
       setError("Please fill out all fields");
       return;
     }
 
-    // 2️⃣ Email format validation
+    // 2️⃣ Email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(email.trim())) {
       setError("Please enter a valid email address");
       return;
     }
 
-    // 3️⃣ Minimum password length
+    // 3️⃣ Password length
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
       return;
     }
 
-    // 4️⃣ Confirm password validation
+    // 4️⃣ Confirm password
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -65,30 +68,24 @@ export default function SignupScreen() {
     try {
       setLoading(true);
 
-      console.log("📨 Sending signup request:", {
-        name,
-        email,
-        passwordLength: password.length,
-      });
+      const cleanEmail = email.trim().toLowerCase();
+      const cleanName = name.trim();
 
-      // IMPORTANT: call your SIGNUP endpoint
       const response = await apiPost<LoginResponse>(
         "signup",
-        { name, email, password },
+        { name: cleanName, email: cleanEmail, password },
         navigation
       );
 
-      console.log("✅ Signup response received:", response);
-
       // Save auth info
-      await AsyncStorage.setItem("authToken", response.token);
+      await AsyncStorage.setItem("authToken", response.accessToken);
+      await AsyncStorage.setItem("refreshToken", response.refreshToken);
       await AsyncStorage.setItem("userId", String(response.userId));
       await AsyncStorage.setItem("walletId", String(response.walletId));
 
       navigation.replace("CategoryList");
 
     } catch (err: any) {
-      console.log("❌ Signup error:", err);
       setError(err.message || "Signup failed");
     } finally {
       setLoading(false);
@@ -144,7 +141,7 @@ export default function SignupScreen() {
           />
         </View>
 
-        {/* Fixed error placeholder (prevents layout jump) */}
+        {/* Fixed error placeholder */}
         <View style={{ height: 24, marginBottom: 10 }}>
           {error !== "" && (
             <Text style={styles.errorText}>{error}</Text>
@@ -168,7 +165,7 @@ export default function SignupScreen() {
         <View style={styles.loginRow}>
           <Text style={styles.bottomLabel}>Already have an account? </Text>
 
-          <Pressable onPress={() => navigation.navigate("HomePage")}>
+          <Pressable onPress={() => navigation.navigate("Login")}>
             <Text style={styles.loginLink}>Log In</Text>
           </Pressable>
         </View>
@@ -238,38 +235,6 @@ const styles = StyleSheet.create({
     color: '#FF6B6B',
     fontSize: 16,
     textAlign: "center",
-  },
-  checkboxBox: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: '#4A4779',
-    backgroundColor: '#11173A',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkboxBoxChecked: {
-    borderWidth: 0,
-    backgroundColor: '#4A4779',
-  },
-  checkIcon: {
-    width: 18,
-    height: 18,
-    resizeMode: 'contain',
-  },
-  checkboxLabel: {
-    color: 'white',
-    fontSize: 13,
-    marginLeft: 12,
-    fontWeight: '400',
-    lineHeight: 20,
-  },
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: 320,
-    marginTop: 10,
   },
   buttonWrapper: {
     alignItems: 'center',

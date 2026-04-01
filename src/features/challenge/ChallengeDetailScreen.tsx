@@ -32,6 +32,8 @@ export default function ChallengeDetailScreen({
   const navigation = useNavigation<NavProp>();
   const { formattedTime, isExpired } = useCycleTimer();
   const isFocused = useIsFocused();
+  const hasQuote = challenge.quote && challenge.quote.trim().length > 0;
+  const isResolved = challenge.status !== 'open';
 
   //
   // 1️⃣ Image source (fallback-safe)
@@ -64,6 +66,16 @@ export default function ChallengeDetailScreen({
     }
   }, [isExpired, challenge]);
 
+  const combinedDetails = useMemo(() => {
+    const parts: string[] = [];
+
+    if (challenge.snippet) parts.push(challenge.snippet.trim());
+    if (challenge.stat) parts.push(challenge.stat.trim());
+    if (challenge.quote) parts.push(challenge.quote.trim());
+
+    return parts.join("\n\n"); // double line break looks great in UI
+  }, [challenge])
+
   //
   // 4️⃣ UI
   //
@@ -73,12 +85,11 @@ export default function ChallengeDetailScreen({
 
       <ImageBackground
         source={require('../../assets/images/background.png')}
-        style={{ flex: 1 }}
+        style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
         {/* Dim overlay */}
-  <View style={styles.dimOverlay} />
-
+        <View style={styles.dimOverlay} />
   
         <SafeAreaView style={styles.contentWrapper} edges={["top", "bottom"]}>
           <View style={styles.container}>
@@ -86,6 +97,7 @@ export default function ChallengeDetailScreen({
             {/* Topic */}
             <AutoShrinkBlock
               height={100}
+              fontWeight="700"
               textAlign="center"
               fontStyle="italic"
               marginTop={-30}
@@ -98,41 +110,52 @@ export default function ChallengeDetailScreen({
               <Image source={imageSource} style={styles.image} />
             </View>
 
-            {/* Quote or snippet */}
-            <AutoShrinkBlock
-              maxFontSize={22}
-              height={125}
-              minHeight={115}
-              textAlign="left"
-              fontWeight="500"
-              fontStyle={challenge.quote ? "italic" : "normal"}
-            >
-              {challenge.quote || challenge.snippet || ""}
-            </AutoShrinkBlock>
+            {/* Source */}
+            <Text style={styles.source}>
+              Source: {challenge.source?.startsWith("Wacky") || !challenge.source
+                ? "Emopulse"
+                : challenge.source}
+            </Text>
 
-            {/* Stats */}
-            <AutoShrinkBlock
-              maxFontSize={22}
-              height={90}
-              minHeight={100}
-              textAlign="left"
-              fontWeight="500"
-            >
-              {challenge.stat ? `Stats: ${challenge.stat}` : ""}
-            </AutoShrinkBlock>
+            {/* Snippet */}
+            <View style={{ marginRight: -10 }}>
+              <AutoShrinkBlock
+                maxFontSize={20}
+                height={230}
+                minHeight={230}
+                textAlign="left"
+                fontWeight="700"
+                marginBottom={10}
+              >
+                {combinedDetails ? combinedDetails : ""}
+              </AutoShrinkBlock>
+            </View>
 
-            {/* NEXT BUTTON */}
-            <Pressable
-              onPress={() =>
-                navigation.navigate("Challenge", {
-                  challenge,
-                })
-              }
-            >
-              <Image source={playButton} style={styles.playImage} />
-            </Pressable>
+            {/* NEXT BUTTON OR WINNING EMOTION */}
+            {!isResolved ? (
+              <>
+                <Pressable
+                  onPress={() =>
+                    navigation.navigate("Challenge", {
+                      challenge,
+                    })
+                  }
+                >
+                  <Image source={playButton} style={styles.playImage} />
+                </Pressable>
 
-            <Text style={styles.timer}>{formattedTime}</Text>
+                <Text style={styles.timer}>{formattedTime}</Text>
+              </>
+            ) : (
+              <Text style={styles.winningEmotion}>
+                {challenge.winning_emotion && (
+                  <Text style={styles.winningEmotionContainer}>
+                    <Text style={styles.winningEmotionLabel}>Winning Emotion: </Text>
+                    <Text style={styles.winningEmotionValue}>{challenge.winning_emotion}</Text>
+                  </Text>
+                )}
+              </Text>
+            )}
           </View>
         </SafeAreaView>
       </ImageBackground>
@@ -142,8 +165,38 @@ export default function ChallengeDetailScreen({
 
 // Styles
 const styles = StyleSheet.create({
+  customHeader: {
+    width: '100%',
+    paddingTop: 8,            // small breathing room under the status bar
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center', // centers the logo
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 999,              // ensures it sits above content
+  },
+
+  backIcon: {
+    width: 28,
+    height: 28,
+    tintColor: 'white',
+    position: 'absolute',
+    left: 16,                 // keeps it aligned like native-stack
+    top: 8,
+  },
+
+  logo: {
+    width: 220,               // adjust to your logo proportions
+    height: 40,
+    resizeMode: 'contain',
+    marginTop: 4,             // subtle vertical tuning
+  },
+
   topLabel: {
-    color: 'white',
+    color: 'yellow',
     fontSize: 26,
     fontWeight: '700',
     marginTop: 95,
@@ -158,7 +211,7 @@ const styles = StyleSheet.create({
   dimOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "black",
-    opacity: 0.10,   // adjust to taste
+    opacity: 0.30,   // adjust to taste
     zIndex: 1,
   },
   contentWrapper: {
@@ -182,17 +235,47 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
+    resizeMode: 'contain',
   },
   playImage: {
     width: 280,
     height: 47,
     resizeMode: 'contain',
     alignSelf: 'center',
-    marginTop: 45,
+    marginTop: -10,
+  },
+  winningEmotion: {
+    marginTop: 20,
+    color: "lime",
+    fontSize: 26,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  winningEmotionContainer: {
+    marginTop: 20,
+    textAlign: "center",
+  },
+
+  winningEmotionLabel: {
+    color: "white",
+    fontSize: 24,
+    fontWeight: "700",
+  },
+
+  winningEmotionValue: {
+    color: "lime",
+    fontSize: 24,
+    fontWeight: "700",
+  },
+  source: {
+    marginTop: 10,
+    marginLeft: 14,
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '500',
   },
   timer: {
-    marginTop: 15,
+    marginTop: 6,
     color: 'yellow',
     fontSize: 22,
     fontWeight: '600',

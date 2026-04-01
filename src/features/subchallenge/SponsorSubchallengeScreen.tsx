@@ -5,8 +5,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RouteProp } from "@react-navigation/native";
 import type { RootStackParamList, SubchallengeTemplate, UserSubchallengeResponse } from "../../navigation/types";
-import { getSubchallengeTemplate } from "../../api/subchallenges";
-import { getSubchallengeResponses } from "../../api/getSubchallengeResponses";   // ⭐ NEW
+import { getSubchallengeTemplate, getSubchallengeResponses } from "../../api/subchallenges";
 import { postSubchallengeResponse } from "../../api/postSubchallengeResponse";
 import { LinearGradient } from "expo-linear-gradient";
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';

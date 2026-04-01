@@ -5,6 +5,7 @@ import { apiGet } from "../../api/engineClient";
 
 // Icons
 import payoutIcon from "../../assets/images/payout.png";
+import payoutSubIcon from "../../assets/images/payout-sub.png";
 import betIcon from "../../assets/images/bet.png";
 
 type Transaction = {
@@ -46,7 +47,7 @@ function iconFor(type: string) {
     case "bet":
       return betIcon;
     default:
-      return null;
+      return payoutSubIcon;
   }
 }
 
@@ -155,7 +156,7 @@ export default function TransactionsScreen() {
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <ImageBackground
         source={require("../../assets/images/background.png")}
-        style={{ flex: 1 }}
+        style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
         <Text style={styles.topLabel}>Transaction History</Text>
@@ -270,12 +271,13 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.85)",
     marginHorizontal: 12,
     marginTop: 20,
-    marginBottom: 40,
+    marginBottom: 15,
     borderRadius: 20,
     overflow: "hidden",
   },
   sectionHeader: {
-    color: "white",
+    color: "yellow",
+    textAlign: "center",
     fontSize: 18,
     fontWeight: "700",
     marginHorizontal: 14,
@@ -286,7 +288,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 14,
-    borderBottomWidth: 1,
     borderBottomColor: "rgba(255,255,255,0.1)",
     marginHorizontal: 14,
   },
@@ -303,16 +304,17 @@ const styles = StyleSheet.create({
   txDesc: {
     color: "rgba(255,255,255,0.7)",
     fontSize: 14,
-    marginTop: 2,
+    marginTop: -5,
   },
   txDate: {
     color: "rgba(255, 255, 255, 1.0)",
     fontSize: 14,
-    marginTop: 2,
+    marginTop: -5,
   },
   txAmount: {
     fontSize: 18,
     fontWeight: "700",
     marginLeft: 12,
+    marginTop: -27,
   },
 });

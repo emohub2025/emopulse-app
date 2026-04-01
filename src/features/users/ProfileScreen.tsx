@@ -61,7 +61,7 @@ export default function ProfileScreen() {
 
       <ImageBackground
         source={require("../../assets/images/background.png")}
-        style={{ flex: 1 }}
+        style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
         <View style={styles.dimOverlay} />
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   },
   saveButtonImageWrapper: {
     alignItems: "center",
-    marginTop: 25,
+    marginTop: 5,
   },
   saveButtonImage: {
     width: 280,

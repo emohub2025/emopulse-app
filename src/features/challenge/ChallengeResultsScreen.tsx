@@ -1,7 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { 
-  View, Text, Image, ImageBackground, StyleSheet, Pressable, BackHandler, Animated 
-} from 'react-native';
+import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
+import { View, Text, Image, ImageBackground, StyleSheet, Pressable, Animated, ScrollView, BackHandler } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
@@ -10,6 +8,7 @@ import { ChallengeResult, getChallengeResults } from '../../api/getChallengeResu
 import { useCycleTimer } from '../../components/CycleTimerContext';
 import eventBus from '../../components/EventBus';
 import activeButton from '../../assets/buttons/active.png';
+import { LinearGradient } from "expo-linear-gradient";
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 
 type NavProp = NativeStackNavigationProp<
@@ -17,13 +16,168 @@ type NavProp = NativeStackNavigationProp<
   'ChallengeResults'
 >;
 
+const categoryIcons: Record<string, any> = {
+  Politics: require("../../assets/icons/politics.png"),
+  Sports: require("../../assets/icons/sports.png"),
+  Entertainment: require("../../assets/icons/entertainment.png"),
+  Music: require("../../assets/icons/music.png"),
+  Tech: require("../../assets/icons/tech.png"),
+  Finance: require("../../assets/icons/finance.png"),
+  Gaming: require("../../assets/icons/gaming.png"),
+  Health: require("../../assets/icons/health.png"),
+  Wacky: require("../../assets/icons/wacky.png"),
+};
+
+interface ResultCardProps {
+  title: string;
+  won: boolean;
+  skipped: boolean;
+  userChoice: string | null;
+  winningChoice: string | null;
+  payout: number;
+  delta: number;
+}
+
+const format = (n: number) => Number(n.toFixed(2));
+
+/* -------------------------------------------------------
+   ⭐ SummaryCard Component
+------------------------------------------------------- */
+interface SummaryCardProps {
+  topic: string;
+  category: string;
+  //totalBets: number;
+  //wins: number;
+  //losses: number;
+  totalDelta: number;
+  totalPayout: number;
+}
+
+function SummaryCard({
+  topic,
+  category,
+  //totalBets,
+  //wins,
+  //losses,
+  totalDelta,
+  totalPayout
+}: SummaryCardProps) {
+
+  const categoryKey = category ?? "politics";
+
+  return (
+    <LinearGradient
+      colors={['#ff00cc', '#8a2be2', '#4b0082']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={styles.cardGradient}
+    >
+      <View style={styles.cardInner}>
+        {/* <Text style={styles.summaryTitle}>
+          Summary ({wins}/{totalBets} won)
+        </Text> */}
+        { <Text style={styles.summaryTitle}>
+          Challenge Summary
+        </Text> }
+
+        <View style={styles.summaryCategory}>
+          <Image
+            source={categoryIcons[categoryKey]}
+            style={styles.icon}
+          />
+          <Text style={styles.category}>{category}</Text>
+        </View>
+
+        {/* Topic */}
+        <View style={{ paddingHorizontal: 0 }}>
+          <AutoShrinkBlock
+            key={topic}   // ← forces full remount when topic changes
+            height={100}
+            fontWeight="700"
+            minFontSize={12}
+            maxFontSize={22}
+            textAlign="center"
+            fontStyle="italic"
+          >
+            {topic}
+          </AutoShrinkBlock>
+        </View>
+
+        <Text style={styles.cardLabel}>Net Coins:</Text>
+        <Text
+          style={[
+            styles.cardValue,
+            { color: totalDelta >= 0 ? 'lime' : 'gold' }
+          ]}
+        >
+          {totalDelta >= 0 ? `+${format(totalDelta)}` : format(totalDelta)}
+        </Text>
+
+        <Text style={styles.cardLabel}>Total Payout:</Text>
+        <Text style={styles.cardValue}>
+          {format(totalPayout)}
+        </Text>
+      </View>
+    </LinearGradient>
+  );
+}
+
+/* -------------------------------------------------------
+   ⭐ ResultCard Component
+------------------------------------------------------- */
+function ResultCard(props: ResultCardProps) {
+  const image = props.skipped
+    ? null
+    : props.won
+      ? require('../../assets/images/winner.png')
+      : require('../../assets/images/loser.png');
+
+  return (
+    <LinearGradient
+      colors={['#ff00cc', '#8a2be2', '#4b0082']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={styles.cardGradient}
+    >
+      <View style={styles.cardInner}>
+        {image && <Image source={image} style={styles.cardImage} />}
+
+        <Text style={styles.cardTitle}>{props.title}</Text>
+
+        <Text style={styles.cardLabel}>Your Choice:</Text>
+        <Text style={styles.cardValue}>{props.userChoice ?? '—'}</Text>
+
+        <Text style={styles.cardLabel}>Winning Choice:</Text>
+        <Text style={styles.cardValue}>{props.winningChoice ?? '—'}</Text>
+
+        <Text style={styles.cardLabel}>Payout:</Text>
+        <Text style={styles.cardValue}>{props.payout}</Text>
+
+        <Text style={styles.cardLabel}>Delta:</Text>
+        <Text
+          style={[
+            styles.cardValue,
+            { color: props.delta >= 0 ? 'lime' : 'gold' }
+          ]}
+        >
+          {props.delta >= 0 ? `+${format(props.delta)}` : format(props.delta)}
+        </Text>
+      </View>
+    </LinearGradient>
+  );
+}
+
+/* -------------------------------------------------------
+   ⭐ Main Screen
+------------------------------------------------------- */
 export default function ChallengeResultScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<any>();
-  const { challenge } = route.params || {};
+  const { challenge, challengeId, fromHistory } = route.params || {};
+  const effectiveId = challenge?.id ?? challengeId;
   const USER_ID = "dda1522f-2c44-499e-a8e5-04460b888d05";
 
-  if (!challenge || !challenge.id) {
+  if (!effectiveId) {
     console.error("❌ ChallengeResults missing challenge or challenge.id:", challenge);
     return (
       <SafeAreaView style={styles.safe}>
@@ -35,13 +189,9 @@ export default function ChallengeResultScreen() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<ChallengeResult | null>(null);
 
-  // ⭐ Timer values (restores live countdown)
   const { isExpired, formattedTime } = useCycleTimer();
-
-  // ⭐ Prevent double fetch
   const fetchedRef = useRef(false);
 
-  // ⭐ Animated fade overlay
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -52,20 +202,14 @@ export default function ChallengeResultScreen() {
     }).start();
   }, [loading]);
 
-  // ⭐ Unified fetch function
   const fetchResults = async () => {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
 
     try {
       setLoading(true);
-
-      const data = await getChallengeResults(challenge.id, USER_ID);
-
-      console.log("🔥 Challenge results received:", data);
-
+      const data = await getChallengeResults(effectiveId, USER_ID);
       setResults(data);
-
     } catch (err) {
       console.log("❌ ERROR LOADING RESULT:", err);
     } finally {
@@ -73,18 +217,22 @@ export default function ChallengeResultScreen() {
     }
   };
 
-  // ⭐ Main effect: fetch immediately if expired, otherwise wait for event
   useEffect(() => {
-    const DELAY_MS = 2000; // ⭐ 2-second delay before backend call
+    const DELAY_MS = 2000;
 
+    // ⭐ If opened from history → fetch immediately
+    if (fromHistory) {
+      fetchResults();
+      return;
+    }
+
+    // ⭐ Otherwise follow the active challenge timing logic
     if (isExpired) {
-      console.log("🔥 Cycle already expired — waiting before fetch");
       setTimeout(fetchResults, DELAY_MS);
       return;
     }
 
     const onExpire = () => {
-      console.log("🔥 cycleExpired event received — waiting before fetch");
       setTimeout(fetchResults, DELAY_MS);
     };
 
@@ -93,110 +241,143 @@ export default function ChallengeResultScreen() {
     return () => {
       eventBus.off("cycleExpired", onExpire);
     };
-  }, [challenge.id, isExpired]);
+  }, [challenge?.id, isExpired]);
 
-  // ⭐ Back button → return to CategoryList
-  useFocusEffect(
-    React.useCallback(() => {
-      const onBack = () => {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'CategoryList' }],
-        });
-        return true;
-      };
+  useEffect(() => {
+    if (fromHistory) return;
 
-      const subscription = BackHandler.addEventListener(
-        'hardwareBackPress',
-        onBack
-      );
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "CategoryList" }],
+      });
+      return true; // prevent default back behavior
+    });
 
-      return () => subscription.remove();
-    }, [navigation])
-  );
+    return () => sub.remove();
+  }, [fromHistory, navigation]);
 
-  // ⭐ Main UI
   return (
+  <View style={{ flex: 1, backgroundColor: 'black' }}>
     <ImageBackground
       source={require('../../assets/images/background.png')}
-      style={{ flex: 1 }}
+      style={{ flex: 1, marginBottom: 42 }}
       resizeMode="cover"
     >
       <SafeAreaView style={styles.safe}>
-        <Text style={styles.title}>Challenge Results</Text>
 
-        {/* Topic */}
-        <AutoShrinkBlock
-          height={100}
-          textAlign="center"
-          fontStyle="italic"
-          marginTop={-30}
-        >
-          {challenge.topic}
-        </AutoShrinkBlock>
+        {/* <Text style={styles.title}>Challenge Results</Text> */}
 
+        {/* ⭐ Scrollable results area */}
         <View style={styles.box}>
-          <Text style={styles.label}>Winning Emotion:</Text>
-          <Text style={styles.value}>{results?.winning_emotion}</Text>
+          <ScrollView
+            style={{ maxHeight: '100%' }}
+            // contentContainerStyle={{ paddingBottom: -20 }}
+            showsVerticalScrollIndicator={false}
+          >
 
-          <Text style={styles.label}>Total Players:</Text>
-          <Text style={styles.value}>{results?.total_participants}</Text>
+            {/* ⭐ Summary Card (only if >1 bet) */}
+            {results && (() => {
+              const main = results.user_main;
+              const subs = results.subchallenge_results || [];
 
-          {results?.user && (
-            <>
-              <Text style={styles.label}>Your Emotion:</Text>
-              <Text style={styles.value}>{results.user.emotion}</Text>
+               const totalBets = 1 + subs.length;
+              // const wins = (main?.won ? 1 : 0) + subs.filter(s => s.won).length;
+              // const losses = totalBets - wins;
 
-              <Text style={styles.label}>Your Payout:</Text>
-              <Text style={styles.value}>{results.user.payout}</Text>
+              const totalDelta =
+                (main?.delta || 0) +
+                subs.reduce((sum, s) => sum + s.delta, 0);
 
-              <Text style={styles.label}>Coin Change:</Text>
-              <Text
-                style={[
-                  styles.value,
-                  { color: results.user.delta >= 0 ? 'lime' : 'red' }
-                ]}
-              >
-                {results.user.delta >= 0 ? `+${results.user.delta}` : results.user.delta}
-              </Text>
+              const totalPayout =
+                (main?.payout || 0) +
+                subs.reduce((sum, s) => sum + s.payout, 0);
 
-              <Text style={styles.label}>Won:</Text>
-              <Text style={styles.value}>{results.user.won ? 'Yes' : 'No'}</Text>
-            </>
-          )}
+              return (
+                <>
+                  {totalBets > 1 && (
+                    <SummaryCard
+                      topic={results.challenge.topic}
+                      category={results.challenge.category}
+                      // totalBets={totalBets}
+                      // wins={wins}
+                      // losses={losses}
+                      totalDelta={totalDelta}
+                      totalPayout={totalPayout}
+                    />
+                  )}
+                </>
+              );
+            })()}
+
+            {/* ⭐ Main Challenge Card */}
+            {results?.user_main && !results.user_main.skipped && (
+              <ResultCard
+                title="Main Challenge"
+                won={results.user_main.won}
+                skipped={results.user_main.skipped}
+                userChoice={results.user_main.emotion}
+                winningChoice={results.challenge.winning_emotion}
+                payout={results.user_main.payout}
+                delta={results.user_main.delta}
+              />
+            )}
+
+            {/* ⭐ Subchallenge Cards */}
+            {results?.subchallenge_results
+              ?.filter(sub => !sub.skipped && sub.user_option_label)
+              .map(sub => (
+              <ResultCard
+                key={sub.subchallenge_id}
+                title={sub.question_text}
+                won={sub.won}
+                skipped={sub.skipped}
+                userChoice={sub.user_option_label}
+                winningChoice={sub.winning_option_label}
+                payout={sub.payout}
+                delta={sub.delta}
+              />
+            ))}
+          </ScrollView>
         </View>
 
-        {/* ⭐ Working button (reset navigation) */}
-        <Pressable
-          onPress={() =>
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'CategoryList' }],
-            })
-          }
-        >
-          <Image source={activeButton} style={styles.activeImage} />
-        </Pressable>
+        {!loading && (
+          <Pressable
+            onPress={() =>
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'CategoryList' }],
+              })
+            }
+          >
+            <Image source={activeButton} style={styles.activeImage} />
+          </Pressable>
+        )}
 
-        {/* ⭐ Live timer */}
-        <Text style={styles.timer}>{formattedTime}</Text>
+        {!fromHistory && !isExpired && (
+          <Text style={styles.timer}>{formattedTime}</Text>
+        )}
 
-        {/* ⭐ Fade-in/out loading overlay (touch-safe) */}
         <Animated.View
           pointerEvents={loading ? 'auto' : 'none'}
           style={[styles.loadingOverlay, { opacity: fadeAnim }]}
         >
           <Text style={styles.loadingText}>Loading challenge results…</Text>
         </Animated.View>
+
       </SafeAreaView>
     </ImageBackground>
+    </View>
   );
 }
 
+/* -------------------------------------------------------
+   ⭐ Styles
+------------------------------------------------------- */
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    paddingTop: 40,
+    paddingTop: 50,
     paddingHorizontal: 20,
   },
   title: {
@@ -205,30 +386,97 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
     marginTop: 25,
-    marginBottom: 25,
+    marginBottom: 0,
   },
+
   box: {
     backgroundColor: '#1E1E1E',
-    padding: 20,
+    padding: 15,
     borderRadius: 12,
-    marginBottom: 30,
+    marginTop: 20,
+    maxHeight: '90%',
+    overflow: 'hidden',
   },
-  label: {
+
+  /* ⭐ Summary styles */
+  summaryTitle: {
+    color: 'white',
+    fontSize: 26,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 6,
+  },
+
+  summaryCategory: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 2,
+    marginBottom: 2,
+  },
+
+  category: {
+    color: "rgba(255,255,255,0.9)",
+    fontSize: 22,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+  icon: {
+    width: 45,
+    height: 45,
+    marginRight: 6,
+    resizeMode: "contain",
+  },
+
+  /* ⭐ Card styles */
+  cardImage: {
+    width: 220,
+    height: 99,
+    resizeMode: 'cover',
+    alignSelf: 'center',
+    marginTop: 15,
+    marginBottom: 10,
+  },
+  cardTitle: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 10,
+    marginLeft: 7,
+    marginRight: 7,
+    textAlign: 'center',
+  },
+  cardLabel: {
     color: '#AAA',
     fontSize: 16,
-    marginTop: 10,
+    marginTop: 4,
+    marginLeft: 24,
   },
-  value: {
+  cardValue: {
     color: 'white',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
+    marginLeft: 24,
+  },
+  cardGradient: {
+    borderRadius: 44,
+    padding: 0,
+    marginBottom: 20,
+  },
+  cardInner: {
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderRadius: 42,
+    paddingBottom: 20,
+    borderWidth: 3,
+    borderColor: '#ed84df',
   },
   activeImage: {
     width: 280,
     height: 47,
     resizeMode: 'contain',
     alignSelf: 'center',
-    marginTop: 45,
+    marginTop: 20,
   },
   timer: {
     color: 'yellow',
@@ -238,7 +486,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  // ⭐ Fade overlay styles
   loadingOverlay: {
     position: 'absolute',
     top: 0,

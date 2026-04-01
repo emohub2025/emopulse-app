@@ -1,28 +1,18 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from 'react';
 import { View, Text, ImageBackground, StyleSheet, Image, Pressable, Animated } from 'react-native';
-import { useNavigation, CommonActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import { getUserInfo } from '../../api/getUserInfo';
 import type { RootStackParamList, MobileUser } from '../../navigation/types';
+import { logout } from "../../auth/logout";
 import OptionRow from '../../components/OptionRow';
 import profileIcon from '../../assets/buttons/panel-account.png';
 import coinIcon from '../../assets/images/coin.png';
 import { API_URL } from '../../../config';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'Account'>;
-
-// 🔐 Centralized logout helper
-async function handleLogout(navigation: any) {
-  await AsyncStorage.clear();
-  navigation.dispatch(
-    CommonActions.reset({
-      index: 0,
-      routes: [{ name: "Login" }],
-    })
-  );
-}
 
 export default function AccountScreen() {
   const [user, setUser] = useState<MobileUser | null>(null);
@@ -39,6 +29,13 @@ export default function AccountScreen() {
   const loadUser = React.useCallback(async () => {
     try {
       const userId = await AsyncStorage.getItem("userId");
+      const refresh = await AsyncStorage.getItem("refreshToken");
+
+      // ⭐ Fix #6 — sanity check: if refresh token is missing, force logout
+      if (!refresh) {
+        logout(navigation);
+        return;
+      }
 
       if (!userId) {
         console.log("⚠️ No userId found in storage");
@@ -55,7 +52,7 @@ export default function AccountScreen() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [navigation]);
 
   useEffect(() => {
     loadUser();
@@ -66,12 +63,10 @@ export default function AccountScreen() {
     const now = Date.now();
 
     if (lastTap && now - lastTap < 2000) {
-      // Second tap → logout
-      handleLogout(navigation);
+      logout(navigation);
       return;
     }
 
-    // First tap → show hint
     setLastTap(now);
     setShowLogoutHint(true);
 
@@ -162,7 +157,7 @@ export default function AccountScreen() {
 
       <ImageBackground
         source={require('../../assets/images/background.png')}
-        style={{ flex: 1 }}
+        style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
         <View style={styles.profileRow}>
@@ -232,7 +227,16 @@ export default function AccountScreen() {
 
           <OptionRow
             icon={profileIcon}
-            label="Transaction history"
+            label="Challenge Results"
+            onPress={() => {
+              if (!user) return;
+              navigation.navigate("ResultsHistory", { userId: user.id });
+            }}
+          />
+
+          <OptionRow
+            icon={profileIcon}
+            label="Transaction History"
             onPress={() => {
               if (!user) return;
               navigation.navigate("Transactions", { userId: user.id });
@@ -247,14 +251,14 @@ export default function AccountScreen() {
               navigation.navigate("Achievements", { userId: user.id });
             }}
           />
-
+{/* 
           <OptionRow
             icon={profileIcon}
             label="Settings"
             onPress={() => {
               navigation.navigate("Settings");
             }}
-          />
+          /> */}
 
           <OptionRow
             icon={profileIcon}

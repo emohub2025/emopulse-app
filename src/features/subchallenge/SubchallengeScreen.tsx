@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, Image, ImageBackground, Pressable, TouchableOpacity, StyleSheet } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -7,6 +7,7 @@ import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useCycleTimer } from '../../components/CycleTimerContext';
 import answerButton from '../../assets/buttons/answer.png';
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
+import { postPlaceUserSubBet } from '../../api/postPlaceUserBet';
 
 // Route params type
 type SubchallengeRouteProp = RouteProp<
@@ -28,37 +29,63 @@ export default function SubchallengeScreen({
 }) {
 
   const { challenge, subchallenges } = route.params;
+  const [loading, setLoading] = useState(false);
   const { formattedTime } = useCycleTimer();
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const current: SubchallengeList = subchallenges[index];
   const imageSource = getChallengeImageSource(challenge);
+  const USER_ID = "dda1522f-2c44-499e-a8e5-04460b888d05";
 
-  function handleAnswer(answer: string) {
-    // TODO: send to backend
-    // await postSubchallengeResponse(current.id, answer);
+  const handleAnswer = async () => {
+    try {
+      setLoading(true);
+
+      if (!selected) return;
+
+      // ⭐ Validate the selected option BEFORE sending to backend
+      const option = current.options.find(o => o.id === selected);
+
+      if (!option || typeof option.id !== "string" || option.id.length < 10) {
+        console.error("Invalid option object:", option);
+        throw new Error("Invalid option object: missing or invalid UUID");
+      }
+
+      const response = await postPlaceUserSubBet({
+        subchallenge_id: current.id,
+        option_id: selected,
+        user_id: USER_ID,
+        amount: 1
+      });
+
+      console.log("Subchallenge bet placed:", response);
+
+    } catch (err) {
+      console.error("Subchallenge bet failed:", err);
+    } finally {
+      setLoading(false);
+    }
 
     if (index + 1 < subchallenges.length) {
       setIndex(index + 1);
-      setSelected(null); // reset selection for next question
+      setSelected(null);
     } else {
-      navigation.navigate("ChallengeResults", {
-        challenge,
-      });
+      navigation.navigate("ChallengeResults", { challenge });
     }
-  }
+  };
 
   // ⭐ Auto-select first option whenever the question changes
   useEffect(() => {
     if (current?.options?.length > 0) {
-      setSelected(current.options[0].label);
+      setSelected(current.options[0].id);
     }
   }, [index]);
 
   return (
+  <View style={{ flex: 1, backgroundColor: 'black' }}>
     <ImageBackground
       source={require('../../assets/images/background.png')}
-      style={{ flex: 1 }}
+      style={{ flex: 1, marginBottom: 42 }}
       resizeMode="cover"
     >
     <View style={styles.container}>
@@ -75,14 +102,14 @@ export default function SubchallengeScreen({
       <View style={styles.optionsContainer}>
         {current.options.map((opt) => (
           <TouchableOpacity
-            key={opt.label}
-            onPress={() => setSelected(opt.label)}
+            key={opt.id}
+            onPress={() => setSelected(opt.id)}
             style={[
               styles.optionWrapper,
-              selected === opt.label && styles.optionSelected
+              selected === opt.id && styles.optionSelected
             ]}
           >
-            <Text style={styles.optionText}>{opt.text}</Text>
+            <Text style={styles.optionText}>{opt.metadata?.text}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -91,7 +118,7 @@ export default function SubchallengeScreen({
       <Pressable
         onPress={() => {
           if (!selected) return;   // ignore if nothing selected
-          handleAnswer(selected);  // go to next question
+          handleAnswer();  // go to next question
         }}
       >
         <Image source={answerButton} style={styles.answerImage} />
@@ -100,6 +127,7 @@ export default function SubchallengeScreen({
       <Text style={styles.timer}>{formattedTime}</Text>
     </View>
     </ImageBackground>
+    </View>
   );
 }
 
@@ -111,7 +139,7 @@ const styles = StyleSheet.create({
   },
   imageWrapper: {
     width: '100%',
-    height: 200,
+    height: 176,
     marginTop: 70,
     borderRadius: 8,
     overflow: 'hidden',
@@ -119,7 +147,7 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
+    resizeMode: 'contain',
   },
   optionsContainer: {
     gap: 0,

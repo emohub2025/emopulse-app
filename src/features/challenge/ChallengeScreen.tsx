@@ -37,29 +37,29 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
     try {
       setLoading(true);
 
-      const response = await postPlaceUserBet({
-        challenge_id: challenge.id,
-        user_id: USER_ID,
-        emotion: emotion
-      });
+       const response = await postPlaceUserBet({
+         challenge_id: challenge.id,
+         user_id: USER_ID,
+         emotion: emotion
+       });
 
-      console.log("Bet placed:", response);
+       console.log("Bet placed:", response);
 
       // ⭐ RUN SUBCHALLENGE GATING HERE
       const listResults = await getSubchallengeList(challenge.id);
       //console.log("Subchallenge list:", JSON.stringify(listResults, null, 2));
 
       if (listResults && listResults.length > 0) {
-        listResults.forEach((item, i) => {
-          console.log(`--- Subchallenge ${i} ---`);
-          console.log("id:", item.id);
-          console.log("question:", item.question_text);
-          console.log("sequence:", item.sequence);
+        // listResults.forEach((item, i) => {
+        //   console.log(`--- Subchallenge ${i} ---`);
+        //   console.log("id:", item.id);
+        //   console.log("question:", item.question_text);
+        //   console.log("sequence:", item.sequence);
 
-          item.options.forEach((opt, j) => {
-            console.log(`Option ${j}:`, opt.text, "label:", opt.label);
-          });
-        });
+        //   item.options.forEach((opt, j) => {
+        //     console.log(`Option ${j}:`, opt.metadata?.text);
+        //   });
+        // });
 
         navigation.navigate("Subchallenge", {
           challenge,
@@ -96,9 +96,10 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   }, [isFocused, navigation, challenge]);
 
   return (
+  <View style={{ flex: 1, backgroundColor: 'black' }}>
     <ImageBackground
       source={require('../../assets/images/background.png')}
-      style={{ flex: 1 }}
+      style={{ flex: 1, marginBottom: 42 }}
       resizeMode="cover"
     >
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -128,7 +129,10 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
             </Text>
 
             {/* Visible fixed-height text */}
-            <AutoShrinkBlock height={130}>
+            <AutoShrinkBlock 
+              height={110} 
+              fontWeight="500"
+              >
               {challenge.topic}
             </AutoShrinkBlock>
 
@@ -170,19 +174,21 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
 
       </SafeAreaView>
     </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
+    marginBottom: -37,
   },
 
   topLabel: {
     color: 'white',
     fontSize: 26,
     fontWeight: '700',
-    marginTop: 55,
+    marginTop: 75,
     marginBottom: 5,
     paddingHorizontal: 20,
     textAlign: 'center',
@@ -228,7 +234,6 @@ const styles = StyleSheet.create({
     height: 506,
     resizeMode: 'contain',
     alignSelf: 'center',
-    marginTop: 80,
   },
 
   timer: {
@@ -236,7 +241,5 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '600',
     textAlign: 'center',
-    marginTop: 4,
-    marginBottom: 0,
   },
 });

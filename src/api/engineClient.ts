@@ -26,6 +26,32 @@ async function forceLogout(navigation?: any) {
   }
 }
 
+// ⭐ NEW — Attempt refresh token
+async function attemptTokenRefresh(): Promise<boolean> {
+  const refreshToken = await AsyncStorage.getItem("refreshToken");
+  if (!refreshToken) return false;
+
+  try {
+    const res = await fetch(`${BASE_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!res.ok) return false;
+
+    const data = await res.json();
+
+    // Store new tokens
+    await AsyncStorage.setItem("authToken", data.accessToken);
+    await AsyncStorage.setItem("refreshToken", data.refreshToken);
+
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
 // 🌐 Core request wrapper
 async function request<T>(
   method: "GET" | "POST",
@@ -39,9 +65,7 @@ async function request<T>(
   const cleanPath = normalizePath(path);
   const url = `${BASE_URL}${API_PREFIX}${cleanPath}`;
 
-  //console.log(`🌐 ${method} → ${url}`);
-
-  const res = await fetch(url, {
+  let res = await fetch(url, {
     method,
     headers: {
       "Content-Type": "application/json",
@@ -52,9 +76,28 @@ async function request<T>(
 
   // 🔐 Token expired or invalid
   if (res.status === 401) {
-    console.log("🔐 Token expired — forcing logout");
-    await forceLogout(navigation);
-    throw new Error("Session expired. Please log in again.");
+    console.log("🔐 Access token expired — attempting refresh");
+
+    // ⭐ NEW — Try refresh instead of immediate logout
+    const refreshed = await attemptTokenRefresh();
+
+    if (!refreshed) {
+      console.log("❌ Refresh failed — forcing logout");
+      await forceLogout(navigation);
+      throw new Error("Session expired. Please log in again.");
+    }
+
+    // ⭐ NEW — Retry original request with new token
+    const newToken = await AsyncStorage.getItem("authToken");
+
+    res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(newToken ? { Authorization: `Bearer ${newToken}` } : {}),
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+    });
   }
 
   // ❌ Other errors

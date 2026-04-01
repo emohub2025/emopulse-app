@@ -4,9 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
-import type { RootStackParamList, Challenge } from '../../navigation/types';
+import type { RootStackParamList } from '../../navigation/types';
 import { useCycleTimer } from '../../components/CycleTimerContext';
-import { getChallengesForCategory } from '../../api/getCategoryChallenges';
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
 import eventBus from '../../components/EventBus';
 
@@ -20,73 +19,23 @@ type RouteProps = RouteProp<RootStackParamList, 'CategoryChallenges'>;
 export default function CategoryChallengesScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<RouteProps>();
-  const { category } = route.params;
+  const { category, active = [], recent = [] } = route.params;
   const { formattedTime } = useCycleTimer();
+  const [error] = useState<string | null>(null);
 
-  const [challenges, setChallenges] = useState<Challenge[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  //
-  // 1️⃣ Load summary challenges for this category
-  //
-  useEffect(() => {
-    async function load() {
-      try {
-        const data = await getChallengesForCategory(category);
-        setChallenges(data);
-        //console.log("📦 Challenges fetched:\n", JSON.stringify(data, null, 2));
-        if (data.length === 1) {
-          try {
-            navigation.replace("ChallengeDetail", { 
-              challenge: data[0]
-            });
-            return; // prevent outer finally
-          } catch (err) {
-            console.error("Failed to load challenge details:", err);
-            setError("Failed to load challenge details");
-            return; // also prevent outer finally
-          }
-        }
-      } catch (err) {
-        console.log("ERROR LOADING CHALLENGES:", err);
-        setError("Failed to load challenges");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    load();
-  }, [category, navigation]);
-
-  //
-  // 2️⃣ Handle cycle expiration → return to CategoryList
-  //
   const isFocused = useIsFocused();
   useEffect(() => {
     if (!isFocused) return;
 
     const handler = () => {
-      //navigation.navigate('CategoryList');
+      navigation.navigate('CategoryList');
     };
 
     eventBus.on('cycleExpired', handler);
-
     return () => {
       eventBus.off('cycleExpired', handler);
     };
   }, [isFocused, navigation]);
-
-  //
-  // 3️⃣ UI states
-  //
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <Text>Loading challenges…</Text>
-      </View>
-    );
-  }
 
   if (error) {
     return (
@@ -96,45 +45,71 @@ export default function CategoryChallengesScreen() {
     );
   }
 
-  //
-  // 4️⃣ Main UI
-  //
   return (
+  <View style={{ flex: 1, backgroundColor: 'black' }}>
     <ImageBackground
       source={require('../../assets/images/background.png')}
-      style={{ flex: 1 }}
+      style={{ flex: 1, marginBottom: 42 }}
       resizeMode="cover"
     >
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <Text style={styles.topLabel}>{category}</Text>
 
         <View style={styles.content}>
-          {challenges.length === 0 ? (
+          {active.length === 0 && recent.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>No Available Challenges</Text>
             </View>
           ) : (
             <FlatList
-              data={challenges}
+              data={[...active, ...recent]}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <Pressable
-                  style={styles.card}
-                  onPress={() =>
-                    navigation.navigate('ChallengeDetail', {
-                      challenge: item
-                    })
-                  }
-                  >
-                  <Image
-                    source={getChallengeImageSource(item)}
-                    style={styles.topicImage}
-                    resizeMode="cover"
-                  />
+              renderItem={({ item, index }) => {
+                const isActiveSectionStart = index === 0 && active.length > 0;
+                const isEmptyActiveSectionStart = index === 0 && active.length === 0;
+                const isRecentSectionStart = index === active.length && recent.length > 0;
 
-                  <Text style={styles.title}>{item.topic}</Text>
-                </Pressable>
-              )}
+                return (
+                  <>
+                    {/* ⭐ Active Section Header */}
+                    {isActiveSectionStart && (
+                      <Text style={styles.sectionHeader}>Active Challenges</Text>
+                    )}
+
+                    {/* ⭐ Empty Active Section */}
+                    {isEmptyActiveSectionStart && (
+                      <>
+                        <Text style={styles.sectionHeader}>Active Challenges</Text>
+                        <Text style={styles.emptyMessage}>No active challenges!</Text>
+                      </>
+                    )}
+
+                    {/* ⭐ Previous Section Header */}
+                    {isRecentSectionStart && (
+                      <Text style={[styles.sectionHeader, { marginTop: 50 }]}>
+                        Previous Challenges
+                      </Text>
+                    )}
+
+                    {/* ⭐ Challenge Card */}
+                    <Pressable
+                      style={styles.card}
+                      onPress={() =>
+                        navigation.navigate('ChallengeDetail', {
+                          challenge: item,
+                        })
+                      }
+                    >
+                      <Image
+                        source={getChallengeImageSource(item)}
+                        style={styles.topicImage}
+                        resizeMode="contain"
+                      />
+                      <Text style={styles.title}>{item.topic}</Text>
+                    </Pressable>
+                  </>
+                );
+              }}
             />
           )}
         </View>
@@ -142,13 +117,10 @@ export default function CategoryChallengesScreen() {
         <Text style={styles.timer}>{formattedTime}</Text>
       </SafeAreaView>
     </ImageBackground>
+    </View>
   );
-
 }
 
-//
-// Styles
-//
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#220d58',
@@ -161,31 +133,48 @@ const styles = StyleSheet.create({
 
   topicImage: {
     marginTop: 10,
+    marginBottom: -10,
     width: '70%',
-    height: 120,
-    alignSelf: 'center', 
+    height: 150,
+    alignSelf: 'center',
   },
 
   title: {
     padding: 12,
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '500',
     color: '#fff',
+    textAlign: 'center',
   },
+
+  sectionHeader: {
+    color: 'yellow',
+    fontSize: 24,
+    fontStyle: 'italic',
+    fontWeight: '700',
+    marginTop: 10,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   emptyText: {
     color: 'white',
     fontSize: 20,
     fontWeight: '600',
     opacity: 0.9,
   },
+
   safe: {
     flex: 1,
+    marginBottom: -35,
   },
+
   topLabel: {
     color: 'white',
     fontSize: 26,
@@ -193,26 +182,28 @@ const styles = StyleSheet.create({
     marginTop: 65,
     marginBottom: 5,
     paddingHorizontal: 20,
-    textAlign: 'center'
+    textAlign: 'center',
   },
+
   content: {
     flex: 1,
   },
+
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  cardBackground: {
-    width: 370,
-    height: 160,
-    justifyContent: 'center',
-    paddingHorizontal: 0,   // ← move padding here
-    paddingVertical: 0,     // ← move padding here
+
+  emptyMessage: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: 22,
+    textAlign: 'center',
+    marginTop: 12,
+    fontStyle: 'italic',
   },
-  cardImage: {
-    borderRadius: 8,           // matches the card radius
-  },
+
   timer: {
     color: 'yellow',
     fontSize: 22,

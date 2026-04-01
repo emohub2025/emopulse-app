@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, ImageBackground, StyleSheet, Pressable, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import loginButton from '../../assets/buttons/login.png';
+import googleButton from '../../assets/buttons/google.png';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList, LoginResponse } from '../../navigation/types';
@@ -18,43 +19,14 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);   // ← prevents double-submit
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [checkingLogin, setCheckingLogin] = useState(true);
-
-  // ---------------------------------------
-  // 🔍 Auto-login check
-  // ---------------------------------------
-  useEffect(() => {
-    async function checkExistingLogin() {
-      try {
-        const token = await AsyncStorage.getItem("authToken");
-        const userId = await AsyncStorage.getItem("userId");
-
-        if (token && userId) {
-          navigation.replace("CategoryList");
-          return;
-        }
-      } catch (err) {
-        console.log("⚠️ Error checking stored login:", err);
-      }
-
-      setCheckingLogin(false);
-    }
-
-    checkExistingLogin();
-  }, []);
-
-  if (checkingLogin) {
-    return <View style={{ flex: 1, backgroundColor: "black" }} />;
-  }
-
-  // ---------------------------------------
+  // -----------------------------------------------------
   // 🔐 Handle Login (double-submit safe)
-  // ---------------------------------------
+  // -----------------------------------------------------
   async function handleLogin() {
-    if (loading) return; // ← HARD STOP: prevents double-submit
+    if (loading) return;
 
     if (!identifier || !password) {
       setError("Please enter both username/email and password");
@@ -62,7 +34,7 @@ export default function LoginScreen() {
     }
 
     try {
-      setLoading(true);  // ← lock the button
+      setLoading(true);
       setError("");
 
       const response = await apiPost<LoginResponse>(
@@ -71,9 +43,12 @@ export default function LoginScreen() {
         navigation
       );
 
-      await AsyncStorage.setItem("authToken", response.token);
+      await AsyncStorage.setItem("authToken", response.accessToken);
+      await AsyncStorage.setItem("refreshToken", response.refreshToken);
       await AsyncStorage.setItem("userId", String(response.userId));
       await AsyncStorage.setItem("walletId", String(response.walletId));
+
+      console.log("MOBILE TOKEN:", response.accessToken);
 
       navigation.replace("CategoryList");
 
@@ -87,7 +62,7 @@ export default function LoginScreen() {
       }
 
     } finally {
-      setLoading(false);   // ← unlock the button
+      setLoading(false);
     }
   }
 
@@ -126,7 +101,6 @@ export default function LoginScreen() {
           <Text style={styles.errorText}>{error}</Text>
         )}
 
-        {/* 🔥 Button with spinner */}
         <Pressable
           onPress={handleLogin}
           disabled={loading}
@@ -137,6 +111,20 @@ export default function LoginScreen() {
               <ActivityIndicator size="small" color="#fff" />
             ) : (
               <Image source={loginButton} style={styles.buttonImage} />
+            )}
+          </View>
+        </Pressable>
+
+        <Pressable
+          onPress={handleLogin}
+          disabled={loading}
+          style={[styles.googleWrapper, loading && { opacity: 0.5 }]}
+        >
+          <View style={styles.buttonContent}>
+            {loading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Image source={googleButton} style={styles.buttonImage} />
             )}
           </View>
         </Pressable>
@@ -233,6 +221,11 @@ const styles = StyleSheet.create({
     height: 58,
     resizeMode: 'stretch',
   },
+  googleWrapper: {
+    alignItems: 'center',
+    marginTop: 23,
+    marginBottom: 3,
+  },
   bottomLabel: {
     color: 'white',
     fontSize: 18,
@@ -250,6 +243,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   background: {
-    height: 260,
+    height: 230,
   },
 });
