@@ -1,9 +1,10 @@
 import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../../navigation/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useState, useEffect } from 'react';
+import * as Haptics from 'expo-haptics';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, StyleSheet, Image, ImageBackground, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, Animated, ImageBackground, TouchableOpacity } from 'react-native';
 import EmotionSelector from '../../components/EmotionSelector';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
@@ -28,32 +29,41 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   const { formattedTime } = useCycleTimer();
   const userId = useCurrentUserId();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const errorOpacity = useRef(new Animated.Value(0)).current;
+  const timerOpacity = useRef(new Animated.Value(1)).current;
 
   // Auto-shrink state
   const [topicFontSize, setTopicFontSize] = useState(24);
 
   const handleSubmit = async () => {
     if (!emotion) return;
+    if (!userId) {
+      setErrorMessage("Missing user ID");
+      return;
+    }
 
     try {
       setLoading(true);
       setErrorMessage(null);
 
-      if (!userId) {
-        setErrorMessage("Missing user ID");
-        return;
+      let response;
+
+      try {
+        response = await postPlaceUserBet({
+          challenge_id: challenge.id,
+          user_id: userId,
+          emotion
+        });
+      } catch (apiErr) {
+        console.log("postPlaceUserBet API error caught:", apiErr);
+        throw apiErr; // ensures outer catch handles it cleanly
       }
-      const response = await postPlaceUserBet({
-        challenge_id: challenge.id,
-        user_id: userId,
-        emotion: emotion
-      });
 
       console.log("Bet placed:", response);
 
       const listResults = await getSubchallengeList(challenge.id);
 
-      if (listResults && listResults.length > 0) {
+      if (listResults?.length > 0) {
         // listResults.forEach((item, i) => {
         //   console.log(`--- Subchallenge ${i} ---`);
         //   console.log("id:", item.id);
@@ -73,7 +83,11 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
       }
 
     } catch (err: any) {
-      console.error("Bet failed:", err);
+      console.log("❌ Bet failed:", err);
+
+      // ⭐ Haptic feedback on error
+      console.log("HAPTIC SHOULD FIRE NOW");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
 
       // ⭐ Prevent Expo red screen
       setErrorMessage(err?.message || "Unable to place bet.");
@@ -83,6 +97,38 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   };
 
   useEffect(() => {
+    if (errorMessage) {
+      // Fade IN error, fade OUT timer
+      Animated.parallel([
+        Animated.timing(errorOpacity, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(timerOpacity, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        })
+      ]).start();
+    } else {
+      // Fade OUT error, fade IN timer
+      Animated.parallel([
+        Animated.timing(errorOpacity, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(timerOpacity, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        })
+      ]).start();
+    }
+  }, [errorMessage]);
+
+ useEffect(() => {
     if (errorMessage) {
       const timer = setTimeout(() => setErrorMessage(null), 8000);
       return () => clearTimeout(timer);
@@ -134,10 +180,6 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
 
             <EmotionSelector selected={emotion} onSelect={setEmotion} />
 
-            {errorMessage && (
-              <Text style={styles.errorText}>{errorMessage}</Text>
-            )}
-
             <TouchableOpacity
               onPress={handleSubmit}
               disabled={isDisabled}
@@ -169,9 +211,35 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
         )}
 
         {/* Timer */}
-        <Text style={styles.timer}>
-          {formattedTime}
-        </Text>
+        <View style={{ height: 40, justifyContent: "center", alignItems: "center" }}>
+
+          {/* Error */}
+          <Animated.View
+            style={{
+              position: "absolute",
+              opacity: errorOpacity,
+              width: "100%",
+              alignItems: "center",
+              transform: [{ perspective: 1000 }]   // ⭐ FIX
+            }}
+          >
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </Animated.View>
+
+          {/* Timer */}
+          <Animated.View
+            style={{
+              position: "absolute",
+              opacity: timerOpacity,
+              width: "100%",
+              alignItems: "center",
+              transform: [{ perspective: 1000 }]   // ⭐ FIX
+            }}
+          >
+            <Text style={styles.timer}>{formattedTime}</Text>
+          </Animated.View>
+
+        </View>
 
       </SafeAreaView>
     </ImageBackground>
@@ -238,9 +306,10 @@ const styles = StyleSheet.create({
   },
 
   errorText: {
-    color: 'red',
-    fontSize: 22,
+    color: '#e26fae',
+    fontSize: 18,
     textAlign: 'center',
+    fontWeight: '700',
     marginTop: 20,
   },
 

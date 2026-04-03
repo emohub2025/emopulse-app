@@ -22,7 +22,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.emopulseapp"
+      "package": "com.anonymous.emopulseapp",
+      "permissions": ["VIBRATE"]
     },
     "web": {
       "favicon": "./assets/favicon.png"

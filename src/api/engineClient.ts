@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const BASE_URL = "http://172.236.119.144:4100";
-const API_PREFIX = "/mobile"; // All routes automatically go through /mobile
+const API_PREFIX = "/mobile";
 
 // Normalize path so callers can pass "login" or "/login"
 function normalizePath(path: string): string {

@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
-import { View, Text, Image, ImageBackground, Pressable, TouchableOpacity, BackHandler, StyleSheet } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
+import { View, Text, Image, ImageBackground, Pressable, TouchableOpacity, Animated, BackHandler, StyleSheet } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList, SubchallengeList } from '../../navigation/types';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
+import * as Haptics from 'expo-haptics';
 import { useCycleTimer } from '../../components/CycleTimerContext';
 import answerButton from '../../assets/buttons/answer.png';
 import skipButton from '../../assets/buttons/skip.png';
@@ -38,6 +39,9 @@ export default function SubchallengeScreen({
   const current: SubchallengeList = subchallenges[index];
   const imageSource = getChallengeImageSource(challenge);
   const userId = useCurrentUserId();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const errorOpacity = useRef(new Animated.Value(0)).current;
+  const timerOpacity = useRef(new Animated.Value(1)).current;
 
   const handleSkip = () => {
     // If there are more questions, move forward
@@ -51,42 +55,64 @@ export default function SubchallengeScreen({
   };
 
   const handleAnswer = async () => {
+    if (!selected) return;
+    if (!userId) {
+      setErrorMessage("Missing user ID");
+      return;
+    }
+
     try {
       setLoading(true);
+      setErrorMessage(null);
 
-      if (!selected) return;
-      if (!userId) return; // prevent invalid request
-
-      // ⭐ Validate the selected option BEFORE sending to backend
       const option = current.options.find(o => o.id === selected);
-
       if (!option || typeof option.id !== "string" || option.id.length < 10) {
-        console.error("Invalid option object:", option);
         throw new Error("Invalid option object: missing or invalid UUID");
       }
 
-      const response = await postPlaceUserSubBet({
-        subchallenge_id: current.id,
-        option_id: selected,
-        user_id: userId,
-        amount: 1
-      });
+      let response;
+      try {
+        response = await postPlaceUserSubBet({
+          subchallenge_id: current.id,
+          option_id: selected,
+          user_id: userId,
+          amount: 1
+        });
+      } catch (err) {
+        // This catches the first throw
+        console.log("API threw:", err);
+        throw err; // ensures outer catch handles it cleanly
+      }
 
       console.log("Subchallenge bet placed:", response);
 
-    } catch (err) {
-      console.error("Subchallenge bet failed:", err);
+      if (index + 1 < subchallenges.length) {
+        setIndex(index + 1);
+        setSelected(null);
+      } else {
+        navigation.navigate("ChallengeCountdown", { challenge });
+      }
+
+    } catch (err: any) {
+      console.log("🟥 UI CATCH (Subchallenge):", err, "type:", typeof err);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+
+      const msg =
+        typeof err === "string"
+          ? err
+          : typeof err?.message === "string"
+          ? err.message
+          : "Unable to place subbet.";
+
+      setErrorMessage(msg);
     } finally {
       setLoading(false);
     }
-
-    if (index + 1 < subchallenges.length) {
-      setIndex(index + 1);
-      setSelected(null);
-    } else {
-      navigation.navigate("ChallengeCountdown", { challenge });
-    }
   };
+
+  if (!current || !current.options) {
+    return null;
+  }
 
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
@@ -104,6 +130,38 @@ export default function SubchallengeScreen({
     return () => sub.remove();
   }, [index]);
 
+  useEffect(() => {
+    if (errorMessage) {
+      // Fade IN error, fade OUT timer
+      Animated.parallel([
+        Animated.timing(errorOpacity, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(timerOpacity, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        })
+      ]).start();
+    } else {
+      // Fade OUT error, fade IN timer
+      Animated.parallel([
+        Animated.timing(errorOpacity, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(timerOpacity, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        })
+      ]).start();
+    }
+  }, [errorMessage]);
+
   // ⭐ Auto-select first option whenever the question changes
   useEffect(() => {
     if (current?.options?.length > 0) {
@@ -111,64 +169,109 @@ export default function SubchallengeScreen({
     }
   }, [index]);
 
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => setErrorMessage(null), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage]);
+
   return (
-  <View style={{ flex: 1, backgroundColor: 'black' }}>
-    <ImageBackground
-      source={require('../../assets/images/background.png')}
-      style={{ flex: 1, marginBottom: 42 }}
-      resizeMode="cover"
-    >
-    <View style={styles.container}>
-      <View style={styles.imageWrapper}>
-        {imageSource && (
-          <Image source={imageSource} style={styles.image} />
-        )}
-      </View>
+    <View style={{ flex: 1, backgroundColor: 'black' }}>
+      <ImageBackground
+        source={require('../../assets/images/background.png')}
+        style={{ flex: 1, marginBottom: 42 }}
+        resizeMode="cover"
+      >
+        <View style={styles.container}>
+          <View style={styles.imageWrapper}>
+            {imageSource && (
+              <Image source={imageSource} style={styles.image} />
+            )}
+          </View>
 
-      <AutoShrinkBlock height={100} textAlign="center" fontStyle="italic" marginBottom={0}>
-        {current.question_text}
-      </AutoShrinkBlock>
+          <AutoShrinkBlock height={100} textAlign="center" fontStyle="italic" marginBottom={0}>
+            {String(current.question_text ?? "")}
+          </AutoShrinkBlock>
 
-      <View style={styles.optionsContainer}>
-        {current.options.map((opt) => (
-          <TouchableOpacity
-            key={opt.id}
-            onPress={() => setSelected(opt.id)}
-            style={[
-              styles.optionWrapper,
-              selected === opt.id && styles.optionSelected
-            ]}
-          >
-            <Text style={styles.optionText}>{opt.metadata?.text}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+          <View style={styles.optionsContainer}>
+            {current.options.map((opt) => (
+              <TouchableOpacity
+                key={opt.id}
+                onPress={() => setSelected(opt.id)}
+                style={[
+                  styles.optionWrapper,
+                  selected === opt.id && styles.optionSelected
+                ]}
+              >
+                <Text style={styles.optionText}>
+                  {typeof opt.metadata?.text === "string" ? opt.metadata.text : ""}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-      {/* BUTTON ROW */}
-      <View style={styles.buttonRow}>
-        
-        {/* SKIP BUTTON */}
-        <Pressable style={styles.skipWrapper} onPress={handleSkip}>
-          <Image source={skipButton} style={styles.skipImage} />
-        </Pressable>
+          {/* BUTTON ROW */}
+          <View style={styles.buttonRow}>
 
-        {/* ANSWER BUTTON */}
-        <Pressable
-          onPress={() => {
-            if (!selected) return;
-            handleAnswer();
-          }}
-        >
-          <Image source={answerButton} style={styles.answerImage} />
-        </Pressable>
+            {/* SKIP BUTTON */}
+            <Pressable style={styles.skipWrapper} onPress={handleSkip}>
+              <Image source={skipButton} style={styles.skipImage} />
+            </Pressable>
 
-      </View>
+            {/* ANSWER BUTTON */}
+            <Pressable
+              onPress={() => {
+                if (!selected) return;
+                handleAnswer();
+              }}
+            >
+              <Image source={answerButton} style={styles.answerImage} />
+            </Pressable>
 
-      <Text style={styles.timer}>{formattedTime}</Text>
-    </View>
-    </ImageBackground>
+          </View>
+
+          {/* Timer */}
+          <View style={{ height: 40, justifyContent: "center", alignItems: "center" }}>
+
+            {/* Error */}
+            <Animated.View
+              style={{
+                position: "absolute",
+                opacity: errorOpacity,
+                width: "100%",
+                alignItems: "center",
+                transform: [{ perspective: 1000 }]
+              }}
+            >
+              <Text style={styles.errorText}>
+                {typeof errorMessage === "string" ? errorMessage : ""}
+              </Text>
+            </Animated.View>
+
+            {/* Timer */}
+            <Animated.View
+              style={{
+                position: "absolute",
+                opacity: timerOpacity,
+                width: "100%",
+                alignItems: "center",
+                transform: [{ perspective: 1000 }]
+              }}
+            >
+              <Text style={styles.timer}>
+                {typeof formattedTime === "string" ? formattedTime : ""}
+              </Text>
+            </Animated.View>
+
+          </View>
+
+        </View>
+      </ImageBackground>
+
     </View>
   );
+
 }
 
 const styles = StyleSheet.create({
@@ -239,7 +342,6 @@ const styles = StyleSheet.create({
     marginTop: 50,
     gap: 18,
   },
-
   skipWrapper: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -247,6 +349,13 @@ const styles = StyleSheet.create({
   skipImage: {
     width: 100,   // 1/4 of your 280px answer button
     height: 48,  // same height for alignment
+  },
+  errorText: {
+    color: '#e26fae',
+    fontSize: 18,
+    textAlign: 'center',
+    fontWeight: '700',
+    marginTop: -3,
   },
   timer: {
     color: 'yellow',
