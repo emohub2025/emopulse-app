@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { View, Text, Image, Pressable, ImageBackground, StyleSheet, TextInput } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { useUserStore } from "../../state/useUserStore";
 import { postUserInfo } from "../../api/getUserInfo";
 import StateSelector, { autoDetectStateFromZip } from "../../components/StateSelector";
-import type { MobileUser } from "../../navigation/types";
+import type { MobileUser, RootStackParamList } from "../../navigation/types";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import saveButton from "../../assets/buttons/save.png";
 
 const MIN_BIRTHDATE = new Date(1900, 0, 1);
@@ -29,18 +31,19 @@ type MobileUserUpdate = {
   tiktok_url?: string;
 };
 
-// ⭐ Add callback type
 type ProfileRouteParams = {
   user: MobileUser;
-  onUserUpdated?: (user: MobileUser) => void;
 };
+
+type NavProp = NativeStackNavigationProp<RootStackParamList, "Profile">;
 
 export default function ProfileScreen() {
   const route = useRoute();
-  const { user: initialUser, onUserUpdated } = route.params as ProfileRouteParams;
+  const navigation = useNavigation<NavProp>();
+  const { user: initialUser } = route.params as ProfileRouteParams;
+  const setStoredUser = useUserStore((state) => state.setUser);
 
   const [showBirthdatePicker, setShowBirthdatePicker] = useState(false);
-
   const [user, setUser] = useState<MobileUser>(initialUser);
 
   const [update, setUpdate] = useState<MobileUserUpdate>({
@@ -67,7 +70,6 @@ export default function ProfileScreen() {
         <View style={styles.dimOverlay} />
 
         <View style={{ marginTop: 40 }}>
-          {/* First Name */}
           <View style={styles.rowField}>
             <Text style={styles.rowLabel}>Avatar Name:</Text>
             <TextInput
@@ -79,7 +81,6 @@ export default function ProfileScreen() {
             />
           </View>
 
-          {/* Phone */}
           <View style={styles.rowField}>
             <Text style={styles.rowLabel}>Mobile:</Text>
             <TextInput
@@ -93,7 +94,6 @@ export default function ProfileScreen() {
             />
           </View>
 
-          {/* City */}
           <View style={styles.rowField}>
             <Text style={styles.rowLabel}>City:</Text>
             <TextInput
@@ -105,7 +105,6 @@ export default function ProfileScreen() {
             />
           </View>
 
-          {/* State + ZIP */}
           <View style={styles.rowField}>
             <Text style={styles.rowLabel}>State:</Text>
             <StateSelector
@@ -132,7 +131,6 @@ export default function ProfileScreen() {
             />
           </View>
 
-          {/* Birthdate */}
           <View style={styles.rowField}>
             <Text style={styles.rowLabel}>Birth Date:</Text>
 
@@ -167,7 +165,6 @@ export default function ProfileScreen() {
             )}
           </View>
 
-          {/* Facebook */}
           <View style={styles.rowField}>
             <Text style={styles.rowLabel}>Facebook Link:</Text>
             <TextInput
@@ -179,7 +176,6 @@ export default function ProfileScreen() {
             />
           </View>
 
-          {/* Instagram */}
           <View style={styles.rowField}>
             <Text style={styles.rowLabel}>Instagram Link:</Text>
             <TextInput
@@ -191,7 +187,6 @@ export default function ProfileScreen() {
             />
           </View>
 
-          {/* TikTok */}
           <View style={styles.rowField}>
             <Text style={styles.rowLabel}>Tiktok Link:</Text>
             <TextInput
@@ -203,7 +198,6 @@ export default function ProfileScreen() {
             />
           </View>
 
-          {/* Save Button */}
           <Pressable
             onPress={async () => {
               try {
@@ -213,13 +207,10 @@ export default function ProfileScreen() {
                 });
 
                 setUser(updatedUser);
-
-                // ⭐ CRITICAL FIX: push updated user back to AccountScreen
-                if (onUserUpdated) {
-                  onUserUpdated(updatedUser);
-                }
+                setStoredUser(updatedUser);
 
                 alert("Profile updated!");
+                navigation.goBack();
               } catch (err) {
                 console.error("❌ Failed to update user:", err);
                 alert("Failed to save changes.");
@@ -242,7 +233,6 @@ export default function ProfileScreen() {
   );
 }
 
-// Styles unchanged
 const styles = StyleSheet.create({
   topLabel: {
     color: "white",

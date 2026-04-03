@@ -1,3 +1,4 @@
+import { useUserStore } from "../../state/useUserStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from 'react';
 import { View, Text, ImageBackground, StyleSheet, Image, Pressable, Animated } from 'react-native';
@@ -24,6 +25,8 @@ export default function AccountScreen() {
   const fadeAnim = useState(new Animated.Value(0))[0];
 
   const navigation = useNavigation<NavProp>();
+  const storedUser = useUserStore((state) => state.user);
+  const setStoredUser = useUserStore((state) => state.setUser);
 
   const loadUser = React.useCallback(async () => {
     try {
@@ -43,17 +46,24 @@ export default function AccountScreen() {
 
       const userData = await getUserInfo(userId);
       setUser(userData);
+      setStoredUser(userData);
     } catch (err) {
       console.log("❌ Error loading user:", err);
       setError("Failed to load user");
     } finally {
       setLoading(false);
     }
-  }, [navigation]);
+  }, [navigation, setStoredUser]);
 
   useEffect(() => {
     loadUser();
   }, [loadUser]);
+
+  useEffect(() => {
+    if (storedUser) {
+      setUser(storedUser);
+    }
+  }, [storedUser]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -146,6 +156,11 @@ export default function AccountScreen() {
       setUser((prev) =>
         prev ? { ...prev, avatar_url: freshUrl } : prev
       );
+
+      setStoredUser({
+        ...user,
+        avatar_url: freshUrl,
+      });
     } catch (err: any) {
       console.log("🔥 Upload failed:", err.message);
     }
@@ -209,16 +224,16 @@ export default function AccountScreen() {
             />
           </View>
 
-<OptionRow
-  icon={profileIcon}
-  label="Profile Details"
-  onPress={() => {
-    if (!user) return;
-    navigation.navigate('Profile', {
-      user,
-    });
-  }}
-/>
+          <OptionRow
+            icon={profileIcon}
+            label="Profile Details"
+            onPress={() => {
+              if (!user) return;
+              navigation.navigate('Profile', {
+                user,
+              });
+            }}
+          />
 
           <OptionRow
             icon={profileIcon}
