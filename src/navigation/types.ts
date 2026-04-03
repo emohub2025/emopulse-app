@@ -90,9 +90,7 @@ export type RootStackParamList = {
     user: MobileUser;
     onUserUpdated: (updated: MobileUser) => void;
   }
-  ResultsHistory: {
-    userId: string;
-  }
+  ResultsHistory: undefined;
   Transactions: {
     userId: string;
   }
@@ -109,6 +107,10 @@ export type RootStackParamList = {
   };
   Challenge: {
     challenge: Challenge;
+  };
+  ChallengeCountdown: {
+    challenge?: Challenge;
+    challengeId?: string;
   };
   ChallengeResults: {
     challenge?: Challenge;

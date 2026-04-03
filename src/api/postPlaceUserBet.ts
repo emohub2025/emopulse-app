@@ -12,10 +12,16 @@ export interface PlaceBetResponse {
   wallet_balance: string;
 }
 
-export function postPlaceUserBet(
+export async function postPlaceUserBet(
   payload: PlaceBetRequest
 ): Promise<PlaceBetResponse> {
-  return apiPost<PlaceBetResponse>("prediction", payload);
+  try {
+    const response = await apiPost<PlaceBetResponse>("prediction", payload);
+    return response;
+  } catch (err: any) {
+    // Normalize the error so your UI can handle it
+    throw new Error(err?.message || "Failed to place bet");
+  }
 }
 
 export async function postPlaceUserSubBet(payload: {
@@ -24,5 +30,9 @@ export async function postPlaceUserSubBet(payload: {
   user_id: string;
   amount: number;
 }) {
-  return apiPost("subchallenge-prediction", payload);
+  try {
+    return await apiPost("subchallenge-prediction", payload);
+  } catch (err: any) {
+    throw new Error(err?.message || "Failed to place sub-bet");
+  }
 }

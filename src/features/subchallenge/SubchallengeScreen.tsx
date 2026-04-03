@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
-import { View, Text, Image, ImageBackground, Pressable, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, ImageBackground, Pressable, TouchableOpacity, BackHandler, StyleSheet } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList, SubchallengeList } from '../../navigation/types';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useCycleTimer } from '../../components/CycleTimerContext';
 import answerButton from '../../assets/buttons/answer.png';
+import skipButton from '../../assets/buttons/skip.png';
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
 import { postPlaceUserSubBet } from '../../api/postPlaceUserBet';
+import { useCurrentUserId } from "../../state/useUserSelectors";
 
 // Route params type
 type SubchallengeRouteProp = RouteProp<
@@ -23,10 +25,10 @@ type SubchallengeNavProp = NativeStackNavigationProp<
 export default function SubchallengeScreen({
   route,
   navigation,
-}: {
-  route: SubchallengeRouteProp;
-  navigation: SubchallengeNavProp;
-}) {
+  }: {
+    route: SubchallengeRouteProp;
+    navigation: SubchallengeNavProp;
+  }) {
 
   const { challenge, subchallenges } = route.params;
   const [loading, setLoading] = useState(false);
@@ -35,13 +37,25 @@ export default function SubchallengeScreen({
   const [selected, setSelected] = useState<string | null>(null);
   const current: SubchallengeList = subchallenges[index];
   const imageSource = getChallengeImageSource(challenge);
-  const USER_ID = "dda1522f-2c44-499e-a8e5-04460b888d05";
+  const userId = useCurrentUserId();
+
+  const handleSkip = () => {
+    // If there are more questions, move forward
+    if (index + 1 < subchallenges.length) {
+      setIndex(index + 1);
+      setSelected(null); // reset selection for next question
+    } else {
+      // If this was the last question, go to results
+      navigation.navigate("ChallengeCountdown", { challenge });
+    }
+  };
 
   const handleAnswer = async () => {
     try {
       setLoading(true);
 
       if (!selected) return;
+      if (!userId) return; // prevent invalid request
 
       // ⭐ Validate the selected option BEFORE sending to backend
       const option = current.options.find(o => o.id === selected);
@@ -54,7 +68,7 @@ export default function SubchallengeScreen({
       const response = await postPlaceUserSubBet({
         subchallenge_id: current.id,
         option_id: selected,
-        user_id: USER_ID,
+        user_id: userId,
         amount: 1
       });
 
@@ -70,9 +84,25 @@ export default function SubchallengeScreen({
       setIndex(index + 1);
       setSelected(null);
     } else {
-      navigation.navigate("ChallengeResults", { challenge });
+      navigation.navigate("ChallengeCountdown", { challenge });
     }
   };
+
+  useEffect(() => {
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      if (index === 0) {
+        // On first question → do nothing
+        return true; // block default behavior
+      }
+
+      // On 2nd or 3rd question → go back one question
+      setIndex(prev => prev - 1);
+      setSelected(null); // optional: reset selection
+      return true; // handled
+    });
+
+    return () => sub.remove();
+  }, [index]);
 
   // ⭐ Auto-select first option whenever the question changes
   useEffect(() => {
@@ -114,15 +144,25 @@ export default function SubchallengeScreen({
         ))}
       </View>
 
-      {/* NEXT BUTTON */}
-      <Pressable
-        onPress={() => {
-          if (!selected) return;   // ignore if nothing selected
-          handleAnswer();  // go to next question
-        }}
-      >
-        <Image source={answerButton} style={styles.answerImage} />
-      </Pressable>
+      {/* BUTTON ROW */}
+      <View style={styles.buttonRow}>
+        
+        {/* SKIP BUTTON */}
+        <Pressable style={styles.skipWrapper} onPress={handleSkip}>
+          <Image source={skipButton} style={styles.skipImage} />
+        </Pressable>
+
+        {/* ANSWER BUTTON */}
+        <Pressable
+          onPress={() => {
+            if (!selected) return;
+            handleAnswer();
+          }}
+        >
+          <Image source={answerButton} style={styles.answerImage} />
+        </Pressable>
+
+      </View>
 
       <Text style={styles.timer}>{formattedTime}</Text>
     </View>
@@ -178,11 +218,35 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   answerImage: {
-    width: 280,
-    height: 47,
-    resizeMode: 'contain',
-    alignSelf: 'center',
-    marginTop: 52,
+    width: 210,
+    height: 48,
+    marginTop: 0,
+  },
+  buttonRowOuter: {
+    width: '100%',
+    alignItems: 'center', // centers the inner row
+    marginTop: 50,
+  },
+  buttonRowInner: {
+    flexDirection: 'row',
+    width: 380, // 100 + 280 (skip + answer)
+    alignItems: 'center',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 50,
+    gap: 18,
+  },
+
+  skipWrapper: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  skipImage: {
+    width: 100,   // 1/4 of your 280px answer button
+    height: 48,  // same height for alignment
   },
   timer: {
     color: 'yellow',

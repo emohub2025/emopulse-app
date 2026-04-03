@@ -1,6 +1,6 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, ImageBackground, StyleSheet, Image, Pressable } from 'react-native';
-import { useNavigation, useIsFocused } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,7 +8,6 @@ import type { RootStackParamList } from '../../navigation/types';
 import playButton from '../../assets/buttons/play.png';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useCycleTimer } from '../../components/CycleTimerContext';
-import eventBus from '../../components/EventBus';
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
 
 // Route params type
@@ -30,41 +29,13 @@ export default function ChallengeDetailScreen({
 }) {
   const { challenge } = route.params; // ← full challenge object
   const navigation = useNavigation<NavProp>();
-  const { formattedTime, isExpired } = useCycleTimer();
-  const isFocused = useIsFocused();
-  const hasQuote = challenge.quote && challenge.quote.trim().length > 0;
+  const { formattedTime } = useCycleTimer();
   const isResolved = challenge.status !== 'open';
 
   //
-  // 1️⃣ Image source (fallback-safe)
+  // Image source (fallback-safe)
   //
   const imageSource = getChallengeImageSource(challenge);
-
-  //
-  // 2️⃣ Handle cycle expiration → go to results
-  //
-  useEffect(() => {
-    if (!isFocused) return;
-
-    const handler = () => {
-      // navigation.navigate("ChallengeResults", { challenge });
-    };
-
-    eventBus.on("cycleExpired", handler);
-
-    return () => {
-      eventBus.off("cycleExpired", handler); // ✔ cleanup returns void
-    };
-  }, [isFocused, challenge]);
-
-  //
-  // 3️⃣ Auto-navigate if expired
-  //
-  useEffect(() => {
-    if (isExpired) {
-      // navigation.navigate("ChallengeResults", { challenge });
-    }
-  }, [isExpired, challenge]);
 
   const combinedDetails = useMemo(() => {
     const parts: string[] = [];
@@ -77,7 +48,7 @@ export default function ChallengeDetailScreen({
   }, [challenge])
 
   //
-  // 4️⃣ UI
+  // UI
   //
   return (
     <View style={{ flex: 1, backgroundColor: 'black' }}>

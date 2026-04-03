@@ -3,7 +3,7 @@ import type { Challenge } from "../../navigation/types.js"; // or wherever it li
 export const WACKY_IMAGES: Record<string, any> = {
   PiratesAndNauticalAbsurdity: require("../../assets/wacky/pirates.png"),
   FoodThatFightsBack: require("./food-fights-back.png"),
-  //FantasyCreaturesInModernJobs: require("./fantasy.png"),
+  FantasyCreaturesInModernJobs: require("./fantasy.png"),
   HauntedButInconvenient: require("./ghosts.png"),
   AlienTourists: require("./aliens.png"),
   OverlyLiteralGenies: require("./genie.png"),

@@ -19,6 +19,7 @@ import CategoryListScreen from '../features/challenge/CategoryListScreen';
 import CategoryChallengesScreen from '../features/challenge/CategoryChallengesScreen';
 import ChallengeDetailScreen from '../features/challenge/ChallengeDetailScreen';
 import ChallengeScreen from '../features/challenge/ChallengeScreen';
+import ChallengeCountdownScreen from '../features/challenge/ChallengeCountdownScreen';
 import ChallengeResultsScreen from '../features/challenge/ChallengeResultsScreen';
 import SubchallengeScreen from '../features/subchallenge/SubchallengeScreen';
 
@@ -180,6 +181,14 @@ screenOptions={{
       <Stack.Screen
         name="Challenge"
         component={ChallengeScreen}
+        options={{
+          headerTitle: () => <LogoHeader />,
+        }}
+      />
+
+      <Stack.Screen
+        name="ChallengeCountdown"
+        component={ChallengeCountdownScreen}
         options={{
           headerTitle: () => <LogoHeader />,
         }}

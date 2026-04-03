@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { View, Text, ImageBackground, StyleSheet, FlatList, Pressable } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
@@ -40,10 +40,8 @@ const categoryImages: Record<string, any> = {
 
 export default function CategoryListScreen() {
   const navigation = useNavigation<NavProp>();
-
-  // ⭐ NEW: use applyCycleFromFeed instead of refreshCycle
+  const route = useRoute();
   const { applyCycleFromFeed } = useCycleTimer();
-
   const [categories, setCategories] = useState<FeedCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -138,7 +136,7 @@ export default function CategoryListScreen() {
       />
 
       <View>
-        <ButtonPanel />
+        <ButtonPanel currentScreen={route.name} />
       </View>
     </SafeAreaView>
   );

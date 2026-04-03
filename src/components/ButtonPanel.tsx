@@ -1,16 +1,21 @@
 import { View, StyleSheet, Pressable, Image, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-
+import homeIcon from '../assets/buttons/panel-home.png';
 import accountIcon from '../assets/buttons/panel-account.png';
 import teamsIcon from '../assets/buttons/panel-teams.png';
 import historyIcon from '../assets/buttons/panel-history.png';
 
-export default function ButtonPanel() {
+type ButtonPanelProps = {
+  currentScreen: string;
+};
+
+export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
   // Access navigation directly inside the component
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute();
 
   return (
     <View style={styles.container}>
@@ -24,14 +29,28 @@ export default function ButtonPanel() {
 
       {/* Horizontal row of icons */}
       <View style={styles.row}>
+        
         {/* History */}
-        <Pressable
-          onPress={() => navigation.navigate('Login')}
-          style={styles.item}
-        >
-          <Image source={historyIcon} style={styles.icon} />
-          <Text style={styles.label}>History</Text>
-        </Pressable>
+        {route.name === 'CategoryList' && (
+          <Pressable
+            onPress={() => navigation.navigate('ResultsHistory')}
+            style={styles.item}
+          >
+            <Image source={historyIcon} style={styles.icon} />
+            <Text style={styles.label}>History</Text>
+          </Pressable>
+        )}
+
+        {/* Category List */}
+        {route.name !== 'CategoryList' && (
+          <Pressable
+            onPress={() => navigation.navigate('CategoryList')}
+            style={styles.item}
+          >
+            <Image source={homeIcon} style={styles.icon} />
+            <Text style={styles.label}>Home</Text>
+          </Pressable>
+        )}
 
         {/* Teams */}
         <Pressable
@@ -43,13 +62,15 @@ export default function ButtonPanel() {
         </Pressable>
 
         {/* Account */}
-        <Pressable
-          onPress={() => navigation.navigate('Account')}
-          style={styles.item}
-        >
-          <Image source={accountIcon} style={styles.icon} />
-          <Text style={styles.label}>Account</Text>
-        </Pressable>
+        {route.name === 'CategoryList' && (
+          <Pressable
+            onPress={() => navigation.navigate('Account')}
+            style={styles.item}
+          >
+            <Image source={accountIcon} style={styles.icon} />
+            <Text style={styles.label}>Account</Text>
+          </Pressable>
+        )}
       </View>
 
       {/* Bottom gradient line */}

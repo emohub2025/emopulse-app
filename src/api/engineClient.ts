@@ -59,72 +59,78 @@ async function request<T>(
   body?: any,
   navigation?: any
 ): Promise<T> {
-  const token = await AsyncStorage.getItem("authToken");
+  try {
+    const token = await AsyncStorage.getItem("authToken");
 
-  // Normalize caller path + auto-prefix /mobile
-  const cleanPath = normalizePath(path);
-  const url = `${BASE_URL}${API_PREFIX}${cleanPath}`;
+    // Normalize caller path + auto-prefix /mobile
+    const cleanPath = normalizePath(path);
+    const url = `${BASE_URL}${API_PREFIX}${cleanPath}`;
 
-  let res = await fetch(url, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
+    // --- Helper to perform the actual fetch ---
+    const doFetch = async (authToken?: string) => {
+      return await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        },
+        ...(body ? { body: JSON.stringify(body) } : {}),
+      });
+    };
 
-  // 🔐 Token expired or invalid
-  if (res.status === 401) {
-    console.log("🔐 Access token expired — attempting refresh");
+    // First attempt
+    let res = await doFetch(token ?? undefined);   // ⭐ FIXED
 
-    // ⭐ NEW — Try refresh instead of immediate logout
-    const refreshed = await attemptTokenRefresh();
+    // 🔐 Token expired or invalid
+    if (res.status === 401) {
+      console.log("🔐 Access token expired — attempting refresh");
 
-    if (!refreshed) {
-      console.log("❌ Refresh failed — forcing logout");
-      await forceLogout(navigation);
-      throw new Error("Session expired. Please log in again.");
+      const refreshed = await attemptTokenRefresh();
+
+      if (!refreshed) {
+        console.log("❌ Refresh failed — forcing logout");
+        await forceLogout(navigation);
+        throw new Error("Session expired. Please log in again.");
+      }
+
+      // Retry with new token
+      const newToken = await AsyncStorage.getItem("authToken");
+      res = await doFetch(newToken ?? undefined);  // ⭐ FIXED
     }
 
-    // ⭐ NEW — Retry original request with new token
-    const newToken = await AsyncStorage.getItem("authToken");
+    // ❌ Other non-OK responses
+    if (!res.ok) {
+      let message = `Request failed with status ${res.status}`;
 
-    res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        ...(newToken ? { Authorization: `Bearer ${newToken}` } : {}),
-      },
-      ...(body ? { body: JSON.stringify(body) } : {}),
-    });
-  }
+      try {
+        const errBody = await res.json();
+        if (errBody?.error) message = errBody.error;
+        if (errBody?.message) message = errBody.message;
+      } catch {
+        // ignore JSON parse errors
+      }
 
-  // ❌ Other errors
-  if (!res.ok) {
-    let errBody = null;
+      throw new Error(message);
+    }
 
+    // ⭐ Safe JSON parsing
     try {
-      errBody = await res.json();
+      return await res.json();
     } catch {
-      errBody = null;
+      throw new Error("Invalid server response");
     }
 
-    console.log(`${method} error body:`, errBody);
-
-    const message =
-      errBody?.error ||
-      errBody?.message ||
-      `Request failed with status ${res.status}`;
-
-    throw new Error(message);
+  } catch (err: any) {
+    // ⭐ Prevent Expo red screen
+    console.log("🔥 request() caught error:", err);
+    throw new Error(err?.message || "Network error");
   }
-
-  return res.json() as Promise<T>;
 }
 
-// 📡 Public API
-export async function apiGet<T>(path: string, navigation?: any): Promise<T> {
+export async function apiGet<T>(
+  path: string,
+  navigation?: any
+): Promise<T> {
   return request<T>("GET", path, undefined, navigation);
 }
 
