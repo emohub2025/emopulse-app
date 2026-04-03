@@ -1,10 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { CommonActions } from "@react-navigation/native";
 
 const BASE_URL = "http://172.236.119.144:4100";
 const API_PREFIX = "/mobile"; // All routes automatically go through /mobile
 
-// 🔧 Normalize path so callers can pass "login" or "/login"
+// Normalize path so callers can pass "login" or "/login"
 function normalizePath(path: string): string {
   if (!path.startsWith("/")) {
     return "/" + path;
@@ -12,21 +11,12 @@ function normalizePath(path: string): string {
   return path;
 }
 
-// 🔐 Centralized logout helper
-async function forceLogout(navigation?: any) {
+// Centralized logout helper
+async function forceLogout() {
   await AsyncStorage.clear();
-
-  if (navigation) {
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: "Login" }],
-      })
-    );
-  }
 }
 
-// ⭐ NEW — Attempt refresh token
+// Attempt refresh token
 async function attemptTokenRefresh(): Promise<boolean> {
   const refreshToken = await AsyncStorage.getItem("refreshToken");
   if (!refreshToken) return false;
@@ -42,31 +32,27 @@ async function attemptTokenRefresh(): Promise<boolean> {
 
     const data = await res.json();
 
-    // Store new tokens
     await AsyncStorage.setItem("authToken", data.accessToken);
     await AsyncStorage.setItem("refreshToken", data.refreshToken);
 
     return true;
-  } catch (err) {
+  } catch {
     return false;
   }
 }
 
-// 🌐 Core request wrapper
+// Core request wrapper
 async function request<T>(
   method: "GET" | "POST",
   path: string,
-  body?: any,
-  navigation?: any
+  body?: any
 ): Promise<T> {
   try {
     const token = await AsyncStorage.getItem("authToken");
 
-    // Normalize caller path + auto-prefix /mobile
     const cleanPath = normalizePath(path);
     const url = `${BASE_URL}${API_PREFIX}${cleanPath}`;
 
-    // --- Helper to perform the actual fetch ---
     const doFetch = async (authToken?: string) => {
       return await fetch(url, {
         method,
@@ -78,10 +64,8 @@ async function request<T>(
       });
     };
 
-    // First attempt
-    let res = await doFetch(token ?? undefined);   // ⭐ FIXED
+    let res = await doFetch(token ?? undefined);
 
-    // 🔐 Token expired or invalid
     if (res.status === 401) {
       console.log("🔐 Access token expired — attempting refresh");
 
@@ -89,16 +73,14 @@ async function request<T>(
 
       if (!refreshed) {
         console.log("❌ Refresh failed — forcing logout");
-        await forceLogout(navigation);
+        await forceLogout();
         throw new Error("Session expired. Please log in again.");
       }
 
-      // Retry with new token
       const newToken = await AsyncStorage.getItem("authToken");
-      res = await doFetch(newToken ?? undefined);  // ⭐ FIXED
+      res = await doFetch(newToken ?? undefined);
     }
 
-    // ❌ Other non-OK responses
     if (!res.ok) {
       let message = `Request failed with status ${res.status}`;
 
@@ -113,31 +95,21 @@ async function request<T>(
       throw new Error(message);
     }
 
-    // ⭐ Safe JSON parsing
     try {
       return await res.json();
     } catch {
       throw new Error("Invalid server response");
     }
-
   } catch (err: any) {
-    // ⭐ Prevent Expo red screen
     console.log("🔥 request() caught error:", err);
     throw new Error(err?.message || "Network error");
   }
 }
 
-export async function apiGet<T>(
-  path: string,
-  navigation?: any
-): Promise<T> {
-  return request<T>("GET", path, undefined, navigation);
+export async function apiGet<T>(path: string): Promise<T> {
+  return request<T>("GET", path);
 }
 
-export async function apiPost<T>(
-  path: string,
-  body: any,
-  navigation?: any
-): Promise<T> {
-  return request<T>("POST", path, body, navigation);
+export async function apiPost<T>(path: string, body: any): Promise<T> {
+  return request<T>("POST", path, body);
 }

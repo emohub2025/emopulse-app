@@ -49,7 +49,7 @@ export default function RootNavigator({
 }) {
 useEffect(() => {
   NavigationBar.setVisibilityAsync('visible');
-  NavigationBar.setBackgroundColorAsync('#121212');
+//  NavigationBar.setBackgroundColorAsync('#121212');
   NavigationBar.setButtonStyleAsync('light');
 }, []);
   return (

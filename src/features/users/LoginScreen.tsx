@@ -52,7 +52,7 @@ export default function LoginScreen() {
       const response = await apiPost<LoginResponse>(
         "login",
         { identifier, password },
-        navigation
+//        navigation
       );
 
       await AsyncStorage.setItem("authToken", response.accessToken);
