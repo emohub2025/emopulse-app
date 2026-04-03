@@ -88,11 +88,11 @@ export default function AccountScreen() {
   }
 
   if (!user) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.loadingText}>No user found</Text>
-      </View>
-    );
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Login" }],
+    });
+    return null;
   }
 
   const pickAvatar = async () => {
@@ -230,7 +230,7 @@ export default function AccountScreen() {
             label="Challenge Results"
             onPress={() => {
               if (!user) return;
-              navigation.navigate("ResultsHistory", { userId: user.id });
+              navigation.navigate("ResultsHistory");
             }}
           />
 

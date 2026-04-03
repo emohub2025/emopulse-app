@@ -1,15 +1,15 @@
-import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
-import { View, Text, Image, ImageBackground, StyleSheet, Pressable, Animated, ScrollView, BackHandler } from 'react-native';
-import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, Image, ImageBackground, StyleSheet, Animated, ScrollView, BackHandler } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ButtonPanel from '../../components/ButtonPanel';
 import { ChallengeResult, getChallengeResults } from '../../api/getChallengeResults';
 import { useCycleTimer } from '../../components/CycleTimerContext';
-import eventBus from '../../components/EventBus';
-import activeButton from '../../assets/buttons/active.png';
 import { LinearGradient } from "expo-linear-gradient";
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
+import { useCurrentUserId } from "../../state/useUserSelectors";
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -175,32 +175,29 @@ export default function ChallengeResultScreen() {
   const route = useRoute<any>();
   const { challenge, challengeId, fromHistory } = route.params || {};
   const effectiveId = challenge?.id ?? challengeId;
-  const USER_ID = "dda1522f-2c44-499e-a8e5-04460b888d05";
+  const userId = useCurrentUserId();
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<ChallengeResult | null>(null);
+  const { isExpired, formattedTime } = useCycleTimer();
+  const fetchedRef = useRef(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   if (!effectiveId) {
     console.error("❌ ChallengeResults missing challenge or challenge.id:", challenge);
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={dynamicStyles(fromHistory).safe}>
         <Text style={styles.loadingText}>Missing challenge data</Text>
       </SafeAreaView>
     );
   }
 
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<ChallengeResult | null>(null);
-
-  const { isExpired, formattedTime } = useCycleTimer();
-  const fetchedRef = useRef(false);
-
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: loading ? 1 : 0,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
-  }, [loading]);
+   useEffect(() => {
+     Animated.timing(fadeAnim, {
+       toValue: loading ? 1 : 0,
+       duration: 250,
+       useNativeDriver: true,
+     }).start();
+   }, [loading]);
 
   const fetchResults = async () => {
     if (fetchedRef.current) return;
@@ -208,7 +205,7 @@ export default function ChallengeResultScreen() {
 
     try {
       setLoading(true);
-      const data = await getChallengeResults(effectiveId, USER_ID);
+      const data = await getChallengeResults(effectiveId, userId ?? undefined);
       setResults(data);
     } catch (err) {
       console.log("❌ ERROR LOADING RESULT:", err);
@@ -218,7 +215,7 @@ export default function ChallengeResultScreen() {
   };
 
   useEffect(() => {
-    const DELAY_MS = 2000;
+    //const DELAY_MS = 0;
 
     // ⭐ If opened from history → fetch immediately
     if (fromHistory) {
@@ -228,20 +225,10 @@ export default function ChallengeResultScreen() {
 
     // ⭐ Otherwise follow the active challenge timing logic
     if (isExpired) {
-      setTimeout(fetchResults, DELAY_MS);
-      return;
+      //setTimeout(fetchResults, DELAY_MS);
+      fetchResults();
     }
-
-    const onExpire = () => {
-      setTimeout(fetchResults, DELAY_MS);
-    };
-
-    eventBus.on("cycleExpired", onExpire);
-
-    return () => {
-      eventBus.off("cycleExpired", onExpire);
-    };
-  }, [challenge?.id, isExpired]);
+  }, [fromHistory, isExpired, challenge?.id]);
 
   useEffect(() => {
     if (fromHistory) return;
@@ -258,115 +245,104 @@ export default function ChallengeResultScreen() {
   }, [fromHistory, navigation]);
 
   return (
-  <View style={{ flex: 1, backgroundColor: 'black' }}>
-    <ImageBackground
-      source={require('../../assets/images/background.png')}
-      style={{ flex: 1, marginBottom: 42 }}
-      resizeMode="cover"
-    >
-      <SafeAreaView style={styles.safe}>
+    <View style={{ flex: 1, backgroundColor: 'black' }}>
+      <ImageBackground
+        source={require('../../assets/images/background.png')}
+        style={{ flex: 1, marginBottom: 42 }}
+        resizeMode="cover"
+      >
+        <SafeAreaView 
+          style={dynamicStyles(fromHistory).safe}>
 
-        {/* <Text style={styles.title}>Challenge Results</Text> */}
+          {/* ⭐ Scrollable results area */}
+          <View style={{backgroundColor: '#1E1E1E', paddingTop: 15, paddingLeft: 15, paddingRight: 15, paddingBottom: fromHistory ? 15 : 0, borderRadius: 12,  marginTop: 20, overflow: 'hidden'}}>
+            <ScrollView
+              style={{ maxHeight: fromHistory ? '105%' : '96%' }}
+              showsVerticalScrollIndicator={false}
+            >
 
-        {/* ⭐ Scrollable results area */}
-        <View style={styles.box}>
-          <ScrollView
-            style={{ maxHeight: '100%' }}
-            // contentContainerStyle={{ paddingBottom: -20 }}
-            showsVerticalScrollIndicator={false}
+              {/* ⭐ Summary Card (only if >1 bet) */}
+              {results && (() => {
+                const main = results.user_main;
+                const subs = results.subchallenge_results || [];
+
+                const totalBets = 1 + subs.length;
+                // const wins = (main?.won ? 1 : 0) + subs.filter(s => s.won).length;
+                // const losses = totalBets - wins;
+
+                const totalDelta =
+                  (main?.delta || 0) +
+                  subs.reduce((sum, s) => sum + s.delta, 0);
+
+                const totalPayout =
+                  (main?.payout || 0) +
+                  subs.reduce((sum, s) => sum + s.payout, 0);
+
+                return (
+                  <>
+                    {totalBets > 1 && (
+                      <SummaryCard
+                        topic={results.challenge.topic}
+                        category={results.challenge.category}
+                        // totalBets={totalBets}
+                        // wins={wins}
+                        // losses={losses}
+                        totalDelta={totalDelta}
+                        totalPayout={totalPayout}
+                      />
+                    )}
+                  </>
+                );
+              })()}
+
+              {/* ⭐ Main Challenge Card */}
+              {results?.user_main && !results.user_main.skipped && (
+                <ResultCard
+                  title="Main Challenge"
+                  won={results.user_main.won}
+                  skipped={results.user_main.skipped}
+                  userChoice={results.user_main.emotion}
+                  winningChoice={results.challenge.winning_emotion}
+                  payout={results.user_main.payout}
+                  delta={results.user_main.delta}
+                />
+              )}
+
+              {/* ⭐ Subchallenge Cards */}
+              {results?.subchallenge_results
+                ?.filter(sub => !sub.skipped && sub.user_option_label)
+                .map(sub => (
+                <ResultCard
+                  key={sub.subchallenge_id}
+                  title={sub.question_text}
+                  won={sub.won}
+                  skipped={sub.skipped}
+                  userChoice={sub.user_option_label}
+                  winningChoice={sub.winning_option_label}
+                  payout={sub.payout}
+                  delta={sub.delta}
+                />
+              ))}
+            </ScrollView>
+          </View>
+
+          {!loading && !fromHistory && !isExpired && (
+            <Text style={styles.timer}>{formattedTime}</Text>
+          )}
+
+          <Animated.View
+            pointerEvents={loading ? 'auto' : 'none'}
+            style={[styles.loadingOverlay, { opacity: fadeAnim }]}
           >
+            <Text style={styles.loadingText}>Loading challenge results…</Text>
+          </Animated.View>
 
-            {/* ⭐ Summary Card (only if >1 bet) */}
-            {results && (() => {
-              const main = results.user_main;
-              const subs = results.subchallenge_results || [];
+        </SafeAreaView>
+      </ImageBackground>
 
-               const totalBets = 1 + subs.length;
-              // const wins = (main?.won ? 1 : 0) + subs.filter(s => s.won).length;
-              // const losses = totalBets - wins;
-
-              const totalDelta =
-                (main?.delta || 0) +
-                subs.reduce((sum, s) => sum + s.delta, 0);
-
-              const totalPayout =
-                (main?.payout || 0) +
-                subs.reduce((sum, s) => sum + s.payout, 0);
-
-              return (
-                <>
-                  {totalBets > 1 && (
-                    <SummaryCard
-                      topic={results.challenge.topic}
-                      category={results.challenge.category}
-                      // totalBets={totalBets}
-                      // wins={wins}
-                      // losses={losses}
-                      totalDelta={totalDelta}
-                      totalPayout={totalPayout}
-                    />
-                  )}
-                </>
-              );
-            })()}
-
-            {/* ⭐ Main Challenge Card */}
-            {results?.user_main && !results.user_main.skipped && (
-              <ResultCard
-                title="Main Challenge"
-                won={results.user_main.won}
-                skipped={results.user_main.skipped}
-                userChoice={results.user_main.emotion}
-                winningChoice={results.challenge.winning_emotion}
-                payout={results.user_main.payout}
-                delta={results.user_main.delta}
-              />
-            )}
-
-            {/* ⭐ Subchallenge Cards */}
-            {results?.subchallenge_results
-              ?.filter(sub => !sub.skipped && sub.user_option_label)
-              .map(sub => (
-              <ResultCard
-                key={sub.subchallenge_id}
-                title={sub.question_text}
-                won={sub.won}
-                skipped={sub.skipped}
-                userChoice={sub.user_option_label}
-                winningChoice={sub.winning_option_label}
-                payout={sub.payout}
-                delta={sub.delta}
-              />
-            ))}
-          </ScrollView>
-        </View>
-
-        {!loading && (
-          <Pressable
-            onPress={() =>
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'CategoryList' }],
-              })
-            }
-          >
-            <Image source={activeButton} style={styles.activeImage} />
-          </Pressable>
-        )}
-
-        {!fromHistory && !isExpired && (
-          <Text style={styles.timer}>{formattedTime}</Text>
-        )}
-
-        <Animated.View
-          pointerEvents={loading ? 'auto' : 'none'}
-          style={[styles.loadingOverlay, { opacity: fadeAnim }]}
-        >
-          <Text style={styles.loadingText}>Loading challenge results…</Text>
-        </Animated.View>
-
-      </SafeAreaView>
-    </ImageBackground>
+      <View>
+        <ButtonPanel currentScreen={route.name} />
+      </View>
     </View>
   );
 }
@@ -374,12 +350,17 @@ export default function ChallengeResultScreen() {
 /* -------------------------------------------------------
    ⭐ Styles
 ------------------------------------------------------- */
-const styles = StyleSheet.create({
+export const dynamicStyles = (fromHistory: boolean) => ({
   safe: {
     flex: 1,
     paddingTop: 50,
+    paddingBottom: 50,
     paddingHorizontal: 20,
-  },
+    marginBottom: fromHistory ? 0 : -50,
+  }
+});
+
+const styles = StyleSheet.create({
   title: {
     color: 'white',
     fontSize: 28,
@@ -387,15 +368,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 25,
     marginBottom: 0,
-  },
-
-  box: {
-    backgroundColor: '#1E1E1E',
-    padding: 15,
-    borderRadius: 12,
-    marginTop: 20,
-    maxHeight: '90%',
-    overflow: 'hidden',
   },
 
   /* ⭐ Summary styles */
@@ -471,13 +443,13 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#ed84df',
   },
-  activeImage: {
-    width: 280,
-    height: 47,
-    resizeMode: 'contain',
-    alignSelf: 'center',
-    marginTop: 20,
-  },
+  // buttonImage: {
+  //   width: 280,
+  //   height: 47,
+  //   resizeMode: 'contain',
+  //   alignSelf: 'center',
+  //   marginTop: 10,
+  // },
   timer: {
     color: 'yellow',
     fontSize: 22,

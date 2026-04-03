@@ -1,16 +1,16 @@
 import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../../navigation/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useEffect, useState } from 'react';
-import { useNavigation, useIsFocused } from '@react-navigation/native';
+import { useState, useEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { View, Text, StyleSheet, Image, ImageBackground, TouchableOpacity } from 'react-native';
 import EmotionSelector from '../../components/EmotionSelector';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useCycleTimer } from '../../components/CycleTimerContext';
-import eventBus from '../../components/EventBus';
 import { postPlaceUserBet } from '../../api/postPlaceUserBet';
 import { getSubchallengeList } from '../../api/subchallenges';
+import { useCurrentUserId } from "../../state/useUserSelectors";
 
 type ChallengeRouteProp = RouteProp<RootStackParamList, 'Challenge'>;
 
@@ -26,7 +26,8 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   const [submitted, setSubmitted] = useState(false);
   const navigation = useNavigation<NavProp>();
   const { formattedTime } = useCycleTimer();
-  const USER_ID = "dda1522f-2c44-499e-a8e5-04460b888d05";
+  const userId = useCurrentUserId();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Auto-shrink state
   const [topicFontSize, setTopicFontSize] = useState(24);
@@ -36,18 +37,21 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
 
     try {
       setLoading(true);
+      setErrorMessage(null);
 
-       const response = await postPlaceUserBet({
-         challenge_id: challenge.id,
-         user_id: USER_ID,
-         emotion: emotion
-       });
+      if (!userId) {
+        setErrorMessage("Missing user ID");
+        return;
+      }
+      const response = await postPlaceUserBet({
+        challenge_id: challenge.id,
+        user_id: userId,
+        emotion: emotion
+      });
 
-       console.log("Bet placed:", response);
+      console.log("Bet placed:", response);
 
-      // ⭐ RUN SUBCHALLENGE GATING HERE
       const listResults = await getSubchallengeList(challenge.id);
-      //console.log("Subchallenge list:", JSON.stringify(listResults, null, 2));
 
       if (listResults && listResults.length > 0) {
         // listResults.forEach((item, i) => {
@@ -60,40 +64,32 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
         //     console.log(`Option ${j}:`, opt.metadata?.text);
         //   });
         // });
-
         navigation.navigate("Subchallenge", {
           challenge,
           subchallenges: listResults
         });
-      }
-      else {
+      } else {
         setSubmitted(true);
       }
+
     } catch (err: any) {
       console.error("Bet failed:", err);
+
+      // ⭐ Prevent Expo red screen
+      setErrorMessage(err?.message || "Unable to place bet.");
     } finally {
       setLoading(false);
     }
   };
 
-  const isDisabled = !emotion || loading;
-  const isFocused = useIsFocused();
-
   useEffect(() => {
-    if (!isFocused) return;
+    if (errorMessage) {
+      const timer = setTimeout(() => setErrorMessage(null), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage]);
 
-    const handler = () => {
-      //navigation.navigate('ChallengeResults', {
-      //  challenge
-      //});
-    };
-
-    eventBus.on('cycleExpired', handler);
-
-    return () => {
-      eventBus.off('cycleExpired', handler);
-    };
-  }, [isFocused, navigation, challenge]);
+  const isDisabled = !emotion || loading;
 
   return (
   <View style={{ flex: 1, backgroundColor: 'black' }}>
@@ -138,6 +134,10 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
 
             <EmotionSelector selected={emotion} onSelect={setEmotion} />
 
+            {errorMessage && (
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            )}
+
             <TouchableOpacity
               onPress={handleSubmit}
               disabled={isDisabled}
@@ -152,7 +152,8 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
               />
             </TouchableOpacity>
           </View>
-        ) : (
+          ) : (
+          
           <View style={[styles.gradient, { backgroundColor: 'black' }]}>
             <View style={styles.content}>
               <Image
@@ -234,6 +235,13 @@ const styles = StyleSheet.create({
     height: 506,
     resizeMode: 'contain',
     alignSelf: 'center',
+  },
+
+  errorText: {
+    color: 'red',
+    fontSize: 22,
+    textAlign: 'center',
+    marginTop: 20,
   },
 
   timer: {

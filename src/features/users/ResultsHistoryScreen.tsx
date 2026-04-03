@@ -2,18 +2,16 @@ import React, { useEffect, useState } from "react";
 import { View, Text, Image, FlatList, StyleSheet, LayoutAnimation, ImageBackground, Pressable } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../navigation/types";
-import { useRoute, useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import ButtonPanel from '../../components/ButtonPanel';
 import { apiGet } from "../../api/engineClient";
+import { useCurrentUserId } from "../../state/useUserSelectors";
 
 type ChallengeItem = {
   challenge_id: string;
   topic: string | null;
   category: string | null;
   resolved_at: string | null;
-};
-
-type RouteParams = {
-  userId: string;
 };
 
 const categoryIcons: Record<string, any> = {
@@ -49,12 +47,11 @@ function getRelativeLabel(dateString?: string | null): string {
 }
 
 export default function ChallengeHistoryScreen() {
-  const route = useRoute();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { userId } = route.params as RouteParams;
-
+  const userId = useCurrentUserId();
   const [challenges, setChallenges] = useState<ChallengeItem[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
+  const route = useRoute();
 
   async function loadChallenges() {
     try {
@@ -64,6 +61,10 @@ export default function ChallengeHistoryScreen() {
         status: string;
         challenges: ChallengeItem[];
       }>(`user-challenges?user_id=${userId}`);
+
+      // ⭐ Log the entire response
+      //console.log("User challenges response:", JSON.stringify(data, null, 2));
+      //console.log("User:", userId);
 
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
@@ -183,6 +184,10 @@ export default function ChallengeHistoryScreen() {
           </View>
         )}
       </ImageBackground>
+
+      <View>
+        <ButtonPanel currentScreen={route.name} />
+      </View>
     </View>
   );
 }

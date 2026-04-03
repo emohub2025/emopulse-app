@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, SectionList, StyleSheet, LayoutAnimation, ImageBackground } from "react-native";
 import { useRoute } from "@react-navigation/native";
+import ButtonPanel from '../../components/ButtonPanel';
 import { apiGet } from "../../api/engineClient";
-
-// Icons
 import payoutIcon from "../../assets/images/payout.png";
 import payoutSubIcon from "../../assets/images/payout-sub.png";
 import betIcon from "../../assets/images/bet.png";
@@ -53,9 +52,9 @@ function iconFor(type: string) {
 
 function groupTransactionsByDay(transactions: Transaction[]) {
   const groups: Record<string, Transaction[]> = {};
-
   const today = new Date();
   const yesterday = new Date();
+
   yesterday.setDate(today.getDate() - 1);
 
   function labelFor(date: string) {
@@ -86,7 +85,6 @@ function groupTransactionsByDay(transactions: Transaction[]) {
 export default function TransactionsScreen() {
   const route = useRoute();
   const { userId } = route.params as TransactionsRouteParams;
-
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [grouped, setGrouped] = useState<any[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -249,6 +247,10 @@ export default function TransactionsScreen() {
           </View>
         )}
       </ImageBackground>
+
+      <View>
+        <ButtonPanel currentScreen={route.name} />
+      </View>
     </View>
   );
 }
@@ -271,7 +273,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.85)",
     marginHorizontal: 12,
     marginTop: 20,
-    marginBottom: 15,
+    marginBottom: 75,
     borderRadius: 20,
     overflow: "hidden",
   },

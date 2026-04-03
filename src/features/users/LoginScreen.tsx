@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, ImageBackground, StyleSheet, Pressable, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import loginButton from '../../assets/buttons/login.png';
@@ -10,6 +10,8 @@ import eyeOpen from '../../assets/buttons/eye-open.png';
 import eyeClosed from '../../assets/buttons/eye-close.png';
 import { apiPost } from "../../api/engineClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useUserStore } from "../../state/useUserStore";
+import { getUserInfo } from '../../api/getUserInfo';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -21,6 +23,16 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // ⭐ NEW — track login success so navigation happens AFTER render
+  const [loginSuccess, setLoginSuccess] = useState(false);
+
+  // ⭐ NEW — safe navigation effect
+  useEffect(() => {
+    if (loginSuccess) {
+      navigation.replace("CategoryList");
+    }
+  }, [loginSuccess]);
 
   // -----------------------------------------------------
   // 🔐 Handle Login (double-submit safe)
@@ -50,7 +62,15 @@ export default function LoginScreen() {
 
       console.log("MOBILE TOKEN:", response.accessToken);
 
-      navigation.replace("CategoryList");
+      // Fetch full user object
+      const fullUser = await getUserInfo(response.userId.toString());
+      //console.log("User:", JSON.stringify(response, null, 2));
+
+      // Store in Zustand
+      useUserStore.getState().setUser(fullUser);
+
+      // ⭐ Trigger navigation AFTER render
+      setLoginSuccess(true);
 
     } catch (err: any) {
       if (err?.response?.error) {

@@ -10,6 +10,7 @@ import { postSubchallengeResponse } from "../../api/postSubchallengeResponse";
 import { LinearGradient } from "expo-linear-gradient";
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useCycleTimer } from '../../components/CycleTimerContext';
+import { useCurrentUserId } from "../../state/useUserSelectors";
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, "Subchallenge">;
 type RouteProps = RouteProp<RootStackParamList, "Subchallenge">;
@@ -18,9 +19,7 @@ export default function SponsorSubchallengeScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<RouteProps>();
   const { challenge } = route.params;
-
-  const USER_ID = "dda1522f-2c44-499e-a8e5-04460b888d05";
-
+  const userId = useCurrentUserId();
   const [template, setTemplate] = useState<SubchallengeTemplate | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -54,10 +53,11 @@ export default function SponsorSubchallengeScreen() {
   //
   useEffect(() => {
     async function loadResponses() {
+      if (!userId) return; // prevent invalid request
       try {
         const res = await getSubchallengeResponses(
           challenge.subchallenge_id!,
-          USER_ID
+          userId
         );
         setUserResponses(res);
         //console.log("Loaded userResponses:", res);
@@ -82,12 +82,13 @@ export default function SponsorSubchallengeScreen() {
   //
   async function handleSubmit() {
     if (!selectedOption && !dontAskAgain) return;
+    if (!userId) return; // prevent invalid request
 
     try {
       setSubmitting(true);
 
       await postSubchallengeResponse({
-        user_id: USER_ID,
+        user_id: userId,
         challenge_id: challenge.id,
         subchallenge_id: challenge.subchallenge_id!,
         option_text: selectedOption,
@@ -97,7 +98,7 @@ export default function SponsorSubchallengeScreen() {
       // ⭐ NEW: Refresh user responses after submit
       const updated = await getSubchallengeResponses(
         challenge.subchallenge_id!,
-        USER_ID
+        userId
       );
       setUserResponses(updated);
 
