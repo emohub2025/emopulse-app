@@ -88,7 +88,7 @@ export type RootStackParamList = {
   Teams: undefined;
   Profile: {
     user: MobileUser;
-    onUserUpdated: (updated: MobileUser) => void;
+    // onUserUpdated: (updated: MobileUser) => void;
   }
   ResultsHistory: undefined;
   Transactions: {

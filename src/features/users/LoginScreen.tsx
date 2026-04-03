@@ -135,7 +135,7 @@ export default function LoginScreen() {
           </View>
         </Pressable>
 
-        <Pressable
+        {/* <Pressable
           onPress={handleLogin}
           disabled={loading}
           style={[styles.googleWrapper, loading && { opacity: 0.5 }]}
@@ -147,7 +147,7 @@ export default function LoginScreen() {
               <Image source={googleButton} style={styles.buttonImage} />
             )}
           </View>
-        </Pressable>
+        </Pressable> */}
 
         <View style={styles.loginRow}>
           <Text style={styles.bottomLabel}>Don't have an account? </Text>

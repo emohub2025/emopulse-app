@@ -34,7 +34,7 @@ export default function HomePageScreen() {
 
   {/* Logo / Title */}
   <SafeAreaView style={styles.safe}>
-    <Text style={styles.title}>Join the future of predictions!</Text>
+    <Text style={styles.title}>Join the future of emotional intelligence!</Text>
   </SafeAreaView>
 
   {/* Buttons */}

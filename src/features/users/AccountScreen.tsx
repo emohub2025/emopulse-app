@@ -19,7 +19,6 @@ export default function AccountScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔥 Double‑tap logout state
   const [lastTap, setLastTap] = useState<number | null>(null);
   const [showLogoutHint, setShowLogoutHint] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
@@ -31,7 +30,6 @@ export default function AccountScreen() {
       const userId = await AsyncStorage.getItem("userId");
       const refresh = await AsyncStorage.getItem("refreshToken");
 
-      // ⭐ Fix #6 — sanity check: if refresh token is missing, force logout
       if (!refresh) {
         logout(navigation);
         return;
@@ -45,7 +43,6 @@ export default function AccountScreen() {
 
       const userData = await getUserInfo(userId);
       setUser(userData);
-
     } catch (err) {
       console.log("❌ Error loading user:", err);
       setError("Failed to load user");
@@ -58,7 +55,15 @@ export default function AccountScreen() {
     loadUser();
   }, [loadUser]);
 
-  // 🔥 Double‑tap logout handler
+  useEffect(() => {
+    if (!loading && !user) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
+    }
+  }, [loading, user, navigation]);
+
   const handleLogoutPress = () => {
     const now = Date.now();
 
@@ -88,10 +93,6 @@ export default function AccountScreen() {
   }
 
   if (!user) {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "Login" }],
-    });
     return null;
   }
 
@@ -145,7 +146,6 @@ export default function AccountScreen() {
       setUser((prev) =>
         prev ? { ...prev, avatar_url: freshUrl } : prev
       );
-
     } catch (err: any) {
       console.log("🔥 Upload failed:", err.message);
     }
@@ -174,7 +174,6 @@ export default function AccountScreen() {
             )}
           </Pressable>
 
-          {/* 🔐 Double‑tap logout */}
           <Pressable style={styles.rightColumn} onPress={handleLogoutPress}>
             <Text style={styles.userName}>{user?.first_name}</Text>
             <Text style={styles.userEmail}>{user?.email}</Text>
@@ -187,7 +186,6 @@ export default function AccountScreen() {
           </Pressable>
         </View>
 
-        {/* Options */}
         <View style={{ marginTop: 30 }}>
           <View style={{ marginBottom: 20, marginLeft: 12, marginRight: 12 }}>
             <OptionRow
@@ -211,19 +209,16 @@ export default function AccountScreen() {
             />
           </View>
 
-          <OptionRow
-            icon={profileIcon}
-            label="Profile Details"
-            onPress={() => {
-              if (!user) return;
-              navigation.navigate('Profile', {
-                user,
-                onUserUpdated: (updatedUser: MobileUser) => {
-                  setUser(updatedUser);
-                },
-              });
-            }}
-          />
+<OptionRow
+  icon={profileIcon}
+  label="Profile Details"
+  onPress={() => {
+    if (!user) return;
+    navigation.navigate('Profile', {
+      user,
+    });
+  }}
+/>
 
           <OptionRow
             icon={profileIcon}
@@ -251,14 +246,6 @@ export default function AccountScreen() {
               navigation.navigate("Achievements", { userId: user.id });
             }}
           />
-{/* 
-          <OptionRow
-            icon={profileIcon}
-            label="Settings"
-            onPress={() => {
-              navigation.navigate("Settings");
-            }}
-          /> */}
 
           <OptionRow
             icon={profileIcon}
