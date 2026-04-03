@@ -62,11 +62,9 @@ async function request<T>(
   try {
     const token = await AsyncStorage.getItem("authToken");
 
-    // Normalize caller path + auto-prefix /mobile
     const cleanPath = normalizePath(path);
     const url = `${BASE_URL}${API_PREFIX}${cleanPath}`;
 
-    // --- Helper to perform the actual fetch ---
     const doFetch = async (authToken?: string) => {
       return await fetch(url, {
         method,
@@ -79,9 +77,9 @@ async function request<T>(
     };
 
     // First attempt
-    let res = await doFetch(token ?? undefined);   // ⭐ FIXED
+    let res = await doFetch(token ?? undefined);
 
-    // 🔐 Token expired or invalid
+    // Token expired
     if (res.status === 401) {
       console.log("🔐 Access token expired — attempting refresh");
 
@@ -90,15 +88,15 @@ async function request<T>(
       if (!refreshed) {
         console.log("❌ Refresh failed — forcing logout");
         await forceLogout(navigation);
-        throw new Error("Session expired. Please log in again.");
+        // ⭐ Throw a STRING, not an Error object
+        throw "Session expired. Please log in again.";
       }
 
-      // Retry with new token
       const newToken = await AsyncStorage.getItem("authToken");
-      res = await doFetch(newToken ?? undefined);  // ⭐ FIXED
+      res = await doFetch(newToken ?? undefined);
     }
 
-    // ❌ Other non-OK responses
+    // Non-OK responses
     if (!res.ok) {
       let message = `Request failed with status ${res.status}`;
 
@@ -106,24 +104,36 @@ async function request<T>(
         const errBody = await res.json();
         if (errBody?.error) message = errBody.error;
         if (errBody?.message) message = errBody.message;
-      } catch {
-        // ignore JSON parse errors
+      } catch (jsonErr) {
+        console.log("⚠️ JSON parse failed for error body:", jsonErr);
       }
 
-      throw new Error(message);
+      // ⭐ Throw a STRING, not an Error object
+      throw message;
     }
 
-    // ⭐ Safe JSON parsing
+    // Safe JSON parsing
     try {
       return await res.json();
     } catch {
-      throw new Error("Invalid server response");
+      console.log("🚨 THROWING FROM invalid server response");
+      throw "Invalid server response";
     }
 
   } catch (err: any) {
-    // ⭐ Prevent Expo red screen
-    console.log("🔥 request() caught error:", err);
-    throw new Error(err?.message || "Network error");
+    console.log("🔥 request() caught error:", err, "type:", typeof err, "path:", path);
+
+    // ⭐ Normalize EVERYTHING into a string
+    const msg =
+      typeof err === "string"
+        ? err
+        : typeof err?.message === "string"
+        ? err.message
+        : "Network error";
+
+    // ⭐ Throw a STRING, not an Error object
+    console.log("🚨 THROWING FROM request():", msg, "for path:", path);
+    throw msg;
   }
 }
 
