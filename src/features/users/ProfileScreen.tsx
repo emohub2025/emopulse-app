@@ -69,7 +69,7 @@ export default function ProfileScreen() {
         <View style={{ marginTop: 40 }}>
           {/* First Name */}
           <View style={styles.rowField}>
-            <Text style={styles.rowLabel}>First Name:</Text>
+            <Text style={styles.rowLabel}>Avatar Name:</Text>
             <TextInput
               style={styles.rowInput}
               value={update.first_name}
@@ -81,7 +81,7 @@ export default function ProfileScreen() {
 
           {/* Phone */}
           <View style={styles.rowField}>
-            <Text style={styles.rowLabel}>Phone:</Text>
+            <Text style={styles.rowLabel}>Mobile:</Text>
             <TextInput
               style={styles.rowInput}
               keyboardType="phone-pad"
@@ -134,7 +134,7 @@ export default function ProfileScreen() {
 
           {/* Birthdate */}
           <View style={styles.rowField}>
-            <Text style={styles.rowLabel}>Birthdate:</Text>
+            <Text style={styles.rowLabel}>Birth Date:</Text>
 
             <Pressable
               style={styles.rowInput}
@@ -143,7 +143,7 @@ export default function ProfileScreen() {
               <Text style={{ color: "white", fontSize: 20, fontWeight: "700" }}>
                 {update.birthdate
                   ? new Date(update.birthdate).toLocaleDateString()
-                  : "Select birthdate"}
+                  : "Select"}
               </Text>
             </Pressable>
 
@@ -169,7 +169,7 @@ export default function ProfileScreen() {
 
           {/* Facebook */}
           <View style={styles.rowField}>
-            <Text style={styles.rowLabel}>Facebook:</Text>
+            <Text style={styles.rowLabel}>Facebook Link:</Text>
             <TextInput
               style={styles.rowInput}
               value={update.facebook_url}
@@ -181,7 +181,7 @@ export default function ProfileScreen() {
 
           {/* Instagram */}
           <View style={styles.rowField}>
-            <Text style={styles.rowLabel}>Instagram:</Text>
+            <Text style={styles.rowLabel}>Instagram Link:</Text>
             <TextInput
               style={styles.rowInput}
               value={update.instagram_url}
@@ -193,7 +193,7 @@ export default function ProfileScreen() {
 
           {/* TikTok */}
           <View style={styles.rowField}>
-            <Text style={styles.rowLabel}>Tiktok:</Text>
+            <Text style={styles.rowLabel}>Tiktok Link:</Text>
             <TextInput
               style={styles.rowInput}
               value={update.tiktok_url}
