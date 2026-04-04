@@ -21,17 +21,26 @@ export default function AuthGate() {
         const hasUserId = !!userId;
 
         if (hasAccessToken && hasRefreshToken && hasUserId) {
-          if (mounted) setIsLoggedIn(true);
+          if (mounted) {
+            setIsLoggedIn(true);
+          }
         } else {
           await AsyncStorage.multiRemove(["authToken", "refreshToken", "userId"]);
-          if (mounted) setIsLoggedIn(false);
+          if (mounted) {
+            setIsLoggedIn(false);
+          }
         }
       } catch (err) {
         console.log("❌ AuthGate bootstrap failed:", err);
         await AsyncStorage.multiRemove(["authToken", "refreshToken", "userId"]);
-        if (mounted) setIsLoggedIn(false);
+
+        if (mounted) {
+          setIsLoggedIn(false);
+        }
       } finally {
-        if (mounted) setBooting(false);
+        if (mounted) {
+          setBooting(false);
+        }
       }
     }
 

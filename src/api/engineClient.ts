@@ -5,12 +5,10 @@ import { navigationRef } from "../navigation/navigationRef";
 const BASE_URL = "http://172.236.119.144:4100";
 const API_PREFIX = "/mobile";
 
-// Normalize path so callers can pass "login" or "/login"
 function normalizePath(path: string): string {
   return path.startsWith("/") ? path : `/${path}`;
 }
 
-// Clear only auth-related keys and send user to Login
 async function forceLogout(): Promise<void> {
   await AsyncStorage.multiRemove(["authToken", "refreshToken", "userId"]);
 
@@ -18,13 +16,12 @@ async function forceLogout(): Promise<void> {
     navigationRef.dispatch(
       CommonActions.reset({
         index: 0,
-        routes: [{ name: "Login" as never }],
+        routes: [{ name: "Login" }],
       })
     );
   }
 }
 
-// Attempt refresh token and return new access token
 async function attemptTokenRefresh(): Promise<string> {
   const refreshToken = await AsyncStorage.getItem("refreshToken");
 
@@ -61,7 +58,6 @@ async function attemptTokenRefresh(): Promise<string> {
 
   await AsyncStorage.setItem("authToken", data.accessToken);
 
-  // Save rotated refresh token if backend returns one
   if (data.refreshToken) {
     await AsyncStorage.setItem("refreshToken", data.refreshToken);
   }
@@ -69,7 +65,6 @@ async function attemptTokenRefresh(): Promise<string> {
   return data.accessToken;
 }
 
-// Core request wrapper
 async function request<T>(
   method: "GET" | "POST",
   path: string,

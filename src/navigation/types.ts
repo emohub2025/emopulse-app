@@ -76,57 +76,6 @@ export interface Challenge {
   audit_log?: any[] | null;
 }
 
-export type RootStackParamList = {
-
-  CategoryList: undefined;
-  HomePage: undefined;
-  Login: undefined;
-  Signup: undefined;
-  Account: undefined;
-  HelpAndSupport: undefined;
-  Settings: undefined;
-  Teams: undefined;
-  Profile: {
-    user: MobileUser;
-    // onUserUpdated: (updated: MobileUser) => void;
-  }
-  ResultsHistory: undefined;
-  Transactions: {
-    userId: string;
-  }
-  Achievements: {
-    userId: string;
-  }
-  CategoryChallenges: {
-    category: string;
-    active: Challenge[];
-    recent: Challenge[];
-  };
-  ChallengeDetail: {
-    challenge: Challenge;
-  };
-  Challenge: {
-    challenge: Challenge;
-  };
-  ChallengeCountdown: {
-    challenge?: Challenge;
-    challengeId?: string;
-  };
-  ChallengeResults: {
-    challenge?: Challenge;
-    challengeId?: string;
-    fromHistory?: boolean;
-  };
-  Subchallenge: {
-    challenge: Challenge;
-    subchallenges: SubchallengeList[];
-  };
-  SponsorSubchallenge: {
-    challenge: Challenge;
-  };
-};
-
-// this should be removed
 export interface SubchallengeList {
   id: string;
   question_text: string;
@@ -142,6 +91,65 @@ export interface SubchallengeList {
     };
   }[];
 }
+
+export type RootStackParamList = {
+  HomePage: undefined;
+  Login: undefined;
+  Signup: undefined;
+  Account: undefined;
+  HelpAndSupport: undefined;
+  Settings: undefined;
+  Teams: undefined;
+  CategoryList: undefined;
+
+  Profile: {
+    user: MobileUser;
+  };
+
+  ResultsHistory: undefined;
+
+  Transactions: {
+    userId: string;
+  };
+
+  Achievements: {
+    userId: string;
+  };
+
+  CategoryChallenges: {
+    category: string;
+    active: Challenge[];
+    recent: Challenge[];
+  };
+
+  ChallengeDetail: {
+    challenge: Challenge;
+  };
+
+  Challenge: {
+    challenge: Challenge;
+  };
+
+  ChallengeCountdown: {
+    challenge?: Challenge;
+    challengeId?: string;
+  };
+
+  ChallengeResults: {
+    challenge?: Challenge;
+    challengeId?: string;
+    fromHistory?: boolean;
+  };
+
+  Subchallenge: {
+    challenge: Challenge;
+    subchallenges: SubchallengeList[];
+  };
+
+  SponsorSubchallenge: {
+    challenge: Challenge;
+  };
+};
 
 export interface CycleInfo {
   batchId: string | null;
@@ -173,9 +181,9 @@ export interface FeedChallenge {
   snippet: string | null;
   quote: string | null;
   stat: string | null;
-  winning_emotion: string | null;   // null for active, string for recent
-  resolved_at: string | null;       // null for active, timestamp for recent
-  //subchallenges: FeedSubchallengeSummary[];
+  winning_emotion: string | null;
+  resolved_at: string | null;
+  // subchallenges: FeedSubchallengeSummary[];
 }
 
 export interface FeedSubchallengeSummary {
@@ -184,7 +192,7 @@ export interface FeedSubchallengeSummary {
   winning_option?: {
     id: string;
     label: string;
-  }; // present only for RECENT challenges
+  };
 }
 
 export interface ChallengeDetail {
@@ -228,7 +236,7 @@ export interface SubchallengeTemplate {
   question_text: string;
   category: string;
   keywords: string[];
-  options: string[]; // from JSONB
+  options: string[];
   seasonal_start: string | null;
   seasonal_end: string | null;
   active: boolean;
