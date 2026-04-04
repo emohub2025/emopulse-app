@@ -7,6 +7,7 @@ import { OfflineContext } from "./src/context/OfflineContext";
 import { OfflineBanner } from "./src/components/OfflineBanner";
 import { OfflineOverlay } from "./src/components/OfflineOverlay";
 import AuthGate from "./src/auth/AuthGate";
+import { navigationRef } from "./src/navigation/navigationRef";
 
 export default function App() {
   const [isOffline, setIsOffline] = useState(false);
@@ -23,18 +24,14 @@ export default function App() {
   return (
     <OfflineContext.Provider value={{ isOffline }}>
       <CycleTimerProvider>
-
         <View style={{ flex: 1 }}>
           <OfflineBanner />
           <OfflineOverlay />
 
-          {/* ⭐ Only ONE NavigationContainer */}
-          <NavigationContainer>
-            {/* ⭐ AuthGate decides which screen to show */}
+          <NavigationContainer ref={navigationRef}>
             <AuthGate />
           </NavigationContainer>
         </View>
-
       </CycleTimerProvider>
     </OfflineContext.Provider>
   );

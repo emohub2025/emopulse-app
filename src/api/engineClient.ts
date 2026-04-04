@@ -1,44 +1,72 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { CommonActions } from "@react-navigation/native";
+import { navigationRef } from "../navigation/navigationRef";
 
 const BASE_URL = "http://172.236.119.144:4100";
 const API_PREFIX = "/mobile";
 
 // Normalize path so callers can pass "login" or "/login"
 function normalizePath(path: string): string {
-  if (!path.startsWith("/")) {
-    return "/" + path;
+  return path.startsWith("/") ? path : `/${path}`;
+}
+
+// Clear only auth-related keys and send user to Login
+async function forceLogout(): Promise<void> {
+  await AsyncStorage.multiRemove(["authToken", "refreshToken", "userId"]);
+
+  if (navigationRef.isReady()) {
+    navigationRef.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: "Login" as never }],
+      })
+    );
   }
-  return path;
 }
 
-// Centralized logout helper
-async function forceLogout() {
-  await AsyncStorage.clear();
-}
-
-// Attempt refresh token
-async function attemptTokenRefresh(): Promise<boolean> {
+// Attempt refresh token and return new access token
+async function attemptTokenRefresh(): Promise<string> {
   const refreshToken = await AsyncStorage.getItem("refreshToken");
-  if (!refreshToken) return false;
 
-  try {
-    const res = await fetch(`${BASE_URL}/auth/refresh`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
-    });
-
-    if (!res.ok) return false;
-
-    const data = await res.json();
-
-    await AsyncStorage.setItem("authToken", data.accessToken);
-    await AsyncStorage.setItem("refreshToken", data.refreshToken);
-
-    return true;
-  } catch {
-    return false;
+  if (!refreshToken) {
+    throw new Error("No refresh token available");
   }
+
+  const refreshUrl = `${BASE_URL}${API_PREFIX}/auth/refresh`;
+
+  const res = await fetch(refreshUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ refreshToken }),
+  });
+
+  const rawText = await res.text();
+
+  if (!res.ok) {
+    throw new Error(`Refresh failed: ${res.status} ${rawText}`);
+  }
+
+  let data: any;
+  try {
+    data = JSON.parse(rawText);
+  } catch {
+    throw new Error("Invalid refresh response");
+  }
+
+  if (!data?.accessToken) {
+    throw new Error("No access token returned from refresh");
+  }
+
+  await AsyncStorage.setItem("authToken", data.accessToken);
+
+  // Save rotated refresh token if backend returns one
+  if (data.refreshToken) {
+    await AsyncStorage.setItem("refreshToken", data.refreshToken);
+  }
+
+  return data.accessToken;
 }
 
 // Core request wrapper
@@ -47,38 +75,36 @@ async function request<T>(
   path: string,
   body?: any
 ): Promise<T> {
+  const cleanPath = normalizePath(path);
+  const url = `${BASE_URL}${API_PREFIX}${cleanPath}`;
+
+  const doFetch = async (authToken?: string): Promise<Response> => {
+    return fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+  };
+
   try {
-    const token = await AsyncStorage.getItem("authToken");
-
-    const cleanPath = normalizePath(path);
-    const url = `${BASE_URL}${API_PREFIX}${cleanPath}`;
-
-    const doFetch = async (authToken?: string) => {
-      return await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-        },
-        ...(body ? { body: JSON.stringify(body) } : {}),
-      });
-    };
-
+    let token = await AsyncStorage.getItem("authToken");
     let res = await doFetch(token ?? undefined);
 
     if (res.status === 401) {
       console.log("🔐 Access token expired — attempting refresh");
 
-      const refreshed = await attemptTokenRefresh();
-
-      if (!refreshed) {
-        console.log("❌ Refresh failed — forcing logout");
+      try {
+        token = await attemptTokenRefresh();
+      } catch (refreshErr) {
+        console.log("❌ Refresh failed — forcing logout", refreshErr);
         await forceLogout();
         throw new Error("Session expired. Please log in again.");
       }
 
-      const newToken = await AsyncStorage.getItem("authToken");
-      res = await doFetch(newToken ?? undefined);
+      res = await doFetch(token);
     }
 
     if (!res.ok) {
@@ -86,17 +112,27 @@ async function request<T>(
 
       try {
         const errBody = await res.json();
-        if (errBody?.error) message = errBody.error;
-        if (errBody?.message) message = errBody.message;
+        if (errBody?.error) {
+          message = errBody.error;
+        } else if (errBody?.message) {
+          message = errBody.message;
+        }
       } catch {
-        // ignore JSON parse errors
+        try {
+          const fallbackText = await res.text();
+          if (fallbackText) {
+            message = fallbackText;
+          }
+        } catch {
+          // ignore
+        }
       }
 
       throw new Error(message);
     }
 
     try {
-      return await res.json();
+      return (await res.json()) as T;
     } catch {
       throw new Error("Invalid server response");
     }
@@ -113,3 +149,5 @@ export async function apiGet<T>(path: string): Promise<T> {
 export async function apiPost<T>(path: string, body: any): Promise<T> {
   return request<T>("POST", path, body);
 }
+
+export { forceLogout };
