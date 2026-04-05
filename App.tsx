@@ -50,7 +50,6 @@ export default function App() {
   return (
     <OfflineContext.Provider value={{ isOffline }}>
       <CycleTimerProvider>
-
         <View style={{ flex: 1 }}>
           <OfflineBanner />
           <OfflineOverlay />
@@ -59,7 +58,6 @@ export default function App() {
             <AuthGate />
           </NavigationContainer>
         </View>
-
       </CycleTimerProvider>
     </OfflineContext.Provider>
   );

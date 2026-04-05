@@ -1,23 +1,19 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CommonActions } from "@react-navigation/native";
+import { navigationRef } from "../navigation/navigationRef";
 
 const BASE_URL = "http://172.236.119.144:4100";
-const API_PREFIX = "/mobile"; // All routes automatically go through /mobile
+const API_PREFIX = "/mobile";
 
-// 🔧 Normalize path so callers can pass "login" or "/login"
 function normalizePath(path: string): string {
-  if (!path.startsWith("/")) {
-    return "/" + path;
-  }
-  return path;
+  return path.startsWith("/") ? path : `/${path}`;
 }
 
-// 🔐 Centralized logout helper
-async function forceLogout(navigation?: any) {
-  await AsyncStorage.clear();
+async function forceLogout(): Promise<void> {
+  await AsyncStorage.multiRemove(["authToken", "refreshToken", "userId"]);
 
-  if (navigation) {
-    navigation.dispatch(
+  if (navigationRef.isReady()) {
+    navigationRef.dispatch(
       CommonActions.reset({
         index: 0,
         routes: [{ name: "Login" }],
@@ -26,128 +22,127 @@ async function forceLogout(navigation?: any) {
   }
 }
 
-// ⭐ NEW — Attempt refresh token
-async function attemptTokenRefresh(): Promise<boolean> {
+async function attemptTokenRefresh(): Promise<string> {
   const refreshToken = await AsyncStorage.getItem("refreshToken");
-  if (!refreshToken) return false;
 
-  try {
-    const res = await fetch(`${BASE_URL}/auth/refresh`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
-    });
-
-    if (!res.ok) return false;
-
-    const data = await res.json();
-
-    // Store new tokens
-    await AsyncStorage.setItem("authToken", data.accessToken);
-    await AsyncStorage.setItem("refreshToken", data.refreshToken);
-
-    return true;
-  } catch (err) {
-    return false;
+  if (!refreshToken) {
+    throw new Error("No refresh token available");
   }
+
+  const refreshUrl = `${BASE_URL}${API_PREFIX}/auth/refresh`;
+
+  const res = await fetch(refreshUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ refreshToken }),
+  });
+
+  const rawText = await res.text();
+
+  if (!res.ok) {
+    throw new Error(`Refresh failed: ${res.status} ${rawText}`);
+  }
+
+  let data: any;
+  try {
+    data = JSON.parse(rawText);
+  } catch {
+    throw new Error("Invalid refresh response");
+  }
+
+  if (!data?.accessToken) {
+    throw new Error("No access token returned from refresh");
+  }
+
+  await AsyncStorage.setItem("authToken", data.accessToken);
+
+  if (data.refreshToken) {
+    await AsyncStorage.setItem("refreshToken", data.refreshToken);
+  }
+
+  return data.accessToken;
 }
 
-// 🌐 Core request wrapper
 async function request<T>(
   method: "GET" | "POST",
   path: string,
-  body?: any,
-  navigation?: any
+  body?: any
 ): Promise<T> {
+  const cleanPath = normalizePath(path);
+  const url = `${BASE_URL}${API_PREFIX}${cleanPath}`;
+
+  const doFetch = async (authToken?: string): Promise<Response> => {
+    return fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+  };
+
   try {
-    const token = await AsyncStorage.getItem("authToken");
-
-    const cleanPath = normalizePath(path);
-    const url = `${BASE_URL}${API_PREFIX}${cleanPath}`;
-
-    const doFetch = async (authToken?: string) => {
-      return await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-        },
-        ...(body ? { body: JSON.stringify(body) } : {}),
-      });
-    };
-
-    // First attempt
+    let token = await AsyncStorage.getItem("authToken");
     let res = await doFetch(token ?? undefined);
 
-    // Token expired
     if (res.status === 401) {
       console.log("🔐 Access token expired — attempting refresh");
 
-      const refreshed = await attemptTokenRefresh();
-
-      if (!refreshed) {
-        console.log("❌ Refresh failed — forcing logout");
-        await forceLogout(navigation);
-        // ⭐ Throw a STRING, not an Error object
-        throw "Session expired. Please log in again.";
+      try {
+        token = await attemptTokenRefresh();
+      } catch (refreshErr) {
+        console.log("❌ Refresh failed — forcing logout", refreshErr);
+        await forceLogout();
+        throw new Error("Session expired. Please log in again.");
       }
 
-      const newToken = await AsyncStorage.getItem("authToken");
-      res = await doFetch(newToken ?? undefined);
+      res = await doFetch(token);
     }
 
-    // Non-OK responses
     if (!res.ok) {
       let message = `Request failed with status ${res.status}`;
 
       try {
         const errBody = await res.json();
-        if (errBody?.error) message = errBody.error;
-        if (errBody?.message) message = errBody.message;
-      } catch (jsonErr) {
-        console.log("⚠️ JSON parse failed for error body:", jsonErr);
+        if (errBody?.error) {
+          message = errBody.error;
+        } else if (errBody?.message) {
+          message = errBody.message;
+        }
+      } catch {
+        try {
+          const fallbackText = await res.text();
+          if (fallbackText) {
+            message = fallbackText;
+          }
+        } catch {
+          // ignore
+        }
       }
 
-      // ⭐ Throw a STRING, not an Error object
-      throw message;
+      throw new Error(message);
     }
 
-    // Safe JSON parsing
     try {
-      return await res.json();
+      return (await res.json()) as T;
     } catch {
-      console.log("🚨 THROWING FROM invalid server response");
-      throw "Invalid server response";
+      throw new Error("Invalid server response");
     }
-
   } catch (err: any) {
-    console.log("🔥 request() caught error:", err, "type:", typeof err, "path:", path);
-
-    // ⭐ Normalize EVERYTHING into a string
-    const msg =
-      typeof err === "string"
-        ? err
-        : typeof err?.message === "string"
-        ? err.message
-        : "Network error";
-
-    // ⭐ Throw a STRING, not an Error object
-    console.log("🚨 THROWING FROM request():", msg, "for path:", path);
-    throw msg;
+    console.log("🔥 request() caught error:", err);
+    throw new Error(err?.message || "Network error");
   }
 }
 
-export async function apiGet<T>(
-  path: string,
-  navigation?: any
-): Promise<T> {
-  return request<T>("GET", path, undefined, navigation);
+export async function apiGet<T>(path: string): Promise<T> {
+  return request<T>("GET", path);
 }
 
-export async function apiPost<T>(
-  path: string,
-  body: any,
-  navigation?: any
-): Promise<T> {
-  return request<T>("POST", path, body, navigation);
+export async function apiPost<T>(path: string, body: any): Promise<T> {
+  return request<T>("POST", path, body);
 }
+
+export { forceLogout };

@@ -1,9 +1,8 @@
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useEffect } from 'react';
-import * as NavigationBar from 'expo-navigation-bar';
-import { Image, View } from 'react-native';
-import { RootStackParamList } from './types';
-
+import React, { useEffect } from "react";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import * as NavigationBar from "expo-navigation-bar";
+import { Image, View } from "react-native";
+import { RootStackParamList } from "./types";
 import HomePageScreen from '../features/users/HomePageScreen';
 import LoginScreen from '../features/users/LoginScreen';
 import SignupScreen from '../features/users/SignupScreen';
@@ -26,18 +25,17 @@ import SubchallengeScreen from '../features/subchallenge/SubchallengeScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-// Your original LogoHeader — unchanged
 const LogoHeader = () => (
   <View
     style={{
-      width: '100%',
-      alignItems: 'center',
-      justifyContent: 'center',
+      width: "100%",
+      alignItems: "center",
+      justifyContent: "center",
     }}
   >
     <Image
-      source={require('../assets/logos/logo.png')}
-      style={{ width: 500, height: 60, marginTop: -10, resizeMode: 'contain' }}
+      source={require("../assets/logos/logo.png")}
+      style={{ width: 500, height: 60, marginTop: -10, resizeMode: "contain" }}
     />
   </View>
 );
@@ -47,11 +45,11 @@ export default function RootNavigator({
 }: {
   initialRouteName?: keyof RootStackParamList;
 }) {
-useEffect(() => {
-  NavigationBar.setVisibilityAsync('visible');
-  NavigationBar.setBackgroundColorAsync('#121212');
-  NavigationBar.setButtonStyleAsync('light');
-}, []);
+  useEffect(() => {
+    NavigationBar.setVisibilityAsync("visible");
+    NavigationBar.setButtonStyleAsync("light");
+  }, []);
+
   return (
 <Stack.Navigator
   initialRouteName={initialRouteName}
