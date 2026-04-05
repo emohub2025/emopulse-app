@@ -61,6 +61,10 @@ export default function OptionRow({
   sideMargin = 12,
   borderRadius = 0,
 }: OptionRowProps) {
+
+  const isPressable = typeof onPress === 'function';
+  const Wrapper = isPressable ? Pressable : View;
+
   return (
     <View
       style={{
@@ -110,7 +114,8 @@ export default function OptionRow({
           ))}
 
         {/* MAIN PRESSABLE */}
-        <Pressable
+
+        <Wrapper
           style={[
             styles.row,
             {
@@ -136,11 +141,13 @@ export default function OptionRow({
             )}
           </View>
 
-          <Image
-            source={require('../assets/images/chevron.png')}
-            style={styles.rowArrow}
-          />
-        </Pressable>
+          {isPressable && (
+            <Image
+              source={require('../assets/images/chevron.png')}
+              style={styles.rowArrow}
+            />
+          )}
+        </Wrapper>
 
         {/* RIGHT BORDER */}
         {borderRightWidth > 0 &&

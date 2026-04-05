@@ -38,11 +38,8 @@ type ProfileRouteParams = {
 export default function ProfileScreen() {
   const route = useRoute();
   const { user: initialUser, onUserUpdated } = route.params as ProfileRouteParams;
-
   const [showBirthdatePicker, setShowBirthdatePicker] = useState(false);
-
   const [user, setUser] = useState<MobileUser>(initialUser);
-
   const [update, setUpdate] = useState<MobileUserUpdate>({
     first_name: initialUser.first_name,
     phone: initialUser.phone,

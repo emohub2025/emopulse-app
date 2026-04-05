@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, ImageBackground } from "react-native";
 import { useRoute } from "@react-navigation/native";
+import ButtonPanel from '../../components/ButtonPanel';
 
 // -----------------------------
 // Screen Component
@@ -11,41 +12,45 @@ export default function TeamsScreen() {
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <ImageBackground
         source={require("../../assets/images/background.png")}
-        style={{ flex: 1 }}
+        style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
-      >
-      <Text style={styles.topLabel}>Teams</Text>
+        >
+        <Text style={styles.topLabel}>Teams</Text>
 
-      <View
-        style={{
-            flex: 0.7,
-            alignItems: "center",
-            justifyContent: "center",
-            paddingHorizontal: 34,
-        }}
-        >
-        <Text
-            style={{
-            color: "#fff",
-            fontSize: 22,
-            fontWeight: "600",
-            marginBottom: 20,
-            }}
-        >
-            Coming Soon!
-        </Text>
+        <View
+          style={{
+              flex: 0.7,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: 34,
+          }}
+          >
+          <Text
+              style={{
+              color: "#fff",
+              fontSize: 22,
+              fontWeight: "600",
+              marginBottom: 20,
+              }}
+            >
+              Coming Soon!
+          </Text>
 
-        <Text
-            style={{
-            color: "rgba(255,255,255,0.8)",
-            fontSize: 20,
-            textAlign: "center",
-            }}
-        >
-          Team play is on the way. Soon you’ll be able to join groups and compete together.
-        </Text>
+          <Text
+              style={{
+              color: "rgba(255,255,255,0.8)",
+              fontSize: 20,
+              textAlign: "center",
+              }}
+          >
+            Team play is on the way. Soon you’ll be able to join groups and compete together.
+          </Text>
         </View>
       </ImageBackground>
+
+      <View>
+        <ButtonPanel currentScreen={route.name} />
+      </View>
     </View>
   );
 }

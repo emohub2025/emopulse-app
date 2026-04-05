@@ -42,6 +42,20 @@ export default function SubchallengeScreen({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const errorOpacity = useRef(new Animated.Value(0)).current;
   const timerOpacity = useRef(new Animated.Value(1)).current;
+  const [lastTap, setLastTap] = useState<number | null>(null);
+
+  const handleDoubleTapSubmit = () => {
+    const now = Date.now();
+
+    if (lastTap && now - lastTap < 800) {
+      handleAnswer(); // ⬅️ This is where navigation happens
+      setLastTap(null);
+      return;
+    }
+
+    setLastTap(now);
+    setTimeout(() => setLastTap(null), 900);
+  };
 
   const handleSkip = () => {
     // If there are more questions, move forward
@@ -223,7 +237,7 @@ export default function SubchallengeScreen({
             <Pressable
               onPress={() => {
                 if (!selected) return;
-                handleAnswer();
+                handleDoubleTapSubmit();
               }}
             >
               <Image source={answerButton} style={styles.answerImage} />

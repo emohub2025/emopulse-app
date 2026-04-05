@@ -1,16 +1,24 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { View, Text, StyleSheet, ImageBackground } from "react-native";
 import { useRoute } from "@react-navigation/native";
-
-type AchievementsRouteParams = {
-  userId: string;
-};
+import React, { useState } from "react";
+import ButtonPanel from '../../components/ButtonPanel';
 
 // -----------------------------
 // Screen Component
 // -----------------------------
 export default function AchievementsScreen() {
   const route = useRoute();
-  const { userId } = route.params as AchievementsRouteParams;
+  const [userId, setUserId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const loadUserId = async () => {
+      const id = await AsyncStorage.getItem("userId");
+      setUserId(id);
+    };
+
+    loadUserId();
+  }, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
@@ -37,7 +45,7 @@ export default function AchievementsScreen() {
             marginBottom: 20,
             }}
         >
-            No Achievements Yet
+          No Achievements Yet
         </Text>
 
         <Text
@@ -51,6 +59,10 @@ export default function AchievementsScreen() {
         </Text>
         </View>
       </ImageBackground>
+
+      <View>
+        <ButtonPanel currentScreen={route.name} />
+      </View>
     </View>
   );
 }

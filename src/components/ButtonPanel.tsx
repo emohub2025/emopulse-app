@@ -29,17 +29,6 @@ export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
 
       {/* Horizontal row of icons */}
       <View style={styles.row}>
-        
-        {/* History */}
-        {route.name === 'CategoryList' && (
-          <Pressable
-            onPress={() => navigation.navigate('ResultsHistory')}
-            style={styles.item}
-          >
-            <Image source={historyIcon} style={styles.icon} />
-            <Text style={styles.label}>History</Text>
-          </Pressable>
-        )}
 
         {/* Category List */}
         {route.name !== 'CategoryList' && (
@@ -51,18 +40,31 @@ export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
             <Text style={styles.label}>Home</Text>
           </Pressable>
         )}
+        
+        {/* History */}
+        {(route.name === 'CategoryList' || route.name === 'Teams' || route.name === 'Achievements' || route.name === 'HelpAndSupport') && (
+          <Pressable
+            onPress={() => navigation.navigate('ResultsHistory')}
+            style={styles.item}
+          >
+            <Image source={historyIcon} style={styles.icon} />
+            <Text style={styles.label}>History</Text>
+          </Pressable>
+        )}
 
         {/* Teams */}
-        <Pressable
-          onPress={() => navigation.navigate('Teams')}
-          style={styles.item}
-        >
-          <Image source={teamsIcon} style={styles.icon} />
-          <Text style={styles.label}>Teams</Text>
-        </Pressable>
+        {route.name !== 'Teams' && (
+          <Pressable
+            onPress={() => navigation.navigate('Teams')}
+            style={styles.item}
+          >
+            <Image source={teamsIcon} style={styles.icon} />
+            <Text style={styles.label}>Teams</Text>
+          </Pressable>
+        )}
 
         {/* Account */}
-        {route.name === 'CategoryList' && (
+        {(route.name === 'CategoryList' || route.name === 'Teams') && (
           <Pressable
             onPress={() => navigation.navigate('Account')}
             style={styles.item}

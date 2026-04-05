@@ -17,10 +17,6 @@ type Transaction = {
   challenge_topic?: string | null;
 };
 
-type TransactionsRouteParams = {
-  userId: string;
-};
-
 // -----------------------------
 // Helpers
 // -----------------------------
@@ -84,12 +80,12 @@ function groupTransactionsByDay(transactions: Transaction[]) {
 
 export default function TransactionsScreen() {
   const route = useRoute();
-  const { userId } = route.params as TransactionsRouteParams;
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [grouped, setGrouped] = useState<any[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [userId, setUserId] = React.useState<string | null>(null);
 
   // -----------------------------
   // Initial load

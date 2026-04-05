@@ -83,19 +83,16 @@ export type RootStackParamList = {
   Login: undefined;
   Signup: undefined;
   Account: undefined;
+  ResultsHistory: undefined;
+  Transactions: undefined;
+  Achievements: undefined;
   HelpAndSupport: undefined;
+  Feedback: undefined;
   Settings: undefined;
   Teams: undefined;
   Profile: {
     user: MobileUser;
-    // onUserUpdated: (updated: MobileUser) => void;
-  }
-  ResultsHistory: undefined;
-  Transactions: {
-    userId: string;
-  }
-  Achievements: {
-    userId: string;
+    onUserUpdated: (updated: MobileUser) => void;
   }
   CategoryChallenges: {
     category: string;

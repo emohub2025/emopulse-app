@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, ImageBackground } from "react-native";
 import { useRoute } from "@react-navigation/native";
+import ButtonPanel from '../../components/ButtonPanel';
 
 // -----------------------------
 // Screen Component
@@ -46,6 +47,10 @@ export default function HelpAndSupportScreen() {
         </Text>
         </View>
       </ImageBackground>
+
+      <View>
+        <ButtonPanel currentScreen={route.name} />
+      </View>
     </View>
   );
 }

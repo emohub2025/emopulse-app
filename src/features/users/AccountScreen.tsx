@@ -10,7 +10,7 @@ import { logout } from "../../auth/logout";
 import OptionRow from '../../components/OptionRow';
 import profileIcon from '../../assets/buttons/panel-account.png';
 import coinIcon from '../../assets/images/coin.png';
-import { API_URL } from '../../../config';
+import { AVATAR_URL } from '../../../config';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'Account'>;
 
@@ -18,14 +18,12 @@ export default function AccountScreen() {
   const [user, setUser] = useState<MobileUser | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-
   const [lastTap, setLastTap] = useState<number | null>(null);
   const [showLogoutHint, setShowLogoutHint] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
-
   const navigation = useNavigation<NavProp>();
-
   const loadUser = React.useCallback(async () => {
+
     try {
       const userId = await AsyncStorage.getItem("userId");
       const refresh = await AsyncStorage.getItem("refreshToken");
@@ -126,7 +124,7 @@ export default function AccountScreen() {
     formData.append("type", "user");
 
     try {
-      const res = await fetch(`${API_URL}/uploadAvatar`, {
+      const res = await fetch(`${AVATAR_URL}/uploadAvatar`, {
         method: "POST",
         headers: {
           "Content-Type": "multipart/form-data",
@@ -186,13 +184,13 @@ export default function AccountScreen() {
           </Pressable>
         </View>
 
-        <View style={{ marginTop: 30 }}>
+        <View style={{ marginTop: 22 }}>
           <View style={{ marginBottom: 20, marginLeft: 12, marginRight: 12 }}>
             <OptionRow
               icon={coinIcon}
-              label="Coin Balance"
-              subLabel={`${user?.coin_balance} Emo Coins`}
-              height={90}
+              label="   Coin Balance"
+              subLabel={`   ${user?.coin_balance} Emo Coins`}
+              height={70}
               borderTopWidth={2}
               borderBottomWidth={4}
               iconWidth={70}
@@ -204,21 +202,23 @@ export default function AccountScreen() {
               borderLeftWidth={2}
               borderRightWidth={2}
               borderRadius={7}
-              sideMargin={2}
-              onPress={() => {}}
+              sideMargin={30}
             />
           </View>
 
-<OptionRow
-  icon={profileIcon}
-  label="Profile Details"
-  onPress={() => {
-    if (!user) return;
-    navigation.navigate('Profile', {
-      user,
-    });
-  }}
-/>
+          <OptionRow
+            icon={profileIcon}
+            label="Profile Details"
+            onPress={() => {
+              if (!user) return;
+              navigation.navigate('Profile', {
+                user,
+                onUserUpdated: (updatedUser) => {
+                  setUser(updatedUser);   // instantly update AccountScreen
+                },
+              });
+            }}
+          />
 
           <OptionRow
             icon={profileIcon}
@@ -234,7 +234,7 @@ export default function AccountScreen() {
             label="Transaction History"
             onPress={() => {
               if (!user) return;
-              navigation.navigate("Transactions", { userId: user.id });
+              navigation.navigate("Transactions");
             }}
           />
 
@@ -243,7 +243,7 @@ export default function AccountScreen() {
             label="Achievements"
             onPress={() => {
               if (!user) return;
-              navigation.navigate("Achievements", { userId: user.id });
+              navigation.navigate("Achievements");
             }}
           />
 
@@ -254,6 +254,15 @@ export default function AccountScreen() {
               navigation.navigate("HelpAndSupport");
             }}
           />
+
+          <OptionRow
+            icon={profileIcon}
+            label="Feedback"
+            onPress={() => {
+              navigation.navigate("Feedback");
+            }}
+          />
+
         </View>
       </ImageBackground>
     </View>

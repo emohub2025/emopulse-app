@@ -31,9 +31,21 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const errorOpacity = useRef(new Animated.Value(0)).current;
   const timerOpacity = useRef(new Animated.Value(1)).current;
-
-  // Auto-shrink state
+  const [lastTap, setLastTap] = useState<number | null>(null);
   const [topicFontSize, setTopicFontSize] = useState(24);
+
+  const handleDoubleTapSubmit = () => {
+    const now = Date.now();
+
+    if (lastTap && now - lastTap < 800) {
+      handleSubmit(); // ⬅️ This is where navigation happens
+      setLastTap(null);
+      return;
+    }
+
+    setLastTap(now);
+    setTimeout(() => setLastTap(null), 900);
+  };
 
   const handleSubmit = async () => {
     if (!emotion) return;
@@ -181,7 +193,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
             <EmotionSelector selected={emotion} onSelect={setEmotion} />
 
             <TouchableOpacity
-              onPress={handleSubmit}
+              onPress={handleDoubleTapSubmit}
               disabled={isDisabled}
               style={[
                 styles.submitWrapper,
