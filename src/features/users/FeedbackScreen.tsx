@@ -163,6 +163,8 @@ export default function FeedbackScreen() {
           />
         </TouchableOpacity>
 
+        </View>
+
       </ImageBackground>
 
       {/* <View>
@@ -258,10 +260,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 20,
     paddingVertical: 20,
-    backgroundColor: "rgba(0,0,0,0.55)",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
   },
   successText: {
     color: "white",
@@ -273,10 +271,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 20,
     paddingVertical: 20,
-    backgroundColor: "rgba(255,0,0,0.15)",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255,0,0,0.35)",
   },
   errorText: {
     color: "#ff6b6b",
@@ -293,7 +287,7 @@ const styles = StyleSheet.create({
   submitButton: {
     width: 280,
     height: 47,
-    marginTop: -20,
+    marginTop: 18,
     resizeMode: 'contain',
   },
 });
