@@ -42,6 +42,7 @@ export default function ProfileScreen() {
   const navigation = useNavigation<NavProp>();
   const { user: initialUser } = route.params as ProfileRouteParams;
   const setStoredUser = useUserStore((state) => state.setUser);
+
   const [showBirthdatePicker, setShowBirthdatePicker] = useState(false);
   const [user, setUser] = useState<MobileUser>(initialUser);
   const [update, setUpdate] = useState<MobileUserUpdate>({

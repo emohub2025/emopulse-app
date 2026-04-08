@@ -9,6 +9,7 @@ import playButton from '../../assets/buttons/play.png';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useCycleTimer } from '../../components/CycleTimerContext';
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
+import YoutubePlayer from "react-native-youtube-iframe";
 
 // Route params type
 type ChallengeDetailRouteProp = RouteProp<
@@ -22,6 +23,11 @@ type NavProp = NativeStackNavigationProp<
   'ChallengeDetail'
 >;
 
+function extractShortsId(url: any) {
+  const parts = url.split("/shorts/");
+  return parts[1]?.split("?")[0]; // strips query params if present
+}
+
 export default function ChallengeDetailScreen({
   route,
 }: {
@@ -31,11 +37,13 @@ export default function ChallengeDetailScreen({
   const navigation = useNavigation<NavProp>();
   const { formattedTime } = useCycleTimer();
   const isResolved = challenge.status !== 'open';
-
-  //
-  // Image source (fallback-safe)
-  //
+  const isYouTube = challenge.source?.startsWith("YouTube");
   const imageSource = getChallengeImageSource(challenge);
+  const FRAME_WIDTH = 365;
+  const FRAME_HEIGHT = 463;
+  const PLAYER_WIDTH = FRAME_WIDTH * 2.51;
+  const PLAYER_HEIGHT = FRAME_HEIGHT * 1.1;
+  const OFFSET = PLAYER_WIDTH / 2;
 
   const combinedDetails = useMemo(() => {
     const parts: string[] = [];
@@ -71,36 +79,89 @@ export default function ChallengeDetailScreen({
               fontWeight="700"
               textAlign="center"
               fontStyle="italic"
-              marginTop={-30}
+              marginTop={-35}
             >
               {challenge.topic}
             </AutoShrinkBlock>
 
-            {/* Image */}
-            <View style={styles.imageWrapper}>
-              <Image source={imageSource} style={styles.image} />
-            </View>
+            {isYouTube ? (
+              // YouTube player block
 
-            {/* Source */}
-            <Text style={styles.source}>
-              Source: {challenge.source?.startsWith("Wacky") || !challenge.source
-                ? "Emopulse"
-                : challenge.source}
-            </Text>
-
-            {/* Snippet */}
-            <View style={{ marginRight: -10 }}>
-              <AutoShrinkBlock
-                maxFontSize={20}
-                height={230}
-                minHeight={230}
-                textAlign="left"
-                fontWeight="700"
-                marginBottom={10}
+            <View style={{ width: "100%", alignItems: "center", marginTop: -10, marginBottom: 25 }}>
+              
+              {/* Clipping frame */}
+              <View
+                style={{
+                  width: FRAME_WIDTH,
+                  height: FRAME_HEIGHT,
+                  borderRadius: 50,
+                  overflow: "hidden",
+                  backgroundColor: "black",
+                  position: "relative",
+                }}
               >
-                {combinedDetails ? combinedDetails : ""}
-              </AutoShrinkBlock>
+                {/* Oversized player */}
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: "50%",
+                    width: PLAYER_WIDTH,
+                    height: PLAYER_HEIGHT,
+                    transform: [{ translateX: -OFFSET }],
+                  }}
+                >
+                  <YoutubePlayer
+                    height={PLAYER_HEIGHT}
+                    width={PLAYER_WIDTH}
+                    play={false}
+                    videoId={extractShortsId(challenge.url)}
+                    initialPlayerParams={{
+                      controls: false,
+                      modestbranding: true,
+                      rel: false,
+                      playsinline: true,
+                      fs: 0,
+                    }}
+                    webViewProps={{
+                      allowsFullscreenVideo: false,
+                    }}
+                  />
+                </View>
+              </View>
+
             </View>
+
+            ) : (
+              <>
+                {/* Normal image block */}
+                <View style={styles.imageWrapper}>
+                  <Image source={imageSource} style={styles.image} />
+                </View>
+
+                {/* Source */}
+                <Text style={styles.source}>
+                  Source:{' '}
+                  {challenge.source?.startsWith("Wacky") || !challenge.source
+                    ? "Emopulse"
+                    : challenge.source}
+                </Text>
+
+                {/* Snippet */}
+                <View style={{ marginRight: -10 }}>
+                  <AutoShrinkBlock
+                    maxFontSize={20}
+                    height={230}
+                    minHeight={230}
+                    textAlign="left"
+                    fontWeight="700"
+                    marginBottom={10}
+                  >
+                    {combinedDetails ? combinedDetails : ""}
+                  </AutoShrinkBlock>
+                </View>
+              </>
+            )}
 
             {/* NEXT BUTTON OR WINNING EMOTION */}
             {!isResolved ? (

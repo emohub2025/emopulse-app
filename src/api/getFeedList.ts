@@ -3,7 +3,6 @@ import { apiGet } from "./engineClient";
 import { decodeHtmlEntities } from "../utils/decodeHtmlEntities";
 
 export async function getFeedList() {
-  //console.log("📦 START");
   const response = await apiGet<FeedResponse>(`/feed`);
 
   // ⭐ Clean all HTML entities in all challenges
@@ -18,7 +17,7 @@ export async function getFeedList() {
     categories: cleanedCategories,
   };
 
-  //console.log("📦 FULL FEED JSON (cleaned):", JSON.stringify(cleanedResponse, null, 2));
+  console.log("📦 FULL FEED JSON:", JSON.stringify(cleanedResponse, null, 2));
 
   return cleanedResponse;
 }

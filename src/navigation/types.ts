@@ -60,6 +60,7 @@ export type MobileUserUpdate = {
 export interface Challenge {
   id: string;
   topic: string;
+  url: string;
   snippet?: string | null;
   quote?: string | null;
   image_url?: string | null;

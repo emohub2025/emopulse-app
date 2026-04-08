@@ -25,6 +25,7 @@ export default function AccountScreen() {
   const navigation = useNavigation<NavProp>();
   const storedUser = useUserStore((state) => state.user);
   const setStoredUser = useUserStore((state) => state.setUser);
+
   const loadUser = React.useCallback(async () => {
 
     try {
