@@ -1,31 +1,43 @@
-import React, { useMemo } from 'react';
-import { View, Text, ImageBackground, StyleSheet, Image, Pressable } from 'react-native';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  ImageBackground,
+  StyleSheet,
+  ViewStyle,
+  Image,
+  Pressable,
+  Animated,
+  Easing,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../../navigation/types';
+
 import playButton from '../../assets/buttons/play.png';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useCycleTimer } from '../../components/CycleTimerContext';
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
-import YoutubePlayer from "react-native-youtube-iframe";
+import YoutubePlayer from 'react-native-youtube-iframe';
 
-// Route params type
+// Route params
 type ChallengeDetailRouteProp = RouteProp<
   RootStackParamList,
   'ChallengeDetail'
 >;
 
-// Navigation type
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
   'ChallengeDetail'
 >;
 
-function extractShortsId(url: any) {
-  const parts = url.split("/shorts/");
-  return parts[1]?.split("?")[0]; // strips query params if present
+// Shorts-only extractor
+function extractShortsId(url: string) {
+  if (!url) return '';
+  if (!url.includes('/shorts/')) return '';
+  return url.split('/shorts/')[1].split('?')[0];
 }
 
 export default function ChallengeDetailScreen({
@@ -33,121 +45,216 @@ export default function ChallengeDetailScreen({
 }: {
   route: ChallengeDetailRouteProp;
 }) {
-  const { challenge } = route.params; // ← full challenge object
+  const { challenge } = route.params;
   const navigation = useNavigation<NavProp>();
   const { formattedTime } = useCycleTimer();
+
   const isResolved = challenge.status !== 'open';
-  const isYouTube = challenge.source?.startsWith("YouTube");
   const imageSource = getChallengeImageSource(challenge);
+  const isYouTube = challenge.source?.startsWith('YouTube');
+
+  const [expanded, setExpanded] = useState(false);
+
+  // ⭐ Animation values
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  // ⭐ Animate on expand/collapse
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: expanded ? 1 : 0,
+        duration: 350,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: expanded ? 1 : 0.92,
+        duration: 350,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [expanded]);
+
+  // Frame sizing
   const FRAME_WIDTH = 365;
-  const FRAME_HEIGHT = 463;
-  const PLAYER_WIDTH = FRAME_WIDTH * 2.51;
-  const PLAYER_HEIGHT = FRAME_HEIGHT * 1.1;
+  const FRAME_HEIGHT = 559;
+  const PLAYER_WIDTH = FRAME_WIDTH * 2.72;
+  const PLAYER_HEIGHT = FRAME_HEIGHT * 1.2;
   const OFFSET = PLAYER_WIDTH / 2;
 
+  const COLLAPSED_FRAME = {
+    width: '100%',
+    height: 220,
+    borderRadius: 8,
+    marginBottom: -24,
+  };
+
+  const EXPANDED_FRAME = {
+    width: FRAME_WIDTH,
+    height: FRAME_HEIGHT,
+    borderRadius: 25,
+    marginTop: -22,
+  };
+
+  const frameStyle = expanded ? EXPANDED_FRAME : COLLAPSED_FRAME;
+
+  const collapsedPlayer: ViewStyle = {
+    width: 330,
+    height: 200,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  };
+
+  const expandedPlayer: ViewStyle = {
+    position: 'absolute',
+    top: 0,
+    left: '50%',
+    width: PLAYER_WIDTH,
+    height: PLAYER_HEIGHT,
+    transform: [{ translateX: -OFFSET }],
+  };
+
+  const playerStyle = expanded ? expandedPlayer : collapsedPlayer;
+
+  // Combined snippet/stat/quote
   const combinedDetails = useMemo(() => {
     const parts: string[] = [];
-
     if (challenge.snippet) parts.push(challenge.snippet.trim());
     if (challenge.stat) parts.push(challenge.stat.trim());
     if (challenge.quote) parts.push(challenge.quote.trim());
+    return parts.join('\n\n');
+  }, [challenge]);
 
-    return parts.join("\n\n"); // double line break looks great in UI
-  }, [challenge])
-
-  //
-  // UI
-  //
   return (
     <View style={{ flex: 1, backgroundColor: 'black' }}>
-      <Text style={styles.topLabel}>Challenge Details</Text>
+
+      {/* Collapse trigger */}
+      {expanded ? (
+        <Pressable onPress={() => setExpanded(false)}>
+          <Text style={styles.topLabel}>Challenge Details</Text>
+        </Pressable>
+      ) : (
+        <Text style={styles.topLabel}>Challenge Details</Text>
+      )}
 
       <ImageBackground
         source={require('../../assets/images/background.png')}
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-        {/* Dim overlay */}
         <View style={styles.dimOverlay} />
-  
-        <SafeAreaView style={styles.contentWrapper} edges={["top", "bottom"]}>
+
+        <SafeAreaView style={styles.contentWrapper} edges={['top', 'bottom']}>
           <View style={styles.container}>
 
-            {/* Topic */}
-            <AutoShrinkBlock
-              height={100}
-              fontWeight="700"
-              textAlign="center"
-              fontStyle="italic"
-              marginTop={-35}
-            >
-              {challenge.topic}
-            </AutoShrinkBlock>
-
-            {isYouTube ? (
-              // YouTube player block
-
-            <View style={{ width: "100%", alignItems: "center", marginTop: -10, marginBottom: 25 }}>
-              
-              {/* Clipping frame */}
-              <View
-                style={{
-                  width: FRAME_WIDTH,
-                  height: FRAME_HEIGHT,
-                  borderRadius: 50,
-                  overflow: "hidden",
-                  backgroundColor: "black",
-                  position: "relative",
-                }}
+            {/* Topic (hero only) */}
+            {!expanded && (
+              <AutoShrinkBlock
+                height={100}
+                fontWeight="700"
+                textAlign="center"
+                fontStyle="italic"
+                marginTop={-35}
               >
-                {/* Oversized player */}
-                <View
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: "50%",
-                    width: PLAYER_WIDTH,
-                    height: PLAYER_HEIGHT,
-                    transform: [{ translateX: -OFFSET }],
-                  }}
-                >
-                  <YoutubePlayer
-                    height={PLAYER_HEIGHT}
-                    width={PLAYER_WIDTH}
-                    play={false}
-                    videoId={extractShortsId(challenge.url)}
-                    initialPlayerParams={{
-                      controls: false,
-                      modestbranding: true,
-                      rel: false,
-                      playsinline: true,
-                      fs: 0,
-                    }}
-                    webViewProps={{
-                      allowsFullscreenVideo: false,
-                    }}
-                  />
-                </View>
-              </View>
+                {challenge.topic}
+              </AutoShrinkBlock>
+            )}
 
-            </View>
 
-            ) : (
+
+            {/* YOUTUBE MODE */}
+{isYouTube ? (
+  <View
+    style={{
+      width: '100%',
+      alignItems: 'center',
+      marginTop: -10,
+      marginBottom: 25,
+    }}
+  >
+    {/* ANIMATED WRAPPER (scale only — NEVER fade this) */}
+    <Animated.View
+      style={{
+        ...frameStyle,
+        overflow: 'hidden',
+        backgroundColor: 'black',
+        position: 'relative',
+        transform: [{ scale: scaleAnim }],
+      }}
+    >
+      {/* HERO IMAGE LAYER (always mounted) */}
+      <Animated.View
+        style={{
+          ...StyleSheet.absoluteFillObject,
+          opacity: expanded
+            ? fadeAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [1, 0], // fade OUT when expanding
+              })
+            : 1, // fully visible when collapsed
+          zIndex: expanded ? 0 : 2, // hero on top when collapsed
+        }}
+        pointerEvents={expanded ? 'none' : 'auto'}
+      >
+        <Pressable onPress={() => setExpanded(true)}>
+          <Image
+            source={imageSource}
+            style={styles.image}
+            //style={{ width: '100%', height: '100%' }}
+            resizeMode="cover"
+          />
+        </Pressable>
+      </Animated.View>
+
+      {/* PLAYER LAYER (always mounted) */}
+      <Animated.View
+        style={{
+          ...StyleSheet.absoluteFillObject,
+          opacity: expanded ? fadeAnim : 0, // fade IN when expanding
+          zIndex: expanded ? 3 : -1, // player only on top when expanded
+        }}
+        pointerEvents={expanded ? 'auto' : 'none'}
+      >
+        <View style={playerStyle}>
+          <YoutubePlayer
+            height={playerStyle.height}
+            width={playerStyle.width}
+            play={false}
+            videoId={extractShortsId(challenge.url)}
+            initialPlayerParams={{
+              controls: true,
+              modestbranding: true,
+              rel: false,
+              playsinline: true,
+              fs: 0,
+            }}
+            webViewProps={{
+              allowsFullscreenVideo: false,
+            }}
+          />
+        </View>
+      </Animated.View>
+    </Animated.View>
+  </View>
+) : (
+  <View style={styles.imageWrapper}>
+    <Image source={imageSource} style={styles.image} />
+  </View>
+)}
+
+            {/* DETAILS (only when collapsed) */}
+            {!expanded && (
               <>
-                {/* Normal image block */}
-                <View style={styles.imageWrapper}>
-                  <Image source={imageSource} style={styles.image} />
-                </View>
-
-                {/* Source */}
                 <Text style={styles.source}>
                   Source:{' '}
-                  {challenge.source?.startsWith("Wacky") || !challenge.source
-                    ? "Emopulse"
+                  {challenge.source?.startsWith('Wacky') || !challenge.source
+                    ? 'Emopulse'
                     : challenge.source}
                 </Text>
 
-                {/* Snippet */}
                 <View style={{ marginRight: -10 }}>
                   <AutoShrinkBlock
                     maxFontSize={20}
@@ -157,7 +264,7 @@ export default function ChallengeDetailScreen({
                     fontWeight="700"
                     marginBottom={10}
                   >
-                    {combinedDetails ? combinedDetails : ""}
+                    {combinedDetails}
                   </AutoShrinkBlock>
                 </View>
               </>
@@ -168,9 +275,7 @@ export default function ChallengeDetailScreen({
               <>
                 <Pressable
                   onPress={() =>
-                    navigation.navigate("Challenge", {
-                      challenge,
-                    })
+                    navigation.navigate('Challenge', { challenge })
                   }
                 >
                   <Image source={playButton} style={styles.playImage} />
@@ -182,8 +287,12 @@ export default function ChallengeDetailScreen({
               <Text style={styles.winningEmotion}>
                 {challenge.winning_emotion && (
                   <Text style={styles.winningEmotionContainer}>
-                    <Text style={styles.winningEmotionLabel}>Winning Emotion: </Text>
-                    <Text style={styles.winningEmotionValue}>{challenge.winning_emotion}</Text>
+                    <Text style={styles.winningEmotionLabel}>
+                      Winning Emotion:{' '}
+                    </Text>
+                    <Text style={styles.winningEmotionValue}>
+                      {challenge.winning_emotion}
+                    </Text>
                   </Text>
                 )}
               </Text>
@@ -197,36 +306,6 @@ export default function ChallengeDetailScreen({
 
 // Styles
 const styles = StyleSheet.create({
-  customHeader: {
-    width: '100%',
-    paddingTop: 8,            // small breathing room under the status bar
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center', // centers the logo
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 999,              // ensures it sits above content
-  },
-
-  backIcon: {
-    width: 28,
-    height: 28,
-    tintColor: 'white',
-    position: 'absolute',
-    left: 16,                 // keeps it aligned like native-stack
-    top: 8,
-  },
-
-  logo: {
-    width: 220,               // adjust to your logo proportions
-    height: 40,
-    resizeMode: 'contain',
-    marginTop: 4,             // subtle vertical tuning
-  },
-
   topLabel: {
     color: 'yellow',
     fontSize: 26,
@@ -242,19 +321,14 @@ const styles = StyleSheet.create({
   },
   dimOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "black",
-    opacity: 0.30,   // adjust to taste
+    backgroundColor: 'black',
+    opacity: 0.3,
     zIndex: 1,
   },
   contentWrapper: {
     flex: 1,
-    position: "relative",
+    position: 'relative',
     zIndex: 2,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   imageWrapper: {
     width: '100%',
@@ -278,26 +352,24 @@ const styles = StyleSheet.create({
   },
   winningEmotion: {
     marginTop: 20,
-    color: "lime",
+    color: 'lime',
     fontSize: 26,
-    fontWeight: "700",
-    textAlign: "center",
+    fontWeight: '700',
+    textAlign: 'center',
   },
   winningEmotionContainer: {
     marginTop: 20,
-    textAlign: "center",
+    textAlign: 'center',
   },
-
   winningEmotionLabel: {
-    color: "white",
+    color: 'white',
     fontSize: 24,
-    fontWeight: "700",
+    fontWeight: '700',
   },
-
   winningEmotionValue: {
-    color: "lime",
+    color: 'lime',
     fontSize: 24,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   source: {
     marginTop: 10,

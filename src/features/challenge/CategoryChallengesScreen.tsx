@@ -105,7 +105,15 @@ export default function CategoryChallengesScreen() {
                         style={styles.topicImage}
                         resizeMode="contain"
                       />
-                      <Text style={styles.title}>{item.topic}</Text>
+                      <Text style={styles.title}>
+                        {item.topic}
+                        {item.source?.startsWith("YouTube") && (
+                          <Text style={{ color: "lime" }}>
+                            {"\n"} {`(Video: ${item.source.replace("YouTube: ", "")})`}
+                          </Text>
+                        )}
+                      </Text>
+
                     </Pressable>
                   </>
                 );
@@ -210,6 +218,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     marginTop: 4,
-    marginBottom: 0,
+    marginBottom: -10,
   },
 });
