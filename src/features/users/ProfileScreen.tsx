@@ -72,13 +72,14 @@ export default function ProfileScreen() {
   const pickAvatar = async () => {
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
       if (!permission.granted) {
         alert("Permission is required to choose an avatar.");
         return;
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
+        mediaTypes: ["images"] as any,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.9,
@@ -86,6 +87,9 @@ export default function ProfileScreen() {
 
       if (!result.canceled && result.assets?.length > 0) {
         const selectedImage = result.assets[0].uri;
+
+        // Preview only for now.
+        // Do not assume backend can save local file:// or content:// URIs.
         setUpdate((prev) => ({
           ...prev,
           avatar_url: selectedImage,
@@ -94,6 +98,46 @@ export default function ProfileScreen() {
     } catch (error) {
       console.error("❌ Failed to pick avatar:", error);
       alert("Unable to select avatar.");
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const payload: any = {
+        id: user.id,
+        first_name: update.first_name,
+        phone: update.phone,
+        city: update.city,
+        state: update.state,
+        zip: update.zip,
+        birthdate: update.birthdate,
+        facebook_url: update.facebook_url,
+        instagram_url: update.instagram_url,
+        tiktok_url: update.tiktok_url,
+      };
+
+      // Only send avatar_url if it is already a real hosted URL.
+      if (
+        update.avatar_url &&
+        (update.avatar_url.startsWith("http://") ||
+          update.avatar_url.startsWith("https://"))
+      ) {
+        payload.avatar_url = update.avatar_url;
+      }
+
+      console.log("🚀 profile payload", payload);
+      console.log("🖼 avatar_url", update.avatar_url);
+
+      const updatedUser = await postUserInfo(payload);
+
+      setUser(updatedUser);
+      setStoredUser(updatedUser);
+
+      alert("Profile updated!");
+      navigation.goBack();
+    } catch (err) {
+      console.error("❌ Failed to update user:", err);
+      alert("Failed to save changes.");
     }
   };
 
@@ -139,7 +183,8 @@ export default function ProfileScreen() {
               {update.first_name?.trim() || "Your Profile"}
             </Text>
             <Text style={styles.heroSubtitle}>
-              Personalize your profile, update your details, and keep your EmoPulse presence looking sharp.
+              Personalize your profile, update your details, and keep your EmoPulse
+              presence looking sharp.
             </Text>
           </View>
 
@@ -293,23 +338,7 @@ export default function ProfileScreen() {
             </View>
 
             <Pressable
-              onPress={async () => {
-                try {
-                  const updatedUser = await postUserInfo({
-                    id: user.id,
-                    ...update,
-                  });
-
-                  setUser(updatedUser);
-                  setStoredUser(updatedUser);
-
-                  alert("Profile updated!");
-                  navigation.goBack();
-                } catch (err) {
-                  console.error("❌ Failed to update user:", err);
-                  alert("Failed to save changes.");
-                }
-              }}
+              onPress={handleSave}
               style={({ pressed }) => [
                 styles.saveButtonImageWrapper,
                 pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] },
