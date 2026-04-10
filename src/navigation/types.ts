@@ -77,7 +77,6 @@ export interface Challenge {
   audit_log?: any[] | null;
 }
 
-/* ⭐ YOUR RootStackParamList — correct version */
 export type RootStackParamList = {
   CategoryList: undefined;
   HomePage: undefined;
@@ -85,16 +84,16 @@ export type RootStackParamList = {
   Signup: undefined;
   Account: undefined;
   ResultsHistory: undefined;
-  Transactions: undefined;
-  Achievements: undefined;
+  Transactions: { userId: string };
+  Achievements: { userId: string };
   HelpAndSupport: undefined;
   Feedback: undefined;
   Settings: undefined;
+  PrizesRewards: undefined;
   Teams: undefined;
 
   Profile: {
     user: MobileUser;
-    onUserUpdated: (updated: MobileUser) => void;
   };
 
   CategoryChallenges: {
