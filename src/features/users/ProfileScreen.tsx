@@ -114,8 +114,8 @@ export default function ProfileScreen() {
         tiktok_url: update.tiktok_url,
       };
 
-      // Only send avatar_url if it is already a hosted URL.
-      // Do not send file:// or content:// local device URIs to the backend.
+      // Only send avatar_url if it is already a real hosted URL.
+      // Do not send local file:// or content:// URIs.
       if (
         update.avatar_url &&
         (update.avatar_url.startsWith("http://") ||
