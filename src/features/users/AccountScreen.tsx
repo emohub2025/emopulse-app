@@ -24,7 +24,6 @@ import { getUserInfo } from "../../api/getUserInfo";
 import type { RootStackParamList, MobileUser } from "../../navigation/types";
 import { logout } from "../../auth/logout";
 import OptionRow from "../../components/OptionRow";
-import TransactionIcon from "../../assets/buttons/panel-account.png";
 import coinIcon from "../../assets/images/coin.png";
 import { AVATAR_URL } from "../../../config";
 
