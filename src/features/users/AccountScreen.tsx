@@ -242,6 +242,14 @@ export default function AccountScreen() {
 
           <OptionRow
             icon={profileIcon}
+            label="Prizes & Rewards"
+            onPress={() => {
+              navigation.navigate("prizesrewards");
+            }}
+          />
+
+          <OptionRow
+            icon={profileIcon}
             label="Transaction History"
             onPress={() => {
               navigation.navigate("Transactions", { userId: user.id });
