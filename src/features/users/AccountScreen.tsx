@@ -1,3 +1,10 @@
+import profileDetailsIcon from "../../assets/buttons/profile-icon.png";
+import ChallengeResultsIcon from "../../assets/buttons/challenge-results-icon.png";
+import PrizesIcon from "../../assets/buttons/prizes-icon.png";
+import TransactionIcon from "../../assets/buttons/transaction-icon.png";
+import AchievemtnsIcon from "../../assets/buttons/achievemtns-icon.png";
+import HelpIcon from "../../assets/buttons/help-icon.png";
+import FeedbackIcon from "../../assets/buttons/feedback-icon.png";
 import { useUserStore } from "../../state/useUserStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
@@ -17,7 +24,7 @@ import { getUserInfo } from "../../api/getUserInfo";
 import type { RootStackParamList, MobileUser } from "../../navigation/types";
 import { logout } from "../../auth/logout";
 import OptionRow from "../../components/OptionRow";
-import profileIcon from "../../assets/buttons/panel-account.png";
+import TransactionIcon from "../../assets/buttons/panel-account.png";
 import coinIcon from "../../assets/images/coin.png";
 import { AVATAR_URL } from "../../../config";
 
@@ -225,56 +232,70 @@ export default function AccountScreen() {
           </View>
 
           <OptionRow
-            icon={profileIcon}
+            icon={profileDetailsIcon}
             label="Profile Details"
+            iconWidth={50}
+            iconHeight={50}
             onPress={() => {
               navigation.navigate("Profile", { user });
             }}
           />
 
           <OptionRow
-            icon={profileIcon}
+            icon={ChallengeResultsIcon}
             label="Challenge Results"
+            iconWidth={50}
+            iconHeight={50}
             onPress={() => {
               navigation.navigate("ResultsHistory");
             }}
           />
 
           <OptionRow
-            icon={profileIcon}
+            icon={PrizesIcon}
             label="Prizes & Rewards"
+            iconWidth={50}
+            iconHeight={50}
             onPress={() => {
               navigation.navigate("PrizesRewards");
             }}
           />
 
           <OptionRow
-            icon={profileIcon}
+            icon={TransactionIcon}
             label="Transaction History"
+            iconWidth={50}
+            iconHeight={50}
             onPress={() => {
               navigation.navigate("Transactions", { userId: user.id });
             }}
           />
 
           <OptionRow
-            icon={profileIcon}
+            icon={AchievemtnsIcon}
             label="Achievements"
+            iconWidth={50}
+            iconHeight={50}
             onPress={() => {
               navigation.navigate("Achievements", { userId: user.id });
             }}
           />
 
           <OptionRow
-            icon={profileIcon}
+            icon={HelpIcon}
             label="Help & Support"
+            iconWidth={50}
+            iconHeight={50}
             onPress={() => {
               navigation.navigate("HelpAndSupport");
             }}
           />
 
           <OptionRow
-            icon={profileIcon}
-            label="Feedback"
+            icon={FeedbackIcon}
+            label="Beta Feedback"
+            iconWidth={50}
+            iconHeight={50}
             onPress={() => {
               navigation.navigate("Feedback");
             }}
