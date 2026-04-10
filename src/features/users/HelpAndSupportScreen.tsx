@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,33 @@ import {
   Linking,
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
 import ButtonPanel from "../../components/ButtonPanel";
+
+// -----------------------------
+// Accordion Item Component
+// -----------------------------
+const FAQItem = ({ question, answer }) => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <View style={styles.faqItem}>
+      <TouchableOpacity
+        onPress={() => setOpen(!open)}
+        style={styles.faqHeader}
+      >
+        <Text style={styles.question}>{question}</Text>
+        <Ionicons
+          name={open ? "chevron-up" : "chevron-down"}
+          size={18}
+          color="#333"
+        />
+      </TouchableOpacity>
+
+      {open && <Text style={styles.answer}>{answer}</Text>}
+    </View>
+  );
+};
 
 // -----------------------------
 // Screen Component
@@ -17,19 +43,16 @@ import ButtonPanel from "../../components/ButtonPanel";
 export default function HelpAndSupportScreen() {
   const route = useRoute();
 
-  const handleEmailPress = async () => {
-    const email = "app@emopulse.ai";
-    const subject = encodeURIComponent("Emotional Pulse Beta Support");
-    const url = `mailto:${email}?subject=${subject}`;
+  const openEmail = () => {
+    Linking.openURL(
+      "mailto:app@emopulse.ai?subject=Emotional Pulse Support"
+    );
+  };
 
-    try {
-      const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        await Linking.openURL(url);
-      }
-    } catch (error) {
-      console.warn("Could not open email app:", error);
-    }
+  const reportBug = () => {
+    Linking.openURL(
+      "mailto:app@emopulse.ai?subject=Bug Report&body=Describe the issue you experienced..."
+    );
   };
 
   return (
@@ -39,51 +62,99 @@ export default function HelpAndSupportScreen() {
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.topLabel}>Help & Support</Text>
 
           <View style={styles.card}>
-            <Text style={styles.heading}>Welcome to Emotional Pulse Beta</Text>
+            <Text style={styles.heading}>Emotional Pulse Beta</Text>
 
             <Text style={styles.subText}>
-              Thanks for being one of our early beta users. Emotional Pulse is a
-              live prediction experience where you can explore trending topics,
-              join challenges, compete with teams, and earn Coins through gameplay.
+              Explore trends, join challenges, compete with teams, and earn Coins.
+              This is an early beta, so your feedback matters.
             </Text>
 
-            <Text style={styles.sectionTitle}>What to expect in beta</Text>
-            <Text style={styles.bodyText}>
-              • Early access to core features and live challenges{"\n"}
-              • New updates, improvements, and feature adjustments during testing{"\n"}
-              • Occasional bugs, balancing changes, or temporary downtime while we improve the experience
-            </Text>
+            {/* ----------------------------- */}
+            {/* ICON SECTIONS */}
+            {/* ----------------------------- */}
+            <View style={styles.iconRow}>
+              <View style={styles.iconBox}>
+                <Ionicons name="game-controller" size={22} color="#7B61FF" />
+                <Text style={styles.iconText}>Play</Text>
+              </View>
 
-            <Text style={styles.sectionTitle}>Need help?</Text>
-            <Text style={styles.bodyText}>
-              If something is not working correctly, if a challenge looks off, or
-              if you have feedback on gameplay, rewards, teams, or account access,
-              please contact our support team.
-            </Text>
+              <View style={styles.iconBox}>
+                <Ionicons name="trophy" size={22} color="#FFC107" />
+                <Text style={styles.iconText}>Coins</Text>
+              </View>
 
-            <Text style={styles.sectionTitle}>Beta support contact</Text>
-            <TouchableOpacity onPress={handleEmailPress}>
+              <View style={styles.iconBox}>
+                <Ionicons name="bug" size={22} color="#FF4D4D" />
+                <Text style={styles.iconText}>Report</Text>
+              </View>
+
+              <View style={styles.iconBox}>
+                <Ionicons name="help-circle" size={22} color="#00C2FF" />
+                <Text style={styles.iconText}>Support</Text>
+              </View>
+            </View>
+
+            {/* ----------------------------- */}
+            {/* CONTACT */}
+            {/* ----------------------------- */}
+            <Text style={styles.sectionTitle}>Contact Support</Text>
+
+            <TouchableOpacity onPress={openEmail}>
               <Text style={styles.contactText}>app@emopulse.ai</Text>
             </TouchableOpacity>
 
+            <TouchableOpacity style={styles.reportBtn} onPress={reportBug}>
+              <Ionicons name="alert-circle" size={18} color="#fff" />
+              <Text style={styles.reportText}>Report a Bug</Text>
+            </TouchableOpacity>
+
+            {/* ----------------------------- */}
+            {/* FAQ ACCORDION */}
+            {/* ----------------------------- */}
+            <Text style={styles.sectionTitle}>Common Questions</Text>
+
+            <FAQItem
+              question="How do I play?"
+              answer="Pick a category, join a challenge, and predict the next emotional trend. Earn Coins when you're right."
+            />
+
+            <FAQItem
+              question="What are Coins?"
+              answer="Coins are earned through gameplay, streaks, and accuracy. Rewards will expand as features roll out."
+            />
+
+            <FAQItem
+              question="Is this free?"
+              answer="Yes. The beta is completely free and includes bonus Coins for early users."
+            />
+
+            <FAQItem
+              question="Why do things change?"
+              answer="We’re actively improving the app during beta, so features and gameplay may evolve."
+            />
+
+            <FAQItem
+              question="Will my progress reset?"
+              answer="Some resets may happen during beta while we refine the system."
+            />
+
+            <FAQItem
+              question="When is launch?"
+              answer="We’re moving fast—your feedback helps determine the final release timeline."
+            />
+
             <Text style={styles.footerNote}>
-              Your feedback during beta helps shape the future of Emotional Pulse.
-              We appreciate your support while we build and improve the experience.
+              Thanks for helping build Emotional Pulse.
             </Text>
           </View>
         </ScrollView>
       </ImageBackground>
 
-      <View>
-        <ButtonPanel currentScreen={route.name} />
-      </View>
+      <ButtonPanel currentScreen={route.name} />
     </View>
   );
 }
@@ -93,7 +164,7 @@ export default function HelpAndSupportScreen() {
 // -----------------------------
 const styles = StyleSheet.create({
   scrollContent: {
-    paddingBottom: 90,
+    paddingBottom: 100,
   },
   topLabel: {
     color: "white",
@@ -102,53 +173,98 @@ const styles = StyleSheet.create({
     marginTop: 95,
     marginBottom: 20,
     textAlign: "center",
-    backgroundColor: "transparent",
   },
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#fff",
     marginHorizontal: 20,
     borderRadius: 20,
-    paddingHorizontal: 22,
-    paddingVertical: 24,
+    padding: 20,
   },
   heading: {
-    color: "#111111",
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "700",
     textAlign: "center",
-    marginBottom: 18,
+    marginBottom: 10,
+    color: "#111",
   },
   subText: {
-    color: "#333333",
-    fontSize: 17,
-    lineHeight: 25,
+    fontSize: 16,
     textAlign: "center",
-    marginBottom: 28,
+    marginBottom: 20,
+    color: "#444",
   },
+
+  iconRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  iconBox: {
+    alignItems: "center",
+    flex: 1,
+  },
+  iconText: {
+    fontSize: 12,
+    marginTop: 4,
+    color: "#333",
+  },
+
   sectionTitle: {
-    color: "#111111",
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "700",
     marginBottom: 10,
-    marginTop: 8,
+    color: "#111",
   },
-  bodyText: {
-    color: "#333333",
-    fontSize: 16,
-    lineHeight: 24,
-    marginBottom: 18,
-  },
+
   contactText: {
     color: "#007AFF",
-    fontSize: 17,
-    fontWeight: "600",
-    marginBottom: 20,
+    fontSize: 16,
+    marginBottom: 15,
     textDecorationLine: "underline",
   },
-  footerNote: {
-    color: "#555555",
+
+  reportBtn: {
+    flexDirection: "row",
+    backgroundColor: "#FF4D4D",
+    padding: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  reportText: {
+    color: "#fff",
+    marginLeft: 6,
+    fontWeight: "600",
+  },
+
+  faqItem: {
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+    paddingBottom: 8,
+  },
+  faqHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  question: {
     fontSize: 15,
-    lineHeight: 22,
-    marginTop: 10,
+    fontWeight: "600",
+    color: "#111",
+  },
+  answer: {
+    marginTop: 6,
+    fontSize: 14,
+    color: "#444",
+    lineHeight: 20,
+  },
+
+  footerNote: {
+    marginTop: 20,
+    fontSize: 14,
+    textAlign: "center",
+    color: "#666",
   },
 });
