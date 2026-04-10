@@ -190,8 +190,7 @@ export default function ProfileScreen() {
               {update.first_name?.trim() || "Your Profile"}
             </Text>
             <Text style={styles.heroSubtitle}>
-              Personalize your profile, update your details, and keep your EmoPulse
-              presence looking sharp.
+              Personalize your profile, update your details, and keep your presence looking sharp.
             </Text>
           </View>
 
