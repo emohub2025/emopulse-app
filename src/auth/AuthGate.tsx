@@ -20,15 +20,12 @@ export default function AuthGate() {
         const hasRefreshToken = !!refreshToken;
         const hasUserId = !!userId;
 
-        if (hasAccessToken && hasRefreshToken && hasUserId) {
-          if (mounted) {
-            setIsLoggedIn(true);
-          }
-        } else {
+        if (mounted) {
+          setIsLoggedIn(hasAccessToken && hasRefreshToken && hasUserId);
+        }
+
+        if (!hasAccessToken || !hasRefreshToken || !hasUserId) {
           await AsyncStorage.multiRemove(["authToken", "refreshToken", "userId"]);
-          if (mounted) {
-            setIsLoggedIn(false);
-          }
         }
       } catch (err) {
         console.log("❌ AuthGate bootstrap failed:", err);
@@ -66,5 +63,7 @@ export default function AuthGate() {
     );
   }
 
-  return <RootNavigator initialRouteName={isLoggedIn ? "CategoryList" : "Login"} />;
+  return (
+    <RootNavigator initialRouteName={isLoggedIn ? "CategoryList" : "Login"} />
+  );
 }

@@ -9,8 +9,12 @@ function normalizePath(path: string): string {
   return path.startsWith("/") ? path : `/${path}`;
 }
 
-async function forceLogout(): Promise<void> {
+async function clearAuthStorage(): Promise<void> {
   await AsyncStorage.multiRemove(["authToken", "refreshToken", "userId"]);
+}
+
+async function forceLogout(): Promise<void> {
+  await clearAuthStorage();
 
   if (navigationRef.isReady()) {
     navigationRef.dispatch(
@@ -145,4 +149,4 @@ export async function apiPost<T>(path: string, body: any): Promise<T> {
   return request<T>("POST", path, body);
 }
 
-export { forceLogout };
+export { forceLogout, clearAuthStorage };
