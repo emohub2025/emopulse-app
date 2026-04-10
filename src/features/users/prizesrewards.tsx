@@ -5,7 +5,7 @@ import ButtonPanel from '../../components/ButtonPanel';
 // -----------------------------
 // Screen Component
 // -----------------------------
-export default function HelpAndSupportScreen() {
+export default function PrizesAndRewardsScreen() {
   const route = useRoute();
 
   return (
@@ -15,7 +15,7 @@ export default function HelpAndSupportScreen() {
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-      <Text style={styles.topLabel}>Help & Support</Text>
+      <Text style={styles.topLabel}>Prizes & Rewards</Text>
 
       <View
         style={{
@@ -43,7 +43,7 @@ export default function HelpAndSupportScreen() {
             textAlign: "center",
             }}
         >
-            We’re working on a dedicated support center to help you with anything you need.
+            Prizes will be available after we complete Beta testing. Your Beta coins will not transfer to your live production account.
         </Text>
         </View>
       </ImageBackground>
