@@ -88,8 +88,6 @@ export default function ProfileScreen() {
       if (!result.canceled && result.assets?.length > 0) {
         const selectedImage = result.assets[0].uri;
 
-        // Preview only for now.
-        // Do not assume backend can save local file:// or content:// URIs.
         setUpdate((prev) => ({
           ...prev,
           avatar_url: selectedImage,
@@ -116,7 +114,8 @@ export default function ProfileScreen() {
         tiktok_url: update.tiktok_url,
       };
 
-      // Only send avatar_url if it is already a real hosted URL.
+      // Only send avatar_url if it is already a hosted URL.
+      // Do not send file:// or content:// local device URIs to the backend.
       if (
         update.avatar_url &&
         (update.avatar_url.startsWith("http://") ||
@@ -130,8 +129,16 @@ export default function ProfileScreen() {
 
       const updatedUser = await postUserInfo(payload);
 
-      setUser(updatedUser);
-      setStoredUser(updatedUser);
+      const mergedUser = {
+        ...updatedUser,
+        avatar_url:
+          update.avatar_url ||
+          (updatedUser as any).avatar_url ||
+          (user as any).avatar_url,
+      };
+
+      setUser(mergedUser as MobileUser);
+      setStoredUser(mergedUser as MobileUser);
 
       alert("Profile updated!");
       navigation.goBack();
