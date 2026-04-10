@@ -33,6 +33,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   const timerOpacity = useRef(new Animated.Value(1)).current;
   const [lastTap, setLastTap] = useState<number | null>(null);
   const [topicFontSize, setTopicFontSize] = useState(24);
+  const isYouTube = challenge.source?.startsWith('YouTube');
 
   const handleDoubleTapSubmit = () => {
     const now = Date.now();
@@ -72,6 +73,12 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
       }
 
       console.log("Bet placed:", response);
+
+      if (isYouTube) {
+        setLoading(false);
+        navigation.navigate("ChallengeCountdown", { challenge });
+        return;
+      }
 
       const listResults = await getSubchallengeList(challenge.id);
 
@@ -193,7 +200,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
             <EmotionSelector selected={emotion} onSelect={setEmotion} />
 
             <TouchableOpacity
-              onPress={handleDoubleTapSubmit}
+              onPress={handleSubmit}
               disabled={isDisabled}
               style={[
                 styles.submitWrapper,

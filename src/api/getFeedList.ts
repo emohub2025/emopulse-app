@@ -17,7 +17,7 @@ export async function getFeedList() {
     categories: cleanedCategories,
   };
 
-  console.log("📦 FULL FEED JSON:", JSON.stringify(cleanedResponse, null, 2));
+  //console.log("📦 FULL FEED JSON:", JSON.stringify(cleanedResponse, null, 2));
 
   return cleanedResponse;
 }
