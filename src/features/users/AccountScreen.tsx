@@ -244,7 +244,7 @@ export default function AccountScreen() {
             icon={profileIcon}
             label="Prizes & Rewards"
             onPress={() => {
-              navigation.navigate("prizesrewards");
+              navigation.navigate("PrizesRewards");
             }}
           />
 
