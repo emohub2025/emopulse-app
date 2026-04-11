@@ -1,10 +1,17 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { View, Text, Image, TextInput, StyleSheet, ImageBackground, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ImageBackground,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
 import React, { useState } from "react";
-//import ButtonPanel from '../../components/ButtonPanel';
 import StarRating from "react-native-star-rating-widget";
-import { useUserStore } from "../../state/useUserStore";   // Zustand store
-import { ENGINE_URL } from '../../../config';
+import { useUserStore } from "../../state/useUserStore";
+import { ENGINE_URL } from "../../../config";
 
 // -----------------------------
 // Screen Component
@@ -14,49 +21,65 @@ export default function FeedbackScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [suggestions, setSuggestions] = useState("");
+  const [showSuggestion, setShowSuggestion] = useState(false);
   const [error, setError] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
-  const user = useUserStore(state => state.user);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  const user = useUserStore((state) => state.user);
+
+  const quickTags = ["Too slow", "Confusing", "Love it", "Needs features"];
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) => {
+      if (prev.includes(tag)) {
+        return prev.filter((item) => item !== tag);
+      }
+      return [...prev, tag];
+    });
+  };
 
   const handleSubmit = async () => {
     try {
-        setIsSubmitting(true);
+      setIsSubmitting(true);
+      setError("");
+      setShowSuccess(false);
 
-        const token = await AsyncStorage.getItem("authToken"); // or your getToken()
-        console.log("TOKEN USED FOR FEEDBACK:", token);
+      const token = await AsyncStorage.getItem("authToken");
 
-        const response = await fetch(`${ENGINE_URL}/mobile/feedback`, {
+      const response = await fetch(`${ENGINE_URL}/mobile/feedback`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-            userId: user?.id,
-            name: user?.first_name,
-            feedback,
-            suggestions,
-            rating,
+          userId: user?.id,
+          name: user?.first_name,
+          feedback,
+          suggestions,
+          rating,
+          tags: selectedTags,
         }),
-        });
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (!data.success) {
+      if (!data.success) {
         throw new Error(data.message || "Failed to submit feedback");
-        }
+      }
 
-        // Success UI
-        setShowSuccess(true);
-        setFeedback("");
-        setSuggestions("");
-        setRating(0);
-
+      setShowSuccess(true);
+      setFeedback("");
+      setSuggestions("");
+      setRating(0);
+      setShowSuggestion(false);
+      setSelectedTags([]);
     } catch (err) {
-        console.log("Feedback submit error:", err);
-        setError("Something went wrong. Please try again.");
+      console.log("Feedback submit error:", err);
+      setError("Something went wrong. Please try again.");
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -67,109 +90,102 @@ export default function FeedbackScreen() {
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-        <Text style={styles.topLabel}>Beta Feedback</Text>
+        <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+          <Text style={styles.topLabel}>Beta Feedback</Text>
 
-        <View
-          style={{
-            flex: 1,
-            alignItems: "flex-start",
-            paddingHorizontal: 20,
-          }}
-          >
-          {/* First Name */}
-          <View style={styles.rowField}>
-            <Text style={styles.rowLabel}>Name:</Text>
-            <Text style={styles.rowInput}>{user?.first_name}</Text>
-          </View>
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>You’re logged in as</Text>
+            <Text style={styles.name}>{user?.first_name}</Text>
 
-          <Text style={[styles.labels, { marginTop: 0 }]}>
-            Feedback:
-          </Text>
+            <Text style={styles.sectionTitle}>How’s your experience?</Text>
 
-          <TextInput
-            style={styles.feedback}
-            multiline={true}
-            textBreakStrategy="highQuality"
-            value={feedback}
-            onChangeText={setFeedback}
-          />
+            <StarRating
+              rating={rating}
+              onChange={setRating}
+              starSize={34}
+              color="#FFD700"
+            />
 
-          <Text style={[styles.labels, { marginTop: 0 }]}>
-            Suggestions:
-          </Text>
+            <Text style={styles.ratingText}>
+              {rating === 0 && "Tap to rate"}
+              {rating > 0 && rating < 2 && "Not great"}
+              {rating >= 2 && rating < 3.5 && "Needs work"}
+              {rating >= 3.5 && rating < 4.5 && "Pretty good"}
+              {rating >= 4.5 && "Loving it"}
+            </Text>
 
-          <TextInput
-            style={styles.suggestions}
-            multiline={true}
-            textBreakStrategy="highQuality"
-            value={suggestions}
-            onChangeText={setSuggestions}
-          />
-
-          {error ? (
-            <View style={styles.errorOverlay}>
-                <Text style={styles.errorText}>{error}</Text>
+            <Text style={styles.sectionTitle}>Quick reactions</Text>
+            <View style={styles.tagWrap}>
+              {quickTags.map((tag) => {
+                const active = selectedTags.includes(tag);
+                return (
+                  <TouchableOpacity
+                    key={tag}
+                    style={[styles.tagButton, active && styles.tagButtonActive]}
+                    onPress={() => toggleTag(tag)}
+                  >
+                    <Text style={[styles.tagText, active && styles.tagTextActive]}>
+                      {tag}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
-            ) : showSuccess ? (
-            <View style={styles.successOverlay}>
-                <Text style={styles.successText}>Got it — thanks for the feedback!</Text>
-            </View>
-            ) : (
-            <View style={{ width: "100%", alignItems: "center", marginTop: 2 }}>
-                <StarRating
-                rating={rating}
-                onChange={setRating}
-                starSize={36}
-                color="#FFD700"
-                emptyColor="#555"
+
+            <Text style={styles.sectionTitle}>What stood out?</Text>
+
+            <TextInput
+              style={styles.input}
+              placeholder="What did you like or dislike?"
+              placeholderTextColor="#999"
+              multiline
+              value={feedback}
+              onChangeText={setFeedback}
+            />
+
+            {!showSuggestion && (
+              <TouchableOpacity onPress={() => setShowSuggestion(true)}>
+                <Text style={styles.suggestionCTA}>
+                  💡 I have an idea or feature suggestion
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {showSuggestion && (
+              <>
+                <Text style={styles.sectionTitle}>Your idea</Text>
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="What should we add or improve?"
+                  placeholderTextColor="#999"
+                  multiline
+                  value={suggestions}
+                  onChangeText={setSuggestions}
                 />
+              </>
+            )}
 
-                <View
-                style={{
-                    flexDirection: "row",
-                    marginTop: 8,
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
-                >
-                <View style={{ width: 90, alignItems: "flex-end", marginRight: 12 }}>
-                    <Text style={{ color: "#FFD700", fontSize: 20, fontWeight: "700" }}>
-                    {rating.toFixed(1)} / 5
-                    </Text>
-                </View>
+            {error ? (
+              <Text style={styles.errorText}>{error}</Text>
+            ) : showSuccess ? (
+              <Text style={styles.successText}>
+                Thanks — we’re building this with you.
+              </Text>
+            ) : null}
 
-                <View style={{ width: 120, alignItems: "flex-start" }}>
-                    <Text style={{ color: "white", fontSize: 20, fontWeight: "700" }}>
-                    {rating === 0 && "Tap to rate"}
-                    {rating > 0 && rating < 1.5 && "Terrible"}
-                    {rating >= 1.5 && rating < 2.5 && "Bad"}
-                    {rating >= 2.5 && rating < 3.5 && "Okay"}
-                    {rating >= 3.5 && rating < 4.5 && "Good"}
-                    {rating >= 4.5 && "Excellent"}
-                    </Text>
-                </View>
-                </View>
-            </View>
-          )}
-
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={handleSubmit}
-            style={styles.submitWrapper}
-          >
-          <Image
-            source={require('../../assets/buttons/send.png')}
-            style={styles.submitButton}
-          />
-        </TouchableOpacity>
-
-        </View>
-
+            <TouchableOpacity
+              style={styles.submitBtn}
+              onPress={handleSubmit}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.submitText}>
+                {isSubmitting ? "Sending..." : "Send Feedback"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </ImageBackground>
-
-      {/* <View>
-        <ButtonPanel currentScreen={route.name} />
-      </View> */}
     </View>
   );
 }
@@ -177,117 +193,117 @@ export default function FeedbackScreen() {
 // -----------------------------
 // Styles
 // -----------------------------
-
 const styles = StyleSheet.create({
   topLabel: {
     color: "white",
     fontSize: 26,
     fontWeight: "700",
     marginTop: 95,
+    marginBottom: 20,
     textAlign: "center",
-    backgroundColor: "transparent",
   },
-  rowField: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 25,
-    marginBottom: 15,
-  },
-  labels: {
-    textAlign: "left",
-    color: "white",
-    fontWeight: "500",
-    fontSize: 20,
-    marginLeft: 20,
-    marginBottom: 5,
-  },
-  rowLabel: {
-    color: "yellow",
-    fontSize: 20,
-    fontWeight: "600",
-    width: 80,
-    marginLeft: 20,
-  },
-  rowInput: {
-    color: "rgba(255,255,255,0.85)",
-    fontWeight: "500",
-    fontSize: 20,
-  },
-  feedback: {
-    width: "100%",
-    height: 190,
-    backgroundColor: "rgba(0,0,0,0.55)",   // translucent dark card
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
-    borderRadius: 10,
-    color: "white",
-    fontWeight: "500",
-    fontSize: 20,
-    padding: 12,
-    marginBottom: 10,
 
-    // ⭐ Top-align text
-    textAlignVertical: "top",
-
-    // ⭐ Soft glow
-    shadowColor: "#FFD700",
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
+  card: {
+    backgroundColor: "#fff",
+    margin: 20,
+    borderRadius: 20,
+    padding: 20,
   },
-  suggestions: {
-    width: "100%",
-    height: 170,
-    backgroundColor: "rgba(0,0,0,0.55)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
-    borderRadius: 10,
-    color: "white",
-    fontWeight: "500",
-    fontSize: 20,
-    padding: 12,
-    marginBottom: 10,
 
-    // ⭐ Top-align text
-    textAlignVertical: "top",
-
-    // ⭐ Soft glow
-    shadowColor: "#FFD700",
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-  },
-  successOverlay: {
-    width: "100%",
-    alignItems: "center",
-    marginTop: 20,
-    paddingVertical: 20,
-  },
-  successText: {
-    color: "white",
-    fontSize: 20,
+  sectionTitle: {
+    fontSize: 16,
     fontWeight: "700",
+    marginTop: 14,
+    marginBottom: 6,
+    color: "#111",
   },
-  errorOverlay: {
-    width: "100%",
-    alignItems: "center",
-    marginTop: 20,
-    paddingVertical: 20,
-  },
-  errorText: {
-    color: "#ff6b6b",
+
+  name: {
     fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 10,
+  },
+
+  ratingText: {
+    textAlign: "center",
+    marginTop: 6,
+    color: "#555",
+  },
+
+  tagWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 6,
+    marginBottom: 8,
+  },
+
+  tagButton: {
+    backgroundColor: "#F3F3F3",
+    borderWidth: 1,
+    borderColor: "#E4E4E4",
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginRight: 10,
+    marginBottom: 10,
+  },
+
+  tagButtonActive: {
+    backgroundColor: "#7B61FF",
+    borderColor: "#7B61FF",
+  },
+
+  tagText: {
+    color: "#333",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  tagTextActive: {
+    color: "#fff",
+  },
+
+  input: {
+    backgroundColor: "#F5F5F5",
+    borderRadius: 12,
+    padding: 12,
+    minHeight: 90,
+    textAlignVertical: "top",
+    color: "#111",
+  },
+
+  suggestionCTA: {
+    marginTop: 12,
+    color: "#7B61FF",
+    fontWeight: "600",
+  },
+
+  submitBtn: {
+    marginTop: 20,
+    backgroundColor: "#7B61FF",
+    padding: 14,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+
+  submitText: {
+    color: "#fff",
     fontWeight: "700",
+    fontSize: 16,
   },
-  submitWrapper: {
-    alignSelf: 'center',
-    width: 265,
-    height: 54,
-    justifyContent: 'center',
-    alignItems: 'center',
+
+  successText: {
+    marginTop: 14,
+    color: "green",
+    textAlign: "center",
+    fontWeight: "600",
   },
-  submitButton: {
-    width: 280,
-    height: 47,
-    marginTop: 18,
-    resizeMode: 'contain',
+
+  errorText: {
+    marginTop: 14,
+    color: "red",
+    textAlign: "center",
+    fontWeight: "600",
   },
 });
