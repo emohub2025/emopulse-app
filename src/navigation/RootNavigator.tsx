@@ -14,6 +14,7 @@ import ProfileScreen from '../features/users/ProfileScreen';
 import ResultsHistoryScreen from '../features/users/ResultsHistoryScreen';
 import TransactionsScreen from '../features/users/TransactionsScreen';
 import AchievementsScreen from '../features/users/AchievementsScreen';
+import PrizesAndRewardsScreen from '../features/users/PrizesAndRewardsScreen';
 import TeamsScreen from '../features/teams/TeamsScreen';
 import CategoryListScreen from '../features/challenge/CategoryListScreen';
 import CategoryChallengesScreen from '../features/challenge/CategoryChallengesScreen';
@@ -131,6 +132,14 @@ export default function RootNavigator({
     <Stack.Screen
       name="Achievements"
       component={AchievementsScreen}
+      options={{
+        headerTitle: () => <LogoHeader />,
+      }}
+    />
+
+    <Stack.Screen
+      name="PrizesAndRewards"
+      component={PrizesAndRewardsScreen}
       options={{
         headerTitle: () => <LogoHeader />,
       }}

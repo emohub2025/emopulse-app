@@ -87,6 +87,7 @@ export type RootStackParamList = {
   ResultsHistory: undefined;
   Transactions: undefined;
   Achievements: undefined;
+  PrizesAndRewards: undefined;
   HelpAndSupport: undefined;
   Feedback: undefined;
   Settings: undefined;
@@ -94,7 +95,7 @@ export type RootStackParamList = {
 
   Profile: {
     user: MobileUser;
-    onUserUpdated: (updated: MobileUser) => void;
+    //onUserUpdated: (updated: MobileUser) => void;
   };
 
   CategoryChallenges: {

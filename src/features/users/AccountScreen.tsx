@@ -244,7 +244,7 @@ export default function AccountScreen() {
             icon={profileIcon}
             label="Prizes & Rewards"
             onPress={() => {
-              navigation.navigate("prizesrewards");
+              navigation.navigate("PrizesAndRewards");
             }}
           />
 
@@ -252,7 +252,7 @@ export default function AccountScreen() {
             icon={profileIcon}
             label="Transaction History"
             onPress={() => {
-              navigation.navigate("Transactions", { userId: user.id });
+              navigation.navigate("Transactions");
             }}
           />
 
@@ -260,7 +260,7 @@ export default function AccountScreen() {
             icon={profileIcon}
             label="Achievements"
             onPress={() => {
-              navigation.navigate("Achievements", { userId: user.id });
+              navigation.navigate("Achievements");
             }}
           />
 

@@ -1,13 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  Pressable,
-  ImageBackground,
-  StyleSheet,
-  TextInput,
-} from "react-native";
+import { View, Text, Image, Pressable, ImageBackground, StyleSheet, TextInput } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useUserStore } from "../../state/useUserStore";
