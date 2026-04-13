@@ -16,7 +16,7 @@
      "supportsTablet": true,
      "bundleIdentifier": "com.emopulse.app",
       "buildNumber": "1.0.0"
-}
+},
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",

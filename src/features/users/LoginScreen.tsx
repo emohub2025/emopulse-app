@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ImageBackground, StyleSheet, Pressable, Image, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  ImageBackground,
+  StyleSheet,
+  Pressable,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import loginButton from '../../assets/buttons/login.png';
 import googleButton from '../../assets/buttons/google.png';
@@ -23,20 +32,14 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  // ⭐ NEW — track login success so navigation happens AFTER render
   const [loginSuccess, setLoginSuccess] = useState(false);
 
-  // ⭐ NEW — safe navigation effect
   useEffect(() => {
     if (loginSuccess) {
       navigation.replace("CategoryList");
     }
-  }, [loginSuccess]);
+  }, [loginSuccess, navigation]);
 
-  // -----------------------------------------------------
-  // 🔐 Handle Login (double-submit safe)
-  // -----------------------------------------------------
   async function handleLogin() {
     if (loading) return;
 
@@ -52,7 +55,6 @@ export default function LoginScreen() {
       const response = await apiPost<LoginResponse>(
         "login",
         { identifier, password },
-//        navigation
       );
 
       await AsyncStorage.setItem("authToken", response.accessToken);
@@ -62,16 +64,10 @@ export default function LoginScreen() {
 
       console.log("MOBILE TOKEN:", response.accessToken);
 
-      // Fetch full user object
       const fullUser = await getUserInfo(response.userId.toString());
-      //console.log("User:", JSON.stringify(response, null, 2));
-
-      // Store in Zustand
       useUserStore.getState().setUser(fullUser);
 
-      // ⭐ Trigger navigation AFTER render
       setLoginSuccess(true);
-
     } catch (err: any) {
       if (err?.response?.error) {
         setError(err.response.error);
@@ -80,155 +76,236 @@ export default function LoginScreen() {
       } else {
         setError("Invalid username or password");
       }
-
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: 'black' }}>
-      <SafeAreaView style={styles.topArea}>
-        <Text style={styles.title}>Log In to Your Account</Text>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Avatar Name / Email"
-          placeholderTextColor="#8A88B5"
-          value={identifier}
-          onChangeText={setIdentifier}
-        />
-
-        <View style={styles.passwordRow}>
-          <TextInput
-            style={[styles.inputPw, { flex: 1 }]}
-            placeholder="Password"
-            placeholderTextColor="#8A88B5"
-            secureTextEntry={!showPassword}
-            value={password}
-            onChangeText={setPassword}
-          />
-
-          <Pressable onPress={() => setShowPassword(!showPassword)}>
-            <Image
-              source={showPassword ? eyeOpen : eyeClosed}
-              style={styles.eyeIcon}
-            />
-          </Pressable>
-        </View>
-
-        {error !== "" && (
-          <Text style={styles.errorText}>{error}</Text>
-        )}
-
-        <Pressable
-          onPress={handleLogin}
-          disabled={loading}
-          style={[styles.buttonWrapper, loading && { opacity: 0.5 }]}
-        >
-          <View style={styles.buttonContent}>
-            {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Image source={loginButton} style={styles.buttonImage} />
-            )}
-          </View>
-        </Pressable>
-
-        {/* <Pressable
-          onPress={handleLogin}
-          disabled={loading}
-          style={[styles.googleWrapper, loading && { opacity: 0.5 }]}
-        >
-          <View style={styles.buttonContent}>
-            {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Image source={googleButton} style={styles.buttonImage} />
-            )}
-          </View>
-        </Pressable> */}
-
-        <View style={styles.loginRow}>
-          <Text style={styles.bottomLabel}>Don't have an account? </Text>
-          <Pressable onPress={() => navigation.navigate("Signup")}>
-            <Text style={styles.loginLink}>Sign Up</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-
+    <View style={styles.container}>
       <ImageBackground
         source={require('../../assets/images/background.png')}
         style={styles.background}
         resizeMode="cover"
-      />
+      >
+        <View style={styles.overlay} />
+
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.headerBlock}>
+            <Text style={styles.eyebrow}>Welcome back</Text>
+            <Text style={styles.title}>Log In to Your Account</Text>
+            <Text style={styles.subtitle}>
+              Jump back into Emotional Pulse and keep the momentum going.
+            </Text>
+          </View>
+
+          <View style={styles.formCard}>
+            <TextInput
+              style={styles.input}
+              placeholder="Avatar Name / Email"
+              placeholderTextColor="#8A88B5"
+              value={identifier}
+              onChangeText={setIdentifier}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <View style={styles.passwordRow}>
+              <TextInput
+                style={styles.inputPw}
+                placeholder="Password"
+                placeholderTextColor="#8A88B5"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+
+              <Pressable
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeButton}
+                hitSlop={10}
+              >
+                <Image
+                  source={showPassword ? eyeOpen : eyeClosed}
+                  style={styles.eyeIcon}
+                />
+              </Pressable>
+            </View>
+
+            {error !== "" && (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+
+            <Pressable
+              onPress={handleLogin}
+              disabled={loading}
+              style={[styles.buttonWrapper, loading && styles.disabledButton]}
+            >
+              <View style={styles.buttonContent}>
+                {loading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Image source={loginButton} style={styles.buttonImage} />
+                )}
+              </View>
+            </Pressable>
+
+            {/* <Pressable
+              onPress={handleLogin}
+              disabled={loading}
+              style={[styles.googleWrapper, loading && styles.disabledButton]}
+            >
+              <View style={styles.buttonContent}>
+                {loading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Image source={googleButton} style={styles.buttonImage} />
+                )}
+              </View>
+            </Pressable> */}
+
+            <View style={styles.loginRow}>
+              <Text style={styles.bottomLabel}>Don't have an account?</Text>
+              <Pressable onPress={() => navigation.navigate("Signup")}>
+                <Text style={styles.loginLink}>Sign Up</Text>
+              </Pressable>
+            </View>
+          </View>
+
+          <View style={styles.bottomSpacer} />
+        </SafeAreaView>
+      </ImageBackground>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  title: {
-    color: 'white',
-    height: 80,
-    fontSize: 26,
-    fontWeight: '500',
-  },
-  topArea: {
+  container: {
     flex: 1,
-    marginTop: 80,
+    backgroundColor: 'black',
+  },
+  background: {
+    flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(6, 8, 20, 0.42)',
+  },
+  safeArea: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  headerBlock: {
+    width: '100%',
+    marginTop: 42,
+    marginBottom: 26,
     alignItems: 'center',
   },
-  eyeIcon: {
-    width: 70,
-    height: 70,
-    marginTop: 4,
-    marginRight: -15,
-    resizeMode: 'contain',
+  eyebrow: {
+    color: '#A78BFA',
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 8,
+    letterSpacing: 0.3,
+  },
+  title: {
+    color: 'white',
+    fontSize: 30,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  subtitle: {
+    color: 'rgba(255,255,255,0.78)',
+    fontSize: 15,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginTop: 10,
+    paddingHorizontal: 12,
+  },
+  formCard: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: 'rgba(13, 18, 44, 0.82)',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(167, 139, 250, 0.22)',
+    paddingHorizontal: 18,
+    paddingTop: 20,
+    paddingBottom: 22,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 10,
   },
   input: {
-    width: 320,
+    width: '100%',
     height: 58,
     backgroundColor: '#11173A',
-    borderRadius: 8,
-    borderWidth: 2,
+    borderRadius: 12,
+    borderWidth: 1.5,
     borderColor: '#4A4779',
-    paddingHorizontal: 15,
+    paddingHorizontal: 16,
     color: 'white',
-    fontSize: 18,
-    marginBottom: 20,
-  },
-  inputPw: {
-    width: 320,
-    height: 54,
-    backgroundColor: '#11173A',
-    paddingHorizontal: 15,
-    color: 'white',
-    fontSize: 18,
-    marginTop: 20,
-    marginBottom: 20,
+    fontSize: 17,
+    marginBottom: 16,
   },
   passwordRow: {
-    width: 320,
+    width: '100%',
     height: 58,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#11173A',
-    borderRadius: 8,
-    borderWidth: 2,
+    borderRadius: 12,
+    borderWidth: 1.5,
     borderColor: '#4A4779',
-    paddingHorizontal: 15,
-    marginBottom: 20,
+    paddingLeft: 16,
+    paddingRight: 8,
+    marginBottom: 14,
+  },
+  inputPw: {
+    flex: 1,
+    height: '100%',
+    color: 'white',
+    fontSize: 17,
+  },
+  eyeButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  eyeIcon: {
+    width: 42,
+    height: 42,
+    resizeMode: 'contain',
+  },
+  errorBox: {
+    width: '100%',
+    backgroundColor: 'rgba(255, 107, 107, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 107, 107, 0.35)',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 10,
   },
   errorText: {
-    color: '#FF6B6B',
-    fontSize: 16,
-    marginBottom: 10,
-    marginTop: -10,
+    color: '#FF8B8B',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   buttonWrapper: {
     alignItems: 'center',
-    marginTop: 33,
-    marginBottom: 3,
+    marginTop: 10,
+    marginBottom: 6,
+  },
+  disabledButton: {
+    opacity: 0.55,
   },
   buttonContent: {
     width: 320,
@@ -243,26 +320,27 @@ const styles = StyleSheet.create({
   },
   googleWrapper: {
     alignItems: 'center',
-    marginTop: 23,
-    marginBottom: 3,
-  },
-  bottomLabel: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '400',
-    textAlign: 'center',
+    marginTop: 18,
+    marginBottom: 6,
   },
   loginRow: {
     flexDirection: 'row',
-    marginTop: 25,
+    justifyContent: 'center',
+    marginTop: 18,
+  },
+  bottomLabel: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '400',
+    textAlign: 'center',
   },
   loginLink: {
     color: '#A78BFA',
-    fontSize: 18,
-    fontWeight: '600',
-    marginLeft: 8,
+    fontSize: 16,
+    fontWeight: '700',
+    marginLeft: 6,
   },
-  background: {
-    height: 230,
+  bottomSpacer: {
+    flex: 1,
   },
 });
