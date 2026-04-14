@@ -195,19 +195,23 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
               </View>
             </View>
 
-            <TouchableOpacity
-              onPress={handleSubmit}
-              disabled={isDisabled}
-              style={[
-                styles.submitWrapper,
-                isDisabled && { opacity: 0.6 },
-              ]}
-            >
-              <Image
-                source={require('../../assets/buttons/submit.png')}
-                style={styles.submitButton}
-              />
-            </TouchableOpacity>
+            <View style={styles.submitArea}>
+              <TouchableOpacity
+                onPress={handleSubmit}
+                disabled={isDisabled}
+                style={[
+                  styles.submitWrapper,
+                  isDisabled && { opacity: 0.6 },
+                ]}
+              >
+                <Image
+                  source={require('../../assets/buttons/submit.png')}
+                  style={styles.submitButton}
+                />
+              </TouchableOpacity>
+
+              <Text style={styles.costText}>Cost: 1 Coin</Text>
+            </View>
           </View>
 
           <View style={{ height: 44, justifyContent: "center", alignItems: "center" }}>
@@ -335,6 +339,10 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 10,
   },
+  submitArea: {
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   submitWrapper: {
     alignSelf: 'center',
     width: 265,
@@ -344,95 +352,101 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   submitButton: {
-    width: 280,
-    height: 47,
-    marginTop: 0,
+    width: 265,
+    height: 54,
     resizeMode: 'contain',
   },
-  errorText: {
-    color: '#e26fae',
-    fontSize: 18,
-    textAlign: 'center',
+  costText: {
+    color: '#FFD700',
+    fontSize: 15,
     fontWeight: '700',
-    marginTop: 20,
-    paddingHorizontal: 16,
+    textAlign: 'center',
+    marginTop: 2,
   },
   timer: {
     color: 'yellow',
-    fontSize: 22,
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: '700',
     textAlign: 'center',
+  },
+  errorText: {
+    color: '#ff6b6b',
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
+    paddingHorizontal: 16,
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.55)',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
   },
   modalCard: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: '#1b103f',
-    borderRadius: 20,
-    padding: 22,
+    backgroundColor: 'rgba(19, 10, 45, 0.96)',
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.10)',
+    paddingVertical: 22,
+    paddingHorizontal: 18,
   },
   modalTitle: {
-    color: '#fff',
+    color: 'white',
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '800',
     textAlign: 'center',
     marginBottom: 10,
   },
   modalText: {
-    color: '#f3eefe',
-    fontSize: 16,
+    color: 'rgba(255,255,255,0.84)',
+    fontSize: 15,
     lineHeight: 22,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 18,
   },
   modalActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
   },
-  singleActionWrap: {
-    width: '100%',
-  },
   modalSecondaryButton: {
     flex: 1,
-    height: 48,
     borderRadius: 14,
-    backgroundColor: '#2a2150',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+  },
+  modalSecondaryText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   modalPrimaryButton: {
     flex: 1,
-    height: 48,
     borderRadius: 14,
-    backgroundColor: '#c43dff',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalPrimaryButtonFull: {
-    width: '100%',
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: '#c43dff',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalSecondaryText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
+    paddingVertical: 12,
+    backgroundColor: '#7c3aed',
   },
   modalPrimaryText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  singleActionWrap: {
+    marginTop: 2,
+  },
+  modalPrimaryButtonFull: {
+    borderRadius: 14,
+    paddingVertical: 12,
+    backgroundColor: '#7c3aed',
+  },
+  contentSpacer: {
+    height: 8,
   },
 });

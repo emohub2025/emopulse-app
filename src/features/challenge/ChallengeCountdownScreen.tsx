@@ -1,6 +1,18 @@
-import React, { useEffect, useMemo } from 'react';
-import { View, Text, Image, ImageBackground, StyleSheet, Pressable, BackHandler } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  ImageBackground,
+  StyleSheet,
+  Pressable,
+  BackHandler,
+} from 'react-native';
+import {
+  useNavigation,
+  useRoute,
+  useFocusEffect,
+} from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,7 +20,13 @@ import { useCycleTimer } from '../../components/CycleTimerContext';
 import activeButton from '../../assets/buttons/active.png';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { getFeedList } from '../../api/getFeedList';
+import { getUserInfo } from '../../api/getUserInfo';
 import type { FeedResponse } from '../../navigation/types';
+import {
+  useCurrentUser,
+  useCurrentUserId,
+  useSetUser,
+} from '../../state/useUserSelectors';
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -45,11 +63,17 @@ const categoryAccentMap: Record<string, string> = {
   Wacky: '#fb7185',
 };
 
-export default function ChallengeResultScreen() {
+export default function ChallengeCountdownScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<any>();
   const { challenge } = route.params || {};
   const { isExpired, formattedTime, applyCycleFromFeed } = useCycleTimer();
+
+  const currentUser = useCurrentUser();
+  const currentUserId = useCurrentUserId();
+  const setUser = useSetUser();
+
+  const coinBalance = currentUser?.coin_balance ?? 0;
 
   const visibleTimer =
     formattedTime && formattedTime.trim().length > 0
@@ -57,7 +81,7 @@ export default function ChallengeResultScreen() {
       : 'Loading countdown…';
 
   if (!challenge) {
-    console.error('❌ ChallengeResults missing challenge or challenge.id:', challenge);
+    console.error('❌ ChallengeCountdown missing challenge or challenge.id:', challenge);
     return (
       <SafeAreaView style={styles.safe}>
         <Text style={styles.loadingText}>Missing challenge data</Text>
@@ -68,11 +92,12 @@ export default function ChallengeResultScreen() {
   const rawCategoryName =
     challenge.category ||
     challenge.category_name ||
+    challenge.feed_category ||
+    challenge.categoryLabel ||
+    challenge.category_label ||
     'Challenge';
 
   const normalizedCategoryName = String(rawCategoryName).trim();
-
-  console.log('COUNTDOWN CATEGORY:', rawCategoryName, normalizedCategoryName);
 
   const categoryImage = categoryImages[normalizedCategoryName] ?? null;
   const accentColor = categoryAccentMap[normalizedCategoryName] ?? '#c43dff';
@@ -144,6 +169,31 @@ export default function ChallengeResultScreen() {
     };
   }, [applyCycleFromFeed]);
 
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      async function refreshUser() {
+        if (!currentUserId) return;
+
+        try {
+          const freshUser = await getUserInfo(String(currentUserId));
+          if (isActive) {
+            setUser(freshUser);
+          }
+        } catch (err) {
+          console.log('❌ Failed to refresh user on countdown screen:', err);
+        }
+      }
+
+      refreshUser();
+
+      return () => {
+        isActive = false;
+      };
+    }, [currentUserId, setUser])
+  );
+
   useEffect(() => {
     if (isExpired) {
       const timer = setTimeout(() => {
@@ -195,6 +245,11 @@ export default function ChallengeResultScreen() {
                   <Image source={categoryImage} style={styles.categoryPillIcon} />
                 ) : null}
                 <Text style={styles.categoryPillText}>{normalizedCategoryName}</Text>
+              </View>
+
+              <View style={styles.walletCard}>
+                <Text style={styles.walletLabel}>Wallet Balance</Text>
+                <Text style={styles.walletValue}>{coinBalance} Coins</Text>
               </View>
 
               <Text style={styles.sectionLabel}>Current Challenge</Text>
@@ -315,6 +370,31 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
+  walletCard: {
+    alignSelf: 'center',
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 14,
+  },
+  walletLabel: {
+    color: 'rgba(255,255,255,0.72)',
+    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: 4,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+  },
+  walletValue: {
+    color: '#ff0000',
+    fontSize: 22,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
   sectionLabel: {
     color: '#d7b4ff',
     fontSize: 15,
@@ -322,60 +402,59 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     letterSpacing: 0.4,
     marginBottom: 10,
-    textTransform: 'uppercase',
   },
   topicCard: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    minHeight: 104,
     borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
-    paddingTop: 8,
-    paddingHorizontal: 10,
-    marginBottom: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    marginBottom: 14,
+    justifyContent: 'center',
   },
   countdownLabel: {
-    color: 'rgba(255,255,255,0.76)',
+    color: 'rgba(255,255,255,0.78)',
     fontSize: 14,
     fontWeight: '700',
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
     marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
   countdownValue: {
-    color: 'yellow',
-    fontSize: 30,
-    fontWeight: '800',
+    color: '#e5ff00',
+    fontSize: 34,
+    lineHeight: 40,
+    fontWeight: '900',
     textAlign: 'center',
   },
   helperText: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 15,
+    color: 'rgba(255,255,255,0.72)',
+    fontSize: 14,
     textAlign: 'center',
-    lineHeight: 21,
-    paddingHorizontal: 6,
+    lineHeight: 20,
+    paddingHorizontal: 10,
   },
   bottomArea: {
     alignItems: 'center',
-    paddingTop: 18,
+    paddingTop: 14,
   },
   buttonImage: {
-    width: 285,
-    height: 48,
+    width: 250,
+    height: 56,
     resizeMode: 'contain',
-    alignSelf: 'center',
-    marginTop: 6,
   },
   bottomNote: {
     color: 'rgba(255,255,255,0.72)',
     fontSize: 14,
-    fontWeight: '600',
     textAlign: 'center',
-    marginTop: 10,
+    marginTop: 6,
   },
   loadingText: {
     color: 'white',
-    fontSize: 22,
-    fontWeight: '600',
+    fontSize: 18,
     textAlign: 'center',
+    marginTop: 80,
   },
 });

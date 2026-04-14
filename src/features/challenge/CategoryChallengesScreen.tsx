@@ -114,7 +114,10 @@ export default function CategoryChallengesScreen() {
                         ]}
                         onPress={() =>
                           navigation.navigate('ChallengeDetail', {
-                            challenge: item,
+                            challenge: {
+                              ...item,
+                              category: item.category || item.category_name || category,
+                            },
                           })
                         }
                       >
@@ -251,23 +254,23 @@ const styles = StyleSheet.create({
   },
   videoBadgeText: {
     color: '#A8FF9F',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     textAlign: 'center',
   },
   submittedBadge: {
     alignSelf: 'center',
     marginTop: 10,
-    backgroundColor: 'rgba(168,255,159,0.14)',
-    borderColor: 'rgba(168,255,159,0.42)',
+    backgroundColor: 'rgba(255,214,107,0.14)',
+    borderColor: 'rgba(255,214,107,0.4)',
     borderWidth: 1,
     borderRadius: 999,
     paddingVertical: 6,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
   },
   submittedBadgeText: {
-    color: '#A8FF9F',
-    fontSize: 14,
+    color: '#FFD66B',
+    fontSize: 12,
     fontWeight: '700',
     textAlign: 'center',
   },
@@ -275,32 +278,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 28,
   },
   emptyText: {
     color: 'white',
     fontSize: 20,
-    fontWeight: '600',
-    opacity: 0.9,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  emptyMessage: {
+    color: 'rgba(255,255,255,0.72)',
+    fontSize: 15,
+    textAlign: 'center',
+    marginTop: -2,
+    marginBottom: 2,
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  emptyMessage: {
-    color: 'white',
-    fontWeight: '700',
-    fontSize: 22,
-    textAlign: 'center',
-    marginTop: 12,
-    fontStyle: 'italic',
+    backgroundColor: 'black',
   },
   timer: {
     color: 'yellow',
-    fontSize: 22,
-    fontWeight: '600',
+    fontSize: 26,
+    fontWeight: '700',
     textAlign: 'center',
-    marginTop: 4,
-    marginBottom: -10,
+    marginBottom: 38,
   },
 });
