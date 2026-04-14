@@ -1,37 +1,21 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ImageBackground,
-  StyleSheet,
-  ViewStyle,
-  Image,
-  Pressable,
-  Animated,
-  Easing,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, ImageBackground, StyleSheet, ViewStyle, Image, Pressable, Animated, Easing } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../../navigation/types';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import playButton from '../../assets/buttons/play.png';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useCycleTimer } from '../../components/CycleTimerContext';
+import { useFeed } from "../../context/FeedContext";
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
 import YoutubePlayer from 'react-native-youtube-iframe';
 
 // Route params
-type ChallengeDetailRouteProp = RouteProp<
-  RootStackParamList,
-  'ChallengeDetail'
->;
-
-type NavProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'ChallengeDetail'
->;
+type ChallengeDetailRouteProp = RouteProp<RootStackParamList, 'ChallengeDetail'>;
+type NavProp = NativeStackNavigationProp<RootStackParamList, 'ChallengeDetail'>;
 
 // Shorts-only extractor
 function extractShortsId(url: string) {
@@ -45,9 +29,32 @@ export default function ChallengeDetailScreen({
 }: {
   route: ChallengeDetailRouteProp;
 }) {
-  const { challenge } = route.params;
   const navigation = useNavigation<NavProp>();
   const { formattedTime } = useCycleTimer();
+
+  const { challengeId } = route.params;
+  const { feed } = useFeed();
+  if (!feed) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+        <Text style={{ color: "white" }}>Loading…</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const challenge = feed.categories
+    .flatMap(c => [...c.active, ...c.recent])
+    .find(ch => ch.id === challengeId);
+
+  if (!challenge) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+        <Text style={{ color: "white", textAlign: "center", marginTop: 40 }}>
+          Challenge not found
+        </Text>
+      </SafeAreaView>
+    );
+  }
 
   const isResolved = challenge.status !== 'open';
   const imageSource = getChallengeImageSource(challenge);
@@ -163,87 +170,85 @@ export default function ChallengeDetailScreen({
               </AutoShrinkBlock>
             )}
 
-
-
             {/* YOUTUBE MODE */}
-{isYouTube ? (
-  <View
-    style={{
-      width: '100%',
-      alignItems: 'center',
-      marginTop: -10,
-      marginBottom: 25,
-    }}
-  >
-    {/* ANIMATED WRAPPER (scale only — NEVER fade this) */}
-    <Animated.View
-      style={{
-        ...frameStyle,
-        overflow: 'hidden',
-        backgroundColor: 'black',
-        position: 'relative',
-        transform: [{ scale: scaleAnim }],
-      }}
-    >
-      {/* HERO IMAGE LAYER (always mounted) */}
-      <Animated.View
-        style={{
-          ...StyleSheet.absoluteFillObject,
-          opacity: expanded
-            ? fadeAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [1, 0], // fade OUT when expanding
-              })
-            : 1, // fully visible when collapsed
-          zIndex: expanded ? 0 : 2, // hero on top when collapsed
-        }}
-        pointerEvents={expanded ? 'none' : 'auto'}
-      >
-        <Pressable onPress={() => setExpanded(true)}>
-          <Image
-            source={imageSource}
-            style={styles.image}
-            //style={{ width: '100%', height: '100%' }}
-            resizeMode="cover"
-          />
-        </Pressable>
-      </Animated.View>
+            {isYouTube ? (
+              <View
+                style={{
+                  width: '100%',
+                  alignItems: 'center',
+                  marginTop: -10,
+                  marginBottom: 25,
+                }}
+              >
+                {/* ANIMATED WRAPPER (scale only — NEVER fade this) */}
+                <Animated.View
+                  style={{
+                    ...frameStyle,
+                    overflow: 'hidden',
+                    backgroundColor: 'black',
+                    position: 'relative',
+                    transform: [{ scale: scaleAnim }],
+                  }}
+                >
+                  {/* HERO IMAGE LAYER (always mounted) */}
+                  <Animated.View
+                    style={{
+                      ...StyleSheet.absoluteFillObject,
+                      opacity: expanded
+                        ? fadeAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [1, 0], // fade OUT when expanding
+                          })
+                        : 1, // fully visible when collapsed
+                      zIndex: expanded ? 0 : 2, // hero on top when collapsed
+                    }}
+                    pointerEvents={expanded ? 'none' : 'auto'}
+                  >
+                    <Pressable onPress={() => setExpanded(true)}>
+                      <Image
+                        source={imageSource}
+                        style={styles.image}
+                        //style={{ width: '100%', height: '100%' }}
+                        resizeMode="cover"
+                      />
+                    </Pressable>
+                  </Animated.View>
 
-      {/* PLAYER LAYER (always mounted) */}
-      <Animated.View
-        style={{
-          ...StyleSheet.absoluteFillObject,
-          opacity: expanded ? fadeAnim : 0, // fade IN when expanding
-          zIndex: expanded ? 3 : -1, // player only on top when expanded
-        }}
-        pointerEvents={expanded ? 'auto' : 'none'}
-      >
-        <View style={playerStyle}>
-          <YoutubePlayer
-            height={playerStyle.height}
-            width={playerStyle.width}
-            play={false}
-            videoId={extractShortsId(challenge.url)}
-            initialPlayerParams={{
-              controls: true,
-              modestbranding: true,
-              rel: false,
-              playsinline: true,
-              fs: 0,
-            }}
-            webViewProps={{
-              allowsFullscreenVideo: false,
-            }}
-          />
-        </View>
-      </Animated.View>
-    </Animated.View>
-  </View>
-) : (
-  <View style={styles.imageWrapper}>
-    <Image source={imageSource} style={styles.image} />
-  </View>
-)}
+                  {/* PLAYER LAYER (always mounted) */}
+                  <Animated.View
+                    style={{
+                      ...StyleSheet.absoluteFillObject,
+                      opacity: expanded ? fadeAnim : 0, // fade IN when expanding
+                      zIndex: expanded ? 3 : -1, // player only on top when expanded
+                    }}
+                    pointerEvents={expanded ? 'auto' : 'none'}
+                  >
+                    <View style={playerStyle}>
+                      <YoutubePlayer
+                        height={playerStyle.height}
+                        width={playerStyle.width}
+                        play={false}
+                        videoId={extractShortsId(challenge.url)}
+                        initialPlayerParams={{
+                          controls: true,
+                          modestbranding: true,
+                          rel: false,
+                          playsinline: true,
+                          fs: 0,
+                        }}
+                        webViewProps={{
+                          allowsFullscreenVideo: false,
+                        }}
+                      />
+                    </View>
+                  </Animated.View>
+                </Animated.View>
+              </View>
+            ) : (
+              <View style={styles.imageWrapper}>
+                <Image source={imageSource} style={styles.image} />
+              </View>
+            )}
 
             {/* DETAILS (only when collapsed) */}
             {!expanded && (
@@ -275,7 +280,7 @@ export default function ChallengeDetailScreen({
               <>
                 <Pressable
                   onPress={() =>
-                    navigation.navigate('Challenge', { challenge })
+                    navigation.navigate("Challenge", { challengeId: challenge.id })
                   }
                 >
                   <Image source={playButton} style={styles.playImage} />

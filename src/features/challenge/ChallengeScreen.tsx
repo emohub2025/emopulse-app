@@ -12,16 +12,13 @@ import { useCycleTimer } from '../../components/CycleTimerContext';
 import { postPlaceUserBet } from '../../api/postPlaceUserBet';
 import { getSubchallengeList } from '../../api/subchallenges';
 import { useCurrentUserId } from "../../state/useUserSelectors";
+import { useFeed } from "../../context/FeedContext";
+import { markChallengePlayed } from '../../hooks/usePlayedChallenges';
 
 type ChallengeRouteProp = RouteProp<RootStackParamList, 'Challenge'>;
-
-type NavProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'Challenge'
->;
+type NavProp = NativeStackNavigationProp<RootStackParamList, 'Challenge'>;
 
 export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }) {
-  const { challenge } = route.params;   // ⭐ Full challenge object now passed in
   const [emotion, setEmotion] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -33,6 +30,31 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   const timerOpacity = useRef(new Animated.Value(1)).current;
   const [lastTap, setLastTap] = useState<number | null>(null);
   const [topicFontSize, setTopicFontSize] = useState(24);
+
+  const { challengeId } = route.params;
+  const { feed } = useFeed();
+  if (!feed) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+        <Text style={{ color: "white" }}>Loading…</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const challenge = feed.categories
+    .flatMap(c => [...c.active, ...c.recent])
+    .find(ch => ch.id === challengeId);
+
+  if (!challenge) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+        <Text style={{ color: "white", textAlign: "center", marginTop: 40 }}>
+          Challenge not found
+        </Text>
+      </SafeAreaView>
+    );
+  }
+
   const isYouTube = challenge.source?.startsWith('YouTube');
 
   const handleDoubleTapSubmit = () => {
@@ -73,10 +95,11 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
       }
 
       console.log("Bet placed:", response);
+      await markChallengePlayed(challengeId);
 
       if (isYouTube) {
         setLoading(false);
-        navigation.navigate("ChallengeCountdown", { challenge });
+        navigation.navigate("ChallengeCountdown", { challengeId: challenge.id })
         return;
       }
 
@@ -94,7 +117,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
         //   });
         // });
         navigation.navigate("Subchallenge", {
-          challenge,
+          challengeId: challenge.id,
           subchallenges: listResults
         });
       } else {

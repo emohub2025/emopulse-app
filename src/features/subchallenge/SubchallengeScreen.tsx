@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { View, Text, Image, ImageBackground, Pressable, TouchableOpacity, Animated, BackHandler, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList, SubchallengeList } from '../../navigation/types';
@@ -11,6 +12,7 @@ import skipButton from '../../assets/buttons/skip.png';
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
 import { postPlaceUserSubBet } from '../../api/postPlaceUserBet';
 import { useCurrentUserId } from "../../state/useUserSelectors";
+import { useFeed } from "../../context/FeedContext";
 
 // Route params type
 type SubchallengeRouteProp = RouteProp<
@@ -31,18 +33,41 @@ export default function SubchallengeScreen({
     navigation: SubchallengeNavProp;
   }) {
 
-  const { challenge, subchallenges } = route.params;
+  const { challengeId, subchallenges } = route.params;
   const [loading, setLoading] = useState(false);
   const { formattedTime } = useCycleTimer();
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const current: SubchallengeList = subchallenges[index];
-  const imageSource = getChallengeImageSource(challenge);
   const userId = useCurrentUserId();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const errorOpacity = useRef(new Animated.Value(0)).current;
   const timerOpacity = useRef(new Animated.Value(1)).current;
   const [lastTap, setLastTap] = useState<number | null>(null);
+  
+  const { feed } = useFeed();
+  if (!feed) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+        <Text style={{ color: "white" }}>Loading…</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const challenge = feed.categories
+    .flatMap(c => [...c.active, ...c.recent])
+    .find(ch => ch.id === challengeId);
+
+  if (!challenge) {
+    console.error("❌ SubchallengeScreen missing challenge or challenge.id:", challenge);
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Text style={styles.loadingText}>Missing challenge data</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const imageSource = getChallengeImageSource(challenge);
 
   const handleDoubleTapSubmit = () => {
     const now = Date.now();
@@ -64,7 +89,7 @@ export default function SubchallengeScreen({
       setSelected(null); // reset selection for next question
     } else {
       // If this was the last question, go to results
-      navigation.navigate("ChallengeCountdown", { challenge });
+      navigation.navigate("ChallengeCountdown", { challengeId: challenge.id, from: "play" });
     }
   };
 
@@ -104,7 +129,7 @@ export default function SubchallengeScreen({
         setIndex(index + 1);
         setSelected(null);
       } else {
-        navigation.navigate("ChallengeCountdown", { challenge });
+        navigation.navigate("ChallengeCountdown", { challengeId: challenge.id });
       }
 
     } catch (err: any) {
@@ -289,6 +314,11 @@ export default function SubchallengeScreen({
 }
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    paddingTop: 50,
+    paddingHorizontal: 20,
+  },
   container: {
     flex: 1,
     padding: 24,
@@ -377,5 +407,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     marginTop: 6,
+  },
+  loadingText: {
+    color: 'white',
+    fontSize: 22,
+    fontWeight: '600',
   },
 });

@@ -12,6 +12,7 @@ import FeedbackScreen from '../features/users/FeedbackScreen';
 import SettingsScreen from '../features/users/SettingsScreen';
 import ProfileScreen from '../features/users/ProfileScreen';
 import ResultsHistoryScreen from '../features/users/ResultsHistoryScreen';
+import LiveChallengesScreen from '../features/challenge/LiveChallengesScreen';
 import TransactionsScreen from '../features/users/TransactionsScreen';
 import AchievementsScreen from '../features/users/AchievementsScreen';
 import PrizesAndRewardsScreen from '../features/users/PrizesAndRewardsScreen';
@@ -111,25 +112,31 @@ export default function RootNavigator({
         options={{ headerTitle: () => <LogoHeader /> }}
       />
 
-    <Stack.Screen
-      name="Achievements"
-      component={AchievementsScreen}
-      options={{
-        headerTitle: () => <LogoHeader />,
-      }}
-    />
+      <Stack.Screen
+        name="Achievements"
+        component={AchievementsScreen}
+        options={{
+          headerTitle: () => <LogoHeader />,
+        }}
+      />
 
-    <Stack.Screen
-      name="PrizesAndRewards"
-      component={PrizesAndRewardsScreen}
-      options={{
-        headerTitle: () => <LogoHeader />,
-      }}
-    />
+      <Stack.Screen
+        name="PrizesAndRewards"
+        component={PrizesAndRewardsScreen}
+        options={{
+          headerTitle: () => <LogoHeader />,
+        }}
+      />
 
       <Stack.Screen
         name="ResultsHistory"
         component={ResultsHistoryScreen}
+        options={{ headerTitle: () => <LogoHeader /> }}
+      />
+
+      <Stack.Screen
+        name="LiveChallenges"
+        component={LiveChallengesScreen}
         options={{ headerTitle: () => <LogoHeader /> }}
       />
 

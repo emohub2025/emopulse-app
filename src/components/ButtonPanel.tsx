@@ -41,6 +41,17 @@ export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
           </Pressable>
         )}
         
+        {/* Live Challenges */}
+        {(route.name === 'CategoryList' || route.name === 'Teams' || route.name === 'Achievements' || route.name === 'HelpAndSupport') && (
+          <Pressable
+            onPress={() => navigation.navigate('LiveChallenges')}
+            style={styles.item}
+          >
+            <Image source={historyIcon} style={styles.icon} />
+            <Text style={styles.label}>Live</Text>
+          </Pressable>
+        )}
+        
         {/* History */}
         {(route.name === 'CategoryList' || route.name === 'Teams' || route.name === 'Achievements' || route.name === 'HelpAndSupport') && (
           <Pressable

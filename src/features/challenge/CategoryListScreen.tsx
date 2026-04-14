@@ -6,6 +6,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { useCycleTimer } from '../../components/CycleTimerContext';
 import ButtonPanel from '../../components/ButtonPanel';
+import { useFeed } from "../../context/FeedContext";
 import { getFeedList } from "../../api/getFeedList";
 import type { FeedCategory, FeedResponse } from "../../navigation/types";
 
@@ -42,6 +43,7 @@ export default function CategoryListScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute();
   const { applyCycleFromFeed } = useCycleTimer();
+  const { setFeed } = useFeed();   // ⭐ NEW
   const [categories, setCategories] = useState<FeedCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -52,28 +54,22 @@ export default function CategoryListScreen() {
 
       async function load() {
         try {
-          // ⭐ Fetch feed (cycle + categories)
           const feed: FeedResponse = await getFeedList();
 
           if (isActive) {
-            // ⭐ Push cycle metadata into timer context
             applyCycleFromFeed(feed.cycle);
 
-            // ⭐ Set categories
             setCategories(feed.categories);
+
+            setFeed(feed);   // ⭐ NEW — store feed globally
           }
         } finally {
-          if (isActive) {
-            setLoading(false);
-          }
+          if (isActive) setLoading(false);
         }
       }
 
       load();
-
-      return () => {
-        isActive = false;
-      };
+      return () => { isActive = false };
     }, [applyCycleFromFeed])
   );
 
@@ -120,9 +116,7 @@ export default function CategoryListScreen() {
             style={styles.card}
             onPress={() =>
               navigation.navigate('CategoryChallenges', {
-                category: item.name,
-                active: item.active,
-                recent: item.recent
+                category: item.name
               })
             }
           >

@@ -8,15 +8,7 @@ import FeedbackIcon from "../../assets/buttons/feedback-icon.png";
 import { useUserStore } from "../../state/useUserStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  ImageBackground,
-  StyleSheet,
-  Image,
-  Pressable,
-  Animated,
-} from "react-native";
+import { View, Text, ImageBackground, StyleSheet, Image, Pressable, Animated } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";

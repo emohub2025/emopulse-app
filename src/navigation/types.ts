@@ -97,23 +97,23 @@ export type RootStackParamList = {
     user: MobileUser;
   };
 
+  LiveChallenges: undefined;
+
   CategoryChallenges: {
     category: string;
-    active: Challenge[];
-    recent: Challenge[];
   };
 
   ChallengeDetail: {
-    challenge: Challenge;
+    challengeId: string;
   };
 
   Challenge: {
-    challenge: Challenge;
+    challengeId: string;
   };
 
   ChallengeCountdown: {
-    challenge?: Challenge;
-    challengeId?: string;
+    challengeId: string;
+    from?: "play" | "live";
   };
 
   ChallengeResults: {
@@ -123,7 +123,7 @@ export type RootStackParamList = {
   };
 
   Subchallenge: {
-    challenge: Challenge;
+    challengeId: string;
     subchallenges: SubchallengeList[];
   };
 
@@ -254,3 +254,33 @@ export type SubchallengeScreenParams = {
   challengeId: string;
   subchallengeId: string;
 };
+
+export interface LiveEmotionCount {
+  count: number;
+  total: number;
+}
+
+export interface LiveMainEmotions {
+  angry?: LiveEmotionCount;
+  happy?: LiveEmotionCount;
+  sad?: LiveEmotionCount;
+  anxious?: LiveEmotionCount;
+}
+
+export interface LiveSnapshotItem {
+  id: string;
+  status: "open" | "closed" | "resolved";
+  topic: string;
+  categories: string[];
+  quote: string | null;
+  stat: string | null;
+  snippet: string | null;
+  image_url: string | null;
+  url: string | null;
+  main: LiveMainEmotions;
+  subchallenges: Record<string, any>;
+}
+
+export interface LiveSnapshotResponse {
+  snapshot: LiveSnapshotItem[];
+}
