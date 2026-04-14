@@ -52,14 +52,10 @@ export default function CategoryListScreen() {
 
       async function load() {
         try {
-          // ⭐ Fetch feed (cycle + categories)
           const feed: FeedResponse = await getFeedList();
 
           if (isActive) {
-            // ⭐ Push cycle metadata into timer context
             applyCycleFromFeed(feed.cycle);
-
-            // ⭐ Set categories
             setCategories(feed.categories);
           }
         } finally {
@@ -87,7 +83,6 @@ export default function CategoryListScreen() {
     );
   }
 
-  // ⭐ Normalize names to avoid trailing spaces / casing issues
   const normalizedCategories = categories.map(c => ({
     ...c,
     name: c.name.trim()
@@ -107,6 +102,7 @@ export default function CategoryListScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <Text style={styles.topLabel}>Challenge Categories</Text>
+      <Text style={styles.subLabel}>Choose a category to view active and expired challenges</Text>
 
       <FlatList
         data={sortedCategories}
@@ -117,7 +113,10 @@ export default function CategoryListScreen() {
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
           <Pressable
-            style={styles.card}
+            style={({ pressed }) => [
+              styles.card,
+              pressed && styles.cardPressed,
+            ]}
             onPress={() =>
               navigation.navigate('CategoryChallenges', {
                 category: item.name,
@@ -129,8 +128,11 @@ export default function CategoryListScreen() {
             <ImageBackground
               source={categoryImages[item.name] ?? null}
               style={styles.cardBackground}
+              imageStyle={styles.cardImage}
               resizeMode="stretch"
-            />
+            >
+              <View style={styles.cardOverlay} />
+            </ImageBackground>
           </Pressable>
         )}
       />
@@ -148,11 +150,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  list: {
-    flex: 1,
-    marginTop: -7,
-    marginBottom: 60,
-  },
   safe: {
     flex: 1,
     paddingTop: 40,
@@ -161,11 +158,23 @@ const styles = StyleSheet.create({
   },
   topLabel: {
     color: 'white',
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: '700',
     marginTop: 25,
-    marginBottom: 15,
+    marginBottom: 6,
     textAlign: 'center',
+  },
+  subLabel: {
+    color: 'rgba(255,255,255,0.78)',
+    fontSize: 15,
+    textAlign: 'center',
+    marginBottom: 14,
+    paddingHorizontal: 24,
+  },
+  list: {
+    flex: 1,
+    marginTop: -2,
+    marginBottom: 60,
   },
   columnWrapper: {
     justifyContent: 'space-between',
@@ -174,19 +183,32 @@ const styles = StyleSheet.create({
   listContent: {
     paddingLeft: 5,
     paddingRight: 5,
-    paddingTop: 5,
+    paddingTop: 8,
     paddingBottom: 40,
   },
   card: {
-    height: 135,
+    height: 150,
     width: 160,
-    marginBottom: 12,
-    borderRadius: 12,
+    marginBottom: 14,
+    borderRadius: 18,
     overflow: 'hidden',
+    backgroundColor: '#16042f',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  cardPressed: {
+    transform: [{ scale: 0.98 }],
+    opacity: 0.92,
   },
   cardBackground: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  cardImage: {
+    borderRadius: 18,
+  },
+  cardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(8, 2, 18, 0.14)',
   },
 });

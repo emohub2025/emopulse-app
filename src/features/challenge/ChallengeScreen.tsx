@@ -4,7 +4,17 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, StyleSheet, Image, Animated, ImageBackground, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  Animated,
+  ImageBackground,
+  TouchableOpacity,
+  Modal,
+  Pressable,
+} from 'react-native';
 import EmotionSelector from '../../components/EmotionSelector';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
@@ -21,32 +31,22 @@ type NavProp = NativeStackNavigationProp<
 >;
 
 export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }) {
-  const { challenge } = route.params;   // ⭐ Full challenge object now passed in
+  const { challenge } = route.params;
   const [emotion, setEmotion] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [showSupplementalPrompt, setShowSupplementalPrompt] = useState(false);
+  const [showDuplicatePrompt, setShowDuplicatePrompt] = useState(false);
+  const [pendingSubchallenges, setPendingSubchallenges] = useState<any[]>([]);
   const navigation = useNavigation<NavProp>();
   const { formattedTime } = useCycleTimer();
   const userId = useCurrentUserId();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const errorOpacity = useRef(new Animated.Value(0)).current;
   const timerOpacity = useRef(new Animated.Value(1)).current;
-  const [lastTap, setLastTap] = useState<number | null>(null);
   const [topicFontSize, setTopicFontSize] = useState(24);
-  const isYouTube = challenge.source?.startsWith('YouTube');
 
-  const handleDoubleTapSubmit = () => {
-    const now = Date.now();
-
-    if (lastTap && now - lastTap < 800) {
-      handleSubmit(); // ⬅️ This is where navigation happens
-      setLastTap(null);
-      return;
-    }
-
-    setLastTap(now);
-    setTimeout(() => setLastTap(null), 900);
-  };
+  const bottomStatusText =
+    formattedTime?.toLowerCase?.() === 'expired' ? 'Expired Challenges' : formattedTime;
 
   const handleSubmit = async () => {
     if (!emotion) return;
@@ -59,65 +59,64 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
       setLoading(true);
       setErrorMessage(null);
 
-      let response;
+      const response = await postPlaceUserBet({
+        challenge_id: challenge.id,
+        user_id: userId,
+        emotion
+      });
 
-      try {
-        response = await postPlaceUserBet({
-          challenge_id: challenge.id,
-          user_id: userId,
-          emotion
-        });
-      } catch (apiErr) {
-        console.log("postPlaceUserBet API error caught:", apiErr);
-        throw apiErr; // ensures outer catch handles it cleanly
-      }
-
-      console.log("Bet placed:", response);
-
-      if (isYouTube) {
-        setLoading(false);
-        navigation.navigate("ChallengeCountdown", { challenge });
-        return;
-      }
+      console.log("Prediction submitted:", response);
 
       const listResults = await getSubchallengeList(challenge.id);
 
       if (listResults?.length > 0) {
-        // listResults.forEach((item, i) => {
-        //   console.log(`--- Subchallenge ${i} ---`);
-        //   console.log("id:", item.id);
-        //   console.log("question:", item.question_text);
-        //   console.log("sequence:", item.sequence);
-
-        //   item.options.forEach((opt, j) => {
-        //     console.log(`Option ${j}:`, opt.metadata?.text);
-        //   });
-        // });
-        navigation.navigate("Subchallenge", {
-          challenge,
-          subchallenges: listResults
-        });
-      } else {
-        setSubmitted(true);
+        setPendingSubchallenges(listResults);
+        setShowSupplementalPrompt(true);
+        return;
       }
 
+      navigation.navigate("ChallengeCountdown", { challenge });
     } catch (err: any) {
-      console.log("❌ Bet failed:", err);
+      console.log("❌ Prediction failed:", err);
 
-      // ⭐ Haptic feedback on error
-      console.log("HAPTIC SHOULD FIRE NOW");
+      const msg = err?.message || "Unable to submit prediction.";
+
+      if (
+        typeof msg === 'string' &&
+        msg.toLowerCase().includes('only place one prediction')
+      ) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        setShowDuplicatePrompt(true);
+        return;
+      }
+
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-
-      // ⭐ Prevent Expo red screen
-      setErrorMessage(err?.message || "Unable to place bet.");
+      setErrorMessage(msg);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleGoToSupplementals = () => {
+    setShowSupplementalPrompt(false);
+    navigation.navigate("Subchallenge", {
+      challenge,
+      subchallenges: pendingSubchallenges
+    });
+  };
+
+  const handleSkipSupplementals = () => {
+    setShowSupplementalPrompt(false);
+    navigation.navigate("ChallengeCountdown", { challenge });
+  };
+
+  const handleDuplicateOkay = () => {
+    setShowDuplicatePrompt(false);
+    navigation.navigate("ChallengeCountdown", { challenge });
+  };
+
   useEffect(() => {
     if (errorMessage) {
-      // Fade IN error, fade OUT timer
       Animated.parallel([
         Animated.timing(errorOpacity, {
           toValue: 1,
@@ -131,7 +130,6 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
         })
       ]).start();
     } else {
-      // Fade OUT error, fade IN timer
       Animated.parallel([
         Animated.timing(errorOpacity, {
           toValue: 0,
@@ -145,9 +143,9 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
         })
       ]).start();
     }
-  }, [errorMessage]);
+  }, [errorMessage, errorOpacity, timerOpacity]);
 
- useEffect(() => {
+  useEffect(() => {
     if (errorMessage) {
       const timer = setTimeout(() => setErrorMessage(null), 8000);
       return () => clearTimeout(timer);
@@ -157,47 +155,45 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   const isDisabled = !emotion || loading;
 
   return (
-  <View style={{ flex: 1, backgroundColor: 'black' }}>
-    <ImageBackground
-      source={require('../../assets/images/background.png')}
-      style={{ flex: 1, marginBottom: 42 }}
-      resizeMode="cover"
-    >
-      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-
-        {!submitted && (
+    <View style={{ flex: 1, backgroundColor: 'black' }}>
+      <ImageBackground
+        source={require('../../assets/images/background.png')}
+        style={{ flex: 1, marginBottom: 42 }}
+        resizeMode="cover"
+      >
+        <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
           <Text style={styles.topLabel}>What's your reaction?</Text>
-        )}
+          <Text style={styles.subLabel}>Choose the emotion that best matches this challenge</Text>
 
-        {!submitted ? (
           <View style={styles.content}>
+            <View style={styles.mainCard}>
+              <Text
+                style={[
+                  styles.valueMeasure,
+                  { fontSize: topicFontSize }
+                ]}
+                onLayout={(event) => {
+                  const h = event.nativeEvent.layout.height;
 
-            {/* Invisible measurement text */}
-            <Text
-              style={[
-                styles.valueMeasure,
-                { fontSize: topicFontSize }
-              ]}
-              onLayout={(event) => {
-                const h = event.nativeEvent.layout.height;
-
-                if (h > 130 && topicFontSize > 14) {
-                  setTopicFontSize(topicFontSize - 1);
-                }
-              }}
-            >
-              {challenge.topic}
-            </Text>
-
-            {/* Visible fixed-height text */}
-            <AutoShrinkBlock 
-              height={110} 
-              fontWeight="500"
+                  if (h > 130 && topicFontSize > 14) {
+                    setTopicFontSize(topicFontSize - 1);
+                  }
+                }}
               >
-              {challenge.topic}
-            </AutoShrinkBlock>
+                {challenge.topic}
+              </Text>
 
-            <EmotionSelector selected={emotion} onSelect={setEmotion} />
+              <AutoShrinkBlock
+                height={110}
+                fontWeight="500"
+              >
+                {challenge.topic}
+              </AutoShrinkBlock>
+
+              <View style={styles.selectorWrap}>
+                <EmotionSelector selected={emotion} onSelect={setEmotion} />
+              </View>
+            </View>
 
             <TouchableOpacity
               onPress={handleSubmit}
@@ -213,55 +209,80 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
               />
             </TouchableOpacity>
           </View>
-          ) : (
-          
-          <View style={[styles.gradient, { backgroundColor: 'black' }]}>
-            <View style={styles.content}>
-              <Image
-                source={require('../../assets/images/victory.png')}
-                style={styles.submitGraphic}
-              />
-              <Image
-                source={require('../../assets/buttons/victory.png')}
-                style={styles.submitButton}
-              />
+
+          <View style={{ height: 44, justifyContent: "center", alignItems: "center" }}>
+            <Animated.View
+              style={{
+                position: "absolute",
+                opacity: errorOpacity,
+                width: "100%",
+                alignItems: "center",
+              }}
+            >
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            </Animated.View>
+
+            <Animated.View
+              style={{
+                position: "absolute",
+                opacity: timerOpacity,
+                width: "100%",
+                alignItems: "center",
+              }}
+            >
+              <Text style={styles.timer}>{bottomStatusText}</Text>
+            </Animated.View>
+          </View>
+        </SafeAreaView>
+      </ImageBackground>
+
+      <Modal
+        visible={showSupplementalPrompt}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSupplementalPrompt(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Prediction Submitted</Text>
+            <Text style={styles.modalText}>
+              Your prediction has been submitted. Would you like to go on to see the supplemental challenges?
+            </Text>
+
+            <View style={styles.modalActions}>
+              <Pressable style={styles.modalSecondaryButton} onPress={handleSkipSupplementals}>
+                <Text style={styles.modalSecondaryText}>No</Text>
+              </Pressable>
+
+              <Pressable style={styles.modalPrimaryButton} onPress={handleGoToSupplementals}>
+                <Text style={styles.modalPrimaryText}>Yes</Text>
+              </Pressable>
             </View>
           </View>
-        )}
-
-        {/* Timer */}
-        <View style={{ height: 40, justifyContent: "center", alignItems: "center" }}>
-
-          {/* Error */}
-          <Animated.View
-            style={{
-              position: "absolute",
-              opacity: errorOpacity,
-              width: "100%",
-              alignItems: "center",
-              transform: [{ perspective: 1000 }]   // ⭐ FIX
-            }}
-          >
-            <Text style={styles.errorText}>{errorMessage}</Text>
-          </Animated.View>
-
-          {/* Timer */}
-          <Animated.View
-            style={{
-              position: "absolute",
-              opacity: timerOpacity,
-              width: "100%",
-              alignItems: "center",
-              transform: [{ perspective: 1000 }]   // ⭐ FIX
-            }}
-          >
-            <Text style={styles.timer}>{formattedTime}</Text>
-          </Animated.View>
-
         </View>
+      </Modal>
 
-      </SafeAreaView>
-    </ImageBackground>
+      <Modal
+        visible={showDuplicatePrompt}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDuplicatePrompt(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Prediction Already Submitted</Text>
+            <Text style={styles.modalText}>
+              You are not allowed to place more than one prediction per challenge.
+            </Text>
+
+            <View style={styles.singleActionWrap}>
+              <Pressable style={styles.modalPrimaryButtonFull} onPress={handleDuplicateOkay}>
+                <Text style={styles.modalPrimaryText}>OK</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -271,10 +292,9 @@ const styles = StyleSheet.create({
     flex: 1,
     marginBottom: -37,
   },
-
   topLabel: {
     color: 'white',
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: '700',
     marginTop: 75,
     marginBottom: 5,
@@ -282,17 +302,31 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
-
-  gradient: {
-    flex: 1,
-    padding: 10,
-    marginTop: 10,
+  subLabel: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 15,
+    textAlign: 'center',
+    paddingHorizontal: 28,
+    marginBottom: 12,
   },
-
   content: {
     flex: 1,
+    justifyContent: 'space-between',
   },
-
+  mainCard: {
+    marginTop: 8,
+    marginHorizontal: 14,
+    paddingTop: 18,
+    paddingBottom: 18,
+    paddingHorizontal: 14,
+    borderRadius: 22,
+    backgroundColor: 'rgba(20, 10, 46, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  selectorWrap: {
+    marginTop: 10,
+  },
   valueMeasure: {
     position: 'absolute',
     opacity: 0,
@@ -301,41 +335,104 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 10,
   },
-
   submitWrapper: {
     alignSelf: 'center',
     width: 265,
     height: 54,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 6,
   },
-
   submitButton: {
     width: 280,
     height: 47,
-    marginTop: 122,
+    marginTop: 0,
     resizeMode: 'contain',
   },
-
-  submitGraphic: {
-    width: 324,
-    height: 506,
-    resizeMode: 'contain',
-    alignSelf: 'center',
-  },
-
   errorText: {
     color: '#e26fae',
     fontSize: 18,
     textAlign: 'center',
     fontWeight: '700',
     marginTop: 20,
+    paddingHorizontal: 16,
   },
-
   timer: {
     color: 'yellow',
     fontSize: 22,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: '#1b103f',
+    borderRadius: 20,
+    padding: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  modalText: {
+    color: '#f3eefe',
+    fontSize: 16,
+    lineHeight: 22,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  singleActionWrap: {
+    width: '100%',
+  },
+  modalSecondaryButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#2a2150',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalPrimaryButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#c43dff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalPrimaryButtonFull: {
+    width: '100%',
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#c43dff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalSecondaryText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  modalPrimaryText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

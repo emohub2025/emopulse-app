@@ -6,20 +6,25 @@ import type { RootStackParamList } from '../../navigation/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCycleTimer } from '../../components/CycleTimerContext';
 import activeButton from '../../assets/buttons/active.png';
+import AutoShrinkBlock from '../../components/AutoShrinkBlock';
+import { getFeedList } from '../../api/getFeedList';
+import type { FeedResponse } from '../../navigation/types';
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
   'ChallengeResults'
 >;
 
-/* -------------------------------------------------------
-   ⭐ Main Screen
-------------------------------------------------------- */
 export default function ChallengeResultScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<any>();
   const { challenge } = route.params || {};
-  const { isExpired, formattedTime } = useCycleTimer();
+  const { isExpired, formattedTime, applyCycleFromFeed } = useCycleTimer();
+
+  const visibleTimer =
+    formattedTime && formattedTime.trim().length > 0
+      ? formattedTime
+      : 'Loading countdown…';
 
   if (!challenge) {
     console.error("❌ ChallengeResults missing challenge or challenge.id:", challenge);
@@ -31,14 +36,37 @@ export default function ChallengeResultScreen() {
   }
 
   useEffect(() => {
+    let isActive = true;
+
+    async function refreshCycle() {
+      try {
+        const feed: FeedResponse = await getFeedList();
+        if (isActive) {
+          applyCycleFromFeed(feed.cycle);
+        }
+      } catch (err) {
+        console.log('❌ Failed to refresh cycle on countdown screen:', err);
+      }
+    }
+
+    refreshCycle();
+
+    return () => {
+      isActive = false;
+    };
+  }, [applyCycleFromFeed]);
+
+  useEffect(() => {
     if (isExpired) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         navigation.navigate("ChallengeResults", {
           challengeId: challenge.id,
         });
       }, 2000);
+
+      return () => clearTimeout(timer);
     }
-  }, [isExpired]);
+  }, [isExpired, navigation, challenge.id]);
 
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => true);
@@ -51,20 +79,28 @@ export default function ChallengeResultScreen() {
         source={require('../../assets/images/background.png')}
         style={{ flex: 1 }}
         resizeMode="cover"
-        >
+      >
         <SafeAreaView style={styles.safe}>
+          <View style={{ flex: 1, justifyContent: 'space-between' }}>
+            <View style={styles.centerWrap}>
+              <View style={styles.infoCard}>
+                <Text style={styles.cardTitle}>Prediction Submitted</Text>
 
-            {/* ⭐ Full-screen vertical layout */}
-            <View style={{ flex: 1, justifyContent: 'space-between' }}>
+                <AutoShrinkBlock
+                  height={88}
+                  fontWeight="700"
+                  textAlign="center"
+                  fontStyle="italic"
+                >
+                  {challenge.topic}
+                </AutoShrinkBlock>
 
-            {/* ⭐ Center message */}
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <Text style={styles.waitingText}>
-                Waiting for challenge results…
+                  Waiting for challenge results…
                 </Text>
+              </View>
             </View>
 
-            {/* ⭐ Bottom area: button + timer */}
             <View style={{ alignItems: 'center' }}>
               <Pressable
                 onPress={() =>
@@ -73,37 +109,45 @@ export default function ChallengeResultScreen() {
                     routes: [{ name: "CategoryList" }],
                   })
                 }
-                >
+              >
                 <Image source={activeButton} style={styles.buttonImage} />
               </Pressable>
 
-              <Text style={styles.timer}>{formattedTime}</Text>
+              <Text style={styles.timer}>{visibleTimer}</Text>
             </View>
-
-            </View>
-
+          </View>
         </SafeAreaView>
       </ImageBackground>
     </View>
   );
 }
 
-/* -------------------------------------------------------
-   ⭐ Styles
-------------------------------------------------------- */
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
     paddingTop: 50,
     paddingHorizontal: 20,
   },
-  title: {
+  centerWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  infoCard: {
+    width: '100%',
+    backgroundColor: 'rgba(22, 10, 52, 0.82)',
+    borderRadius: 22,
+    paddingVertical: 22,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  cardTitle: {
     color: 'white',
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 25,
-    marginBottom: 0,
+    marginBottom: 8,
   },
   waitingText: {
     color: 'white',
@@ -111,6 +155,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     paddingHorizontal: 20,
+    marginTop: 10,
   },
   buttonImage: {
     width: 285,
@@ -126,7 +171,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 4,
   },
-
   loadingText: {
     color: 'white',
     fontSize: 22,

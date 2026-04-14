@@ -12,7 +12,6 @@ import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSou
 import { postPlaceUserSubBet } from '../../api/postPlaceUserBet';
 import { useCurrentUserId } from "../../state/useUserSelectors";
 
-// Route params type
 type SubchallengeRouteProp = RouteProp<
   RootStackParamList,
   'Subchallenge'
@@ -26,11 +25,10 @@ type SubchallengeNavProp = NativeStackNavigationProp<
 export default function SubchallengeScreen({
   route,
   navigation,
-  }: {
-    route: SubchallengeRouteProp;
-    navigation: SubchallengeNavProp;
-  }) {
-
+}: {
+  route: SubchallengeRouteProp;
+  navigation: SubchallengeNavProp;
+}) {
   const { challenge, subchallenges } = route.params;
   const [loading, setLoading] = useState(false);
   const { formattedTime } = useCycleTimer();
@@ -42,34 +40,18 @@ export default function SubchallengeScreen({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const errorOpacity = useRef(new Animated.Value(0)).current;
   const timerOpacity = useRef(new Animated.Value(1)).current;
-  const [lastTap, setLastTap] = useState<number | null>(null);
-
-  const handleDoubleTapSubmit = () => {
-    const now = Date.now();
-
-    if (lastTap && now - lastTap < 800) {
-      handleAnswer(); // ⬅️ This is where navigation happens
-      setLastTap(null);
-      return;
-    }
-
-    setLastTap(now);
-    setTimeout(() => setLastTap(null), 900);
-  };
 
   const handleSkip = () => {
-    // If there are more questions, move forward
     if (index + 1 < subchallenges.length) {
       setIndex(index + 1);
-      setSelected(null); // reset selection for next question
+      setSelected(null);
     } else {
-      // If this was the last question, go to results
       navigation.navigate("ChallengeCountdown", { challenge });
     }
   };
 
   const handleAnswer = async () => {
-    if (!selected) return;
+    if (!selected || loading) return;
     if (!userId) {
       setErrorMessage("Missing user ID");
       return;
@@ -93,12 +75,11 @@ export default function SubchallengeScreen({
           amount: 1
         });
       } catch (err) {
-        // This catches the first throw
         console.log("API threw:", err);
-        throw err; // ensures outer catch handles it cleanly
+        throw err;
       }
 
-      console.log("Subchallenge bet placed:", response);
+      console.log("Subchallenge prediction submitted:", response);
 
       if (index + 1 < subchallenges.length) {
         setIndex(index + 1);
@@ -116,7 +97,7 @@ export default function SubchallengeScreen({
           ? err
           : typeof err?.message === "string"
           ? err.message
-          : "Unable to place subbet.";
+          : "Unable to submit prediction.";
 
       setErrorMessage(msg);
     } finally {
@@ -131,14 +112,12 @@ export default function SubchallengeScreen({
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
       if (index === 0) {
-        // On first question → do nothing
-        return true; // block default behavior
+        return true;
       }
 
-      // On 2nd or 3rd question → go back one question
       setIndex(prev => prev - 1);
-      setSelected(null); // optional: reset selection
-      return true; // handled
+      setSelected(null);
+      return true;
     });
 
     return () => sub.remove();
@@ -146,7 +125,6 @@ export default function SubchallengeScreen({
 
   useEffect(() => {
     if (errorMessage) {
-      // Fade IN error, fade OUT timer
       Animated.parallel([
         Animated.timing(errorOpacity, {
           toValue: 1,
@@ -160,7 +138,6 @@ export default function SubchallengeScreen({
         })
       ]).start();
     } else {
-      // Fade OUT error, fade IN timer
       Animated.parallel([
         Animated.timing(errorOpacity, {
           toValue: 0,
@@ -174,14 +151,13 @@ export default function SubchallengeScreen({
         })
       ]).start();
     }
-  }, [errorMessage]);
+  }, [errorMessage, errorOpacity, timerOpacity]);
 
-  // ⭐ Auto-select first option whenever the question changes
   useEffect(() => {
     if (current?.options?.length > 0) {
       setSelected(current.options[0].id);
     }
-  }, [index]);
+  }, [index, current]);
 
   useEffect(() => {
     if (errorMessage) {
@@ -204,58 +180,63 @@ export default function SubchallengeScreen({
             )}
           </View>
 
-          <AutoShrinkBlock height={100} textAlign="center" fontStyle="italic" marginBottom={0}>
-            {String(current.question_text ?? "")}
-          </AutoShrinkBlock>
-
-          <View style={styles.optionsContainer}>
-            {current.options.map((opt) => (
-              <TouchableOpacity
-                key={opt.id}
-                onPress={() => setSelected(opt.id)}
-                style={[
-                  styles.optionWrapper,
-                  selected === opt.id && styles.optionSelected
-                ]}
-              >
-                <Text style={styles.optionText}>
-                  {typeof opt.metadata?.text === "string" ? opt.metadata.text : ""}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.questionCard}>
+            <AutoShrinkBlock height={100} textAlign="center" fontStyle="italic" marginBottom={0}>
+              {String(current.question_text ?? "")}
+            </AutoShrinkBlock>
           </View>
 
-          {/* BUTTON ROW */}
-          <View style={styles.buttonRow}>
+          <View style={styles.optionsContainer}>
+            {current.options.map((opt, idx) => {
+              const isSelected = selected === opt.id;
+              const optionText =
+                typeof opt.metadata?.text === "string" ? opt.metadata.text : "";
 
-            {/* SKIP BUTTON */}
+              return (
+                <TouchableOpacity
+                  key={opt.id}
+                  onPress={() => setSelected(opt.id)}
+                  activeOpacity={0.9}
+                  style={[
+                    styles.optionWrapper,
+                    isSelected && styles.optionSelected
+                  ]}
+                >
+                  <View style={[styles.optionLetterBubble, isSelected && styles.optionLetterBubbleSelected]}>
+                    <Text style={styles.optionLetterText}>
+                      {String.fromCharCode(65 + idx)}
+                    </Text>
+                  </View>
+
+                  <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+                    {optionText}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <View style={styles.buttonRow}>
             <Pressable style={styles.skipWrapper} onPress={handleSkip}>
               <Image source={skipButton} style={styles.skipImage} />
             </Pressable>
 
-            {/* ANSWER BUTTON */}
             <Pressable
-              onPress={() => {
-                if (!selected) return;
-                handleDoubleTapSubmit();
-              }}
+              onPress={handleAnswer}
+              disabled={!selected || loading}
+              style={loading ? { opacity: 0.7 } : undefined}
             >
               <Image source={answerButton} style={styles.answerImage} />
             </Pressable>
-
           </View>
 
-          {/* Timer */}
           <View style={{ height: 40, justifyContent: "center", alignItems: "center" }}>
-
-            {/* Error */}
             <Animated.View
               style={{
                 position: "absolute",
                 opacity: errorOpacity,
                 width: "100%",
                 alignItems: "center",
-                transform: [{ perspective: 1000 }]
               }}
             >
               <Text style={styles.errorText}>
@@ -263,29 +244,23 @@ export default function SubchallengeScreen({
               </Text>
             </Animated.View>
 
-            {/* Timer */}
             <Animated.View
               style={{
                 position: "absolute",
                 opacity: timerOpacity,
                 width: "100%",
                 alignItems: "center",
-                transform: [{ perspective: 1000 }]
               }}
             >
               <Text style={styles.timer}>
                 {typeof formattedTime === "string" ? formattedTime : ""}
               </Text>
             </Animated.View>
-
           </View>
-
         </View>
       </ImageBackground>
-
     </View>
   );
-
 }
 
 const styles = StyleSheet.create({
@@ -298,13 +273,26 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 176,
     marginTop: 70,
-    borderRadius: 8,
+    borderRadius: 14,
     overflow: 'hidden',
+    backgroundColor: 'rgba(0,0,0,0.22)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
   },
   image: {
     width: '100%',
     height: '100%',
     resizeMode: 'contain',
+  },
+  questionCard: {
+    marginTop: 10,
+    marginBottom: 12,
+    borderRadius: 18,
+    backgroundColor: 'rgba(18, 10, 42, 0.78)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    paddingHorizontal: 10,
+    paddingTop: 10,
   },
   optionsContainer: {
     gap: 0,
@@ -312,42 +300,58 @@ const styles = StyleSheet.create({
     maxHeight: 280,
   },
   optionWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 0,
-    paddingLeft: 16,
-    paddingRight: 7,
-    borderRadius: 10,
-    backgroundColor: 'black',
+    paddingLeft: 14,
+    paddingRight: 12,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0,0,0,0.55)',
     marginBottom: 9,
     borderWidth: 2,
     minHeight: 72,
     maxHeight: 72,
-  justifyContent: 'center',
-    borderColor: 'transparent',
+    justifyContent: 'center',
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   optionSelected: {
-    borderColor: '#b270cd',
-    borderWidth: 2.5,
+    borderColor: '#c43dff',
+    backgroundColor: 'rgba(133, 47, 184, 0.28)',
+    shadowColor: '#c43dff',
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  optionLetterBubble: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  optionLetterBubbleSelected: {
+    backgroundColor: '#c43dff',
+  },
+  optionLetterText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '700',
   },
   optionText: {
-    marginTop: -4,
+    flex: 1,
     color: 'white',
     fontSize: 18,
     fontWeight: '600',
+  },
+  optionTextSelected: {
+    color: '#ffffff',
   },
   answerImage: {
     width: 210,
     height: 48,
     marginTop: 0,
-  },
-  buttonRowOuter: {
-    width: '100%',
-    alignItems: 'center', // centers the inner row
-    marginTop: 50,
-  },
-  buttonRowInner: {
-    flexDirection: 'row',
-    width: 380, // 100 + 280 (skip + answer)
-    alignItems: 'center',
   },
   buttonRow: {
     flexDirection: 'row',
@@ -361,8 +365,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   skipImage: {
-    width: 100,   // 1/4 of your 280px answer button
-    height: 48,  // same height for alignment
+    width: 100,
+    height: 48,
   },
   errorText: {
     color: '#e26fae',
