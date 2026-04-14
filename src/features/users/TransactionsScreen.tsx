@@ -1,11 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, SectionList, StyleSheet, LayoutAnimation, ImageBackground } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  SectionList,
+  StyleSheet,
+  LayoutAnimation,
+  ImageBackground,
+} from "react-native";
 import { useRoute } from "@react-navigation/native";
-import ButtonPanel from '../../components/ButtonPanel';
+import ButtonPanel from "../../components/ButtonPanel";
 import { apiGet } from "../../api/engineClient";
 import payoutIcon from "../../assets/images/payout.png";
 import payoutSubIcon from "../../assets/images/payout-sub.png";
 import betIcon from "../../assets/images/bet.png";
+import { useCurrentUserId } from "../../state/useUserSelectors";
 
 type Transaction = {
   id: string;
@@ -80,17 +89,23 @@ function groupTransactionsByDay(transactions: Transaction[]) {
 
 export default function TransactionsScreen() {
   const route = useRoute();
+  const userId = useCurrentUserId();
+
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [grouped, setGrouped] = useState<any[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [userId, setUserId] = React.useState<string | null>(null);
 
   // -----------------------------
   // Initial load
   // -----------------------------
   async function loadInitial() {
+    if (!userId) {
+      setInitialLoading(false);
+      return;
+    }
+
     try {
       setInitialLoading(true);
 
@@ -116,7 +131,7 @@ export default function TransactionsScreen() {
   // Load more (pagination)
   // -----------------------------
   async function loadMore() {
-    if (!nextCursor || loadingMore) return;
+    if (!userId || !nextCursor || loadingMore) return;
 
     setLoadingMore(true);
 
@@ -124,9 +139,7 @@ export default function TransactionsScreen() {
       const data = await apiGet<{
         transactions: Transaction[];
         next_cursor: string | null;
-      }>(
-        `wallet/transactions/${userId}?cursor=${nextCursor}&limit=50`
-      );
+      }>(`wallet/transactions/${userId}?cursor=${nextCursor}&limit=50`);
 
       const merged = [...transactions, ...data.transactions];
 
@@ -155,9 +168,6 @@ export default function TransactionsScreen() {
       >
         <Text style={styles.topLabel}>Transaction History</Text>
 
-        {/* -----------------------------
-            EMPTY STATE (no black panel)
-        ------------------------------ */}
         {!initialLoading && transactions.length === 0 && (
           <View
             style={{
@@ -191,9 +201,6 @@ export default function TransactionsScreen() {
           </View>
         )}
 
-        {/* -----------------------------
-            TRANSACTION LIST (with panel)
-        ------------------------------ */}
         {transactions.length > 0 && (
           <View style={styles.listContainer}>
             <SectionList
