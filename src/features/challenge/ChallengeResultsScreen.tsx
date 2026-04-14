@@ -69,7 +69,7 @@ function SummaryCard({
 
         <View style={styles.summaryCategory}>
           <Image
-            source={categoryIcons[categoryKey]}
+            source={categoryIcons[categoryKey] ?? null}
             style={styles.icon}
           />
           <Text style={styles.category}>{category}</Text>
@@ -158,7 +158,7 @@ export default function ChallengeResultScreen() {
   const userId = useCurrentUserId();
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<ChallengeResult | null>(null);
-  const { isExpired, formattedTime } = useCycleTimer();
+  const { formattedTime } = useCycleTimer();
   const fetchedRef = useRef(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -198,15 +198,9 @@ export default function ChallengeResultScreen() {
   };
 
   useEffect(() => {
-    if (fromHistory) {
-      fetchResults();
-      return;
-    }
-
-    if (isExpired) {
-      fetchResults();
-    }
-  }, [fromHistory, isExpired, challenge?.id]);
+    // Always fetch as soon as we have a valid challenge ID.
+    fetchResults();
+  }, [effectiveId, userId]);
 
   useEffect(() => {
     if (fromHistory) return;
@@ -289,10 +283,16 @@ export default function ChallengeResultScreen() {
                     delta={sub.delta}
                   />
                 ))}
+
+              {!loading && !results && (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>Results are not available yet.</Text>
+                </View>
+              )}
             </ScrollView>
           </View>
 
-          {!loading && !fromHistory && !isExpired && (
+          {!loading && !fromHistory && (
             <Text style={styles.timer}>{bottomStatusText}</Text>
           )}
 
@@ -438,5 +438,14 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 22,
     fontWeight: '600',
+  },
+  emptyState: {
+    paddingVertical: 30,
+    alignItems: 'center',
+  },
+  emptyStateText: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 18,
+    textAlign: 'center',
   },
 });
