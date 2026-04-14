@@ -40,15 +40,9 @@ interface ResultCardProps {
 
 const format = (n: number) => Number(n.toFixed(2));
 
-/* -------------------------------------------------------
-   ⭐ SummaryCard Component
-------------------------------------------------------- */
 interface SummaryCardProps {
   topic: string;
   category: string;
-  //totalBets: number;
-  //wins: number;
-  //losses: number;
   totalDelta: number;
   totalPayout: number;
 }
@@ -56,13 +50,9 @@ interface SummaryCardProps {
 function SummaryCard({
   topic,
   category,
-  //totalBets,
-  //wins,
-  //losses,
   totalDelta,
   totalPayout
 }: SummaryCardProps) {
-
   const categoryKey = category ?? "politics";
 
   return (
@@ -70,28 +60,24 @@ function SummaryCard({
       colors={['#ff00cc', '#8a2be2', '#4b0082']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
-      style={styles.cardGradient}
+      style={[styles.cardGradient, styles.summaryGradient]}
     >
       <View style={styles.cardInner}>
-        {/* <Text style={styles.summaryTitle}>
-          Summary ({wins}/{totalBets} won)
-        </Text> */}
-        { <Text style={styles.summaryTitle}>
-          Challenge Summary
-        </Text> }
+        <View style={styles.summaryHeaderPill}>
+          <Text style={styles.summaryHeaderPillText}>Challenge Summary</Text>
+        </View>
 
         <View style={styles.summaryCategory}>
           <Image
-            source={categoryIcons[categoryKey]}
+            source={categoryIcons[categoryKey] ?? null}
             style={styles.icon}
           />
           <Text style={styles.category}>{category}</Text>
         </View>
 
-        {/* Topic */}
         <View style={{ paddingHorizontal: 0 }}>
           <AutoShrinkBlock
-            key={topic}   // ← forces full remount when topic changes
+            key={topic}
             height={100}
             fontWeight="700"
             minFontSize={12}
@@ -122,9 +108,6 @@ function SummaryCard({
   );
 }
 
-/* -------------------------------------------------------
-   ⭐ ResultCard Component
-------------------------------------------------------- */
 function ResultCard(props: ResultCardProps) {
   const image = props.skipped
     ? null
@@ -167,9 +150,6 @@ function ResultCard(props: ResultCardProps) {
   );
 }
 
-/* -------------------------------------------------------
-   ⭐ Main Screen
-------------------------------------------------------- */
 export default function ChallengeResultScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<any>();
@@ -178,26 +158,29 @@ export default function ChallengeResultScreen() {
   const userId = useCurrentUserId();
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<ChallengeResult | null>(null);
-  const { isExpired, formattedTime } = useCycleTimer();
+  const { formattedTime } = useCycleTimer();
   const fetchedRef = useRef(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const bottomStatusText =
+    formattedTime?.toLowerCase?.() === 'expired' ? 'Expired Challenges' : formattedTime;
 
   if (!effectiveId) {
     console.error("❌ ChallengeResults missing challenge or challenge.id:", challenge);
     return (
-      <SafeAreaView style={dynamicStyles(fromHistory).safe}>
+      <SafeAreaView style={dynamicStyles(!!fromHistory).safe}>
         <Text style={styles.loadingText}>Missing challenge data</Text>
       </SafeAreaView>
     );
   }
 
-   useEffect(() => {
-     Animated.timing(fadeAnim, {
-       toValue: loading ? 1 : 0,
-       duration: 250,
-       useNativeDriver: true,
-     }).start();
-   }, [loading]);
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: loading ? 1 : 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [loading, fadeAnim]);
 
   const fetchResults = async () => {
     if (fetchedRef.current) return;
@@ -215,20 +198,9 @@ export default function ChallengeResultScreen() {
   };
 
   useEffect(() => {
-    //const DELAY_MS = 0;
-
-    // ⭐ If opened from history → fetch immediately
-    if (fromHistory) {
-      fetchResults();
-      return;
-    }
-
-    // ⭐ Otherwise follow the active challenge timing logic
-    if (isExpired) {
-      //setTimeout(fetchResults, DELAY_MS);
-      fetchResults();
-    }
-  }, [fromHistory, isExpired, challenge?.id]);
+    // Always fetch as soon as we have a valid challenge ID.
+    fetchResults();
+  }, [effectiveId, userId]);
 
   useEffect(() => {
     if (fromHistory) return;
@@ -238,7 +210,7 @@ export default function ChallengeResultScreen() {
         index: 0,
         routes: [{ name: "CategoryList" }],
       });
-      return true; // prevent default back behavior
+      return true;
     });
 
     return () => sub.remove();
@@ -251,24 +223,17 @@ export default function ChallengeResultScreen() {
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-        <SafeAreaView 
-          style={dynamicStyles(fromHistory).safe}>
-
-          {/* ⭐ Scrollable results area */}
-          <View style={{backgroundColor: '#1E1E1E', paddingTop: 15, paddingLeft: 15, paddingRight: 15, paddingBottom: fromHistory ? 15 : 0, borderRadius: 12,  marginTop: 20, overflow: 'hidden'}}>
+        <SafeAreaView style={dynamicStyles(!!fromHistory).safe}>
+          <View style={styles.resultsShell}>
             <ScrollView
               style={{ maxHeight: fromHistory ? '105%' : '96%' }}
+              contentContainerStyle={styles.resultsScrollContent}
               showsVerticalScrollIndicator={false}
             >
-
-              {/* ⭐ Summary Card (only if >1 bet) */}
               {results && (() => {
                 const main = results.user_main;
                 const subs = results.subchallenge_results || [];
-
                 const totalBets = 1 + subs.length;
-                // const wins = (main?.won ? 1 : 0) + subs.filter(s => s.won).length;
-                // const losses = totalBets - wins;
 
                 const totalDelta =
                   (main?.delta || 0) +
@@ -284,9 +249,6 @@ export default function ChallengeResultScreen() {
                       <SummaryCard
                         topic={results.challenge.topic}
                         category={results.challenge.category}
-                        // totalBets={totalBets}
-                        // wins={wins}
-                        // losses={losses}
                         totalDelta={totalDelta}
                         totalPayout={totalPayout}
                       />
@@ -295,7 +257,6 @@ export default function ChallengeResultScreen() {
                 );
               })()}
 
-              {/* ⭐ Main Challenge Card */}
               {results?.user_main && !results.user_main.skipped && (
                 <ResultCard
                   title="Main Challenge"
@@ -308,26 +269,31 @@ export default function ChallengeResultScreen() {
                 />
               )}
 
-              {/* ⭐ Subchallenge Cards */}
               {results?.subchallenge_results
                 ?.filter(sub => !sub.skipped && sub.user_option_label)
                 .map(sub => (
-                <ResultCard
-                  key={sub.subchallenge_id}
-                  title={sub.question_text}
-                  won={sub.won}
-                  skipped={sub.skipped}
-                  userChoice={sub.user_option_label}
-                  winningChoice={sub.winning_option_label}
-                  payout={sub.payout}
-                  delta={sub.delta}
-                />
-              ))}
+                  <ResultCard
+                    key={sub.subchallenge_id}
+                    title={sub.question_text}
+                    won={sub.won}
+                    skipped={sub.skipped}
+                    userChoice={sub.user_option_label}
+                    winningChoice={sub.winning_option_label}
+                    payout={sub.payout}
+                    delta={sub.delta}
+                  />
+                ))}
+
+              {!loading && !results && (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>Results are not available yet.</Text>
+                </View>
+              )}
             </ScrollView>
           </View>
 
-          {!loading && !fromHistory && !isExpired && (
-            <Text style={styles.timer}>{formattedTime}</Text>
+          {!loading && !fromHistory && (
+            <Text style={styles.timer}>{bottomStatusText}</Text>
           )}
 
           <Animated.View
@@ -336,7 +302,6 @@ export default function ChallengeResultScreen() {
           >
             <Text style={styles.loadingText}>Loading challenge results…</Text>
           </Animated.View>
-
         </SafeAreaView>
       </ImageBackground>
 
@@ -347,9 +312,6 @@ export default function ChallengeResultScreen() {
   );
 }
 
-/* -------------------------------------------------------
-   ⭐ Styles
-------------------------------------------------------- */
 export const dynamicStyles = (fromHistory: boolean) => ({
   safe: {
     flex: 1,
@@ -361,25 +323,39 @@ export const dynamicStyles = (fromHistory: boolean) => ({
 });
 
 const styles = StyleSheet.create({
-  title: {
+  resultsShell: {
+    backgroundColor: 'rgba(30,30,30,0.94)',
+    paddingTop: 15,
+    paddingLeft: 15,
+    paddingRight: 15,
+    paddingBottom: 8,
+    borderRadius: 18,
+    marginTop: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  resultsScrollContent: {
+    paddingBottom: 10,
+  },
+  summaryGradient: {
+    marginBottom: 24,
+  },
+  summaryHeaderPill: {
+    alignSelf: 'center',
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  summaryHeaderPillText: {
     color: 'white',
-    fontSize: 28,
+    fontSize: 16,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 25,
-    marginBottom: 0,
   },
-
-  /* ⭐ Summary styles */
-  summaryTitle: {
-    color: 'white',
-    fontSize: 26,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 6,
-  },
-
   summaryCategory: {
     flexDirection: "row",
     alignItems: "center",
@@ -387,7 +363,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
     marginBottom: 2,
   },
-
   category: {
     color: "rgba(255,255,255,0.9)",
     fontSize: 22,
@@ -400,15 +375,13 @@ const styles = StyleSheet.create({
     marginRight: 6,
     resizeMode: "contain",
   },
-
-  /* ⭐ Card styles */
   cardImage: {
     width: 220,
     height: 99,
     resizeMode: 'cover',
     alignSelf: 'center',
-    marginTop: 15,
-    marginBottom: 10,
+    marginTop: 18,
+    marginBottom: 12,
   },
   cardTitle: {
     color: 'white',
@@ -443,21 +416,13 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#ed84df',
   },
-  // buttonImage: {
-  //   width: 280,
-  //   height: 47,
-  //   resizeMode: 'contain',
-  //   alignSelf: 'center',
-  //   marginTop: 10,
-  // },
   timer: {
     color: 'yellow',
     fontSize: 22,
     fontWeight: '600',
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: 8,
   },
-
   loadingOverlay: {
     position: 'absolute',
     top: 0,
@@ -473,5 +438,14 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 22,
     fontWeight: '600',
+  },
+  emptyState: {
+    paddingVertical: 30,
+    alignItems: 'center',
+  },
+  emptyStateText: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 18,
+    textAlign: 'center',
   },
 });

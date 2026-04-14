@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Image, ImageBackground, View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
@@ -10,7 +10,7 @@ import { useFeed } from "../../context/FeedContext";
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
 import eventBus from '../../components/EventBus';
 import { usePlayedChallenges } from '../../hooks/usePlayedChallenges';
-import { useLiveSnapshot, normalizeEmotions } from "../../api/getLiveSnapshot";
+import { useLiveSnapshot } from "../../api/getLiveSnapshot";
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -41,6 +41,11 @@ export default function CategoryChallengesScreen() {
   const isFocused = useIsFocused();
   const { feed } = useFeed();
   const [error] = useState<string | null>(null);
+
+  useMemo(
+    () => (formattedTime?.toLowerCase?.() === 'expired' ? 'Expired Challenges' : formattedTime),
+    [formattedTime]
+  );
 
   const playedIds = usePlayedChallenges();
   const { snapshot } = useLiveSnapshot();
@@ -170,188 +175,206 @@ export default function CategoryChallengesScreen() {
         <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
           <Text style={styles.topLabel}>{category}</Text>
 
-          <View style={styles.content}>
-            {listData.length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No Available Challenges</Text>
-              </View>
-            ) : (
-              <FlatList
-                data={listData}
-                keyExtractor={(_, index) => index.toString()}
-                renderItem={({ item }) => {
-                  if (item.type === "header") {
-                    return <Text style={styles.sectionHeader}>{item.title}</Text>;
-                  }
+        <View style={styles.content}>
+          {active.length === 0 && recent.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No Available Challenges</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={[...active, ...recent]}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item, index }) => {
+                const isActiveSectionStart = index === 0 && active.length > 0;
+                const isEmptyActiveSectionStart = index === 0 && active.length === 0;
+                const isRecentSectionStart = index === active.length && recent.length > 0;
 
-                  const ch = item.data;
-                  const played = playedIds.includes(ch.id);
-                  const previous = item.section === "previous";
+                return (
+                  <>
+                    {/* ⭐ Active Section Header */}
+                    {isActiveSectionStart && (
+                      <Text style={styles.sectionHeader}>Active Challenges</Text>
+                    )}
 
-                  return (
+                    {/* ⭐ Empty Active Section */}
+                    {isEmptyActiveSectionStart && (
+                      <>
+                        <Text style={styles.sectionHeader}>Active Challenges</Text>
+                        <Text style={styles.emptyMessage}>No active challenges!</Text>
+                      </>
+                    )}
+
+                    {/* ⭐ Previous Section Header */}
+                    {isRecentSectionStart && (
+                      <Text style={[styles.sectionHeader, { marginTop: 50 }]}>
+                        Previous Challenges
+                      </Text>
+                    )}
+
+                    {/* ⭐ Challenge Card */}
                     <Pressable
                       style={styles.card}
-                      onPress={() => {
-                        if (played && !previous) {
-                          navigation.navigate("ChallengeCountdown", { challengeId: ch.id });
-                        } else {
-                          navigation.navigate("ChallengeDetail", { challengeId: ch.id });
-                        }
-                      }}
+                      onPress={() =>
+                        navigation.navigate('ChallengeDetail', {
+                          challengeId: item.id,
+                        })
+                      }
                     >
                       <Image
-                        source={getChallengeImageSource(ch)}
+                        source={getChallengeImageSource(item)}
                         style={styles.topicImage}
                         resizeMode="contain"
                       />
-
-                      <Text style={styles.title}>{ch.topic}</Text>
-{/* 
-                      {played && (
-                        <View style={styles.progressRow}>
-                          <Text style={{ fontSize: 26, marginRight: 8 }}>
-                            {EMOTION_EMOJI[ch.leadingEmotion] || "❓"}
+                      <Text style={styles.title}>
+                        {item.topic}
+                        {item.source?.startsWith("YouTube") && (
+                          <Text style={{ color: "lime" }}>
+                            {"\n"} {`(Video: ${item.source.replace("YouTube: ", "")})`}
                           </Text>
+                        )}
+                      </Text>
 
-                          <View style={styles.progressBarBackground}>
-                            <View
-                              style={[
-                                styles.progressBarFill,
-                                {
-                                  width: `${ch.leadingPct}%`,
-                                  backgroundColor: EMOTION_COLORS[ch.leadingEmotion],
-                                },
-                              ]}
-                            />
-                          </View>
-
-                          <Text style={styles.percentText}>{ch.leadingPct}%</Text>
-                        </View>
-                      )} */}
                     </Pressable>
-                  );
-                }}
-              />
-            )}
-          </View>
+                  </>
+                );
+              }}
+            />
+          )}
+        </View>
 
-          <Text style={styles.timer}>{formattedTime}</Text>
-        </SafeAreaView>
-      </ImageBackground>
+        <Text style={styles.timer}>{formattedTime}</Text>
+      </SafeAreaView>
+    </ImageBackground>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#220d58',
-    borderRadius: 12,
-    marginLeft: 22,
-    marginRight: 22,
-    overflow: 'hidden',
-    marginBottom: 16,
+  safe: {
+    flex: 1,
+    marginBottom: -35,
   },
-
-  topicImage: {
-    marginTop: 10,
-    marginBottom: -10,
-    width: '70%',
-    height: 150,
-    alignSelf: 'center',
-  },
-
-  title: {
-    padding: 12,
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#fff',
+  topLabel: {
+    color: 'white',
+    fontSize: 28,
+    fontWeight: '700',
+    marginTop: 65,
+    marginBottom: 6,
+    paddingHorizontal: 20,
     textAlign: 'center',
   },
-
+  subLabel: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 15,
+    textAlign: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 24,
+  },
+  content: {
+    flex: 1,
+  },
+  listContent: {
+    paddingTop: 6,
+    paddingBottom: 10,
+  },
   sectionHeader: {
     color: 'yellow',
     fontSize: 24,
     fontStyle: 'italic',
     fontWeight: '700',
-    marginTop: 20,
+    marginTop: 10,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  card: {
+    backgroundColor: 'rgba(34, 13, 88, 0.92)',
+    borderRadius: 18,
+    marginLeft: 20,
+    marginRight: 20,
+    overflow: 'hidden',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  cardSubmitted: {
+    borderColor: 'rgba(168,255,159,0.45)',
+    backgroundColor: 'rgba(24, 36, 48, 0.92)',
+  },
+  cardPressed: {
+    transform: [{ scale: 0.985 }],
+    opacity: 0.94,
+  },
+  imageShell: {
+    paddingTop: 8,
+    paddingBottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  topicImage: {
+    marginTop: 4,
+    marginBottom: -4,
+    width: '72%',
+    height: 150,
+    alignSelf: 'center',
+  },
+  textBlock: {
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    paddingBottom: 14,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  videoBadge: {
+    alignSelf: 'center',
+    marginTop: 10,
+    backgroundColor: 'rgba(102,255,102,0.14)',
+    borderColor: 'rgba(102,255,102,0.4)',
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  videoBadgeText: {
+    color: '#A8FF9F',
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 10,
     marginBottom: 10,
     textAlign: 'center',
   },
-
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 28,
   },
-
   emptyText: {
     color: 'white',
     fontSize: 20,
-    fontWeight: '600',
-    opacity: 0.9,
-  },
-
-  safe: {
-    flex: 1,
-    marginBottom: -35,
-  },
-
-  topLabel: {
-    color: 'white',
-    fontSize: 26,
     fontWeight: '700',
-    marginTop: 65,
-    marginBottom: 5,
-    paddingHorizontal: 20,
     textAlign: 'center',
   },
-
-  content: {
-    flex: 1,
+  emptyMessage: {
+    color: 'rgba(255,255,255,0.72)',
+    fontSize: 15,
+    textAlign: 'center',
+    marginTop: -2,
+    marginBottom: 2,
   },
-
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  progressRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 20,
-    marginTop: -8,
-    marginBottom: 10,
-  },
-
-  progressBarBackground: {
-    flex: 1,
-    height: 10,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: 6,
-    overflow: "hidden",
-    marginRight: 4,
-  },
-
-  progressBarFill: {
-    height: "100%",
-    borderRadius: 6,
-  },
-
-  percentText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "700",
-    width: 45,
-    textAlign: "right",
-  },
-
   timer: {
     color: 'yellow',
-    fontSize: 22,
-    fontWeight: '600',
+    fontSize: 26,
+    fontWeight: '700',
     textAlign: 'center',
-    marginTop: 4,
-    marginBottom: -10,
+    marginBottom: 38,
   },
 });

@@ -25,15 +25,9 @@ export default function SponsorSubchallengeScreen() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [dontAskAgain, setDontAskAgain] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
-  // ⭐ NEW: store user responses for cooldown + already-answered logic
   const [userResponses, setUserResponses] = useState<UserSubchallengeResponse[]>([]);
-
   const { formattedTime } = useCycleTimer();
 
-  //
-  // Load template
-  //
   useEffect(() => {
     async function load() {
       try {
@@ -48,41 +42,31 @@ export default function SponsorSubchallengeScreen() {
     load();
   }, [challenge.subchallenge_id]);
 
-  //
-  // ⭐ NEW: Load user responses for this template
-  //
   useEffect(() => {
     async function loadResponses() {
-      if (!userId) return; // prevent invalid request
+      if (!userId) return;
       try {
         const res = await getSubchallengeResponses(
           challenge.subchallenge_id!,
           userId
         );
         setUserResponses(res);
-        //console.log("Loaded userResponses:", res);
       } catch (err) {
         console.log("Error loading user responses:", err);
       }
     }
     loadResponses();
-  }, [challenge.subchallenge_id]);
+  }, [challenge.subchallenge_id, userId]);
 
-  //
-  // Preselect first option
-  //
   useEffect(() => {
     if (template && Array.isArray(template.options) && template.options.length > 0) {
       setSelectedOption(template.options[0]);
     }
   }, [template]);
 
-  //
-  // Submit response
-  //
   async function handleSubmit() {
-    if (!selectedOption && !dontAskAgain) return;
-    if (!userId) return; // prevent invalid request
+    if ((!selectedOption && !dontAskAgain) || submitting) return;
+    if (!userId) return;
 
     try {
       setSubmitting(true);
@@ -95,7 +79,6 @@ export default function SponsorSubchallengeScreen() {
         dont_ask_again: dontAskAgain
       });
 
-      // ⭐ NEW: Refresh user responses after submit
       const updated = await getSubchallengeResponses(
         challenge.subchallenge_id!,
         userId
@@ -110,9 +93,6 @@ export default function SponsorSubchallengeScreen() {
     }
   }
 
-  //
-  // UI states
-  //
   if (loading) {
     return (
       <SafeAreaView style={styles.center}>
@@ -129,18 +109,12 @@ export default function SponsorSubchallengeScreen() {
     );
   }
 
-  //
-  // Determine layout mode (3, 4, or 5 options)
-  //
   const optionCount = template.options.length;
   let layoutMode: "three" | "four" | "five" = "three";
 
   if (optionCount === 4) layoutMode = "four";
   if (optionCount === 5) layoutMode = "five";
 
-  //
-  // Main UI
-  //
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <LinearGradient
@@ -149,18 +123,19 @@ export default function SponsorSubchallengeScreen() {
         end={{ x: 0, y: 1 }}
         style={styles.gradient}
       >
-
         <View style={styles.contentArea}>
-          <AutoShrinkBlock
-            maxFontSize={26}
-            minFontSize={18}
-            height={82}
-            minHeight={82}
-            textAlign="center"
-            fontWeight="500"
-          >
-            {template.question_text}
-          </AutoShrinkBlock>
+          <View style={styles.questionCard}>
+            <AutoShrinkBlock
+              maxFontSize={26}
+              minFontSize={18}
+              height={82}
+              minHeight={82}
+              textAlign="center"
+              fontWeight="500"
+            >
+              {template.question_text}
+            </AutoShrinkBlock>
+          </View>
 
           {template.image_url && (
             <Image
@@ -170,7 +145,6 @@ export default function SponsorSubchallengeScreen() {
           )}
 
           <View style={styles.optionsWrapper}>
-
             {template.options.map((opt) => (
               <RadioTile
                 key={opt}
@@ -193,32 +167,26 @@ export default function SponsorSubchallengeScreen() {
                 setSelectedOption(null);
               }}
             />
-
           </View>
         </View>
 
         <View style={styles.bottomBar}>
-          <TouchableOpacity onPress={handleSubmit}>
+          <TouchableOpacity onPress={handleSubmit} disabled={submitting} style={submitting ? { opacity: 0.7 } : undefined}>
             <Image
               source={require('../../assets/buttons/submit.png')}
               style={styles.submitButton}
             />
           </TouchableOpacity>
         </View>
-
       </LinearGradient>
 
       <Text style={styles.timer}>
         {formattedTime}
       </Text>
-
     </SafeAreaView>
   );
 }
 
-//
-// ⭐ RadioTile Component with 3 layout modes
-//
 function RadioTile({
   label,
   selected,
@@ -237,6 +205,7 @@ function RadioTile({
         layoutMode === "three" && styles.radioTileThree,
         layoutMode === "four" && styles.radioTileFour,
         layoutMode === "five" && styles.radioTileFive,
+        selected && styles.radioTileSelected,
       ]}
       onPress={onPress}
     >
@@ -268,9 +237,6 @@ function RadioTile({
   );
 }
 
-//
-// Styles
-//
 const styles = StyleSheet.create({
   contentArea: {
     flex: 1,
@@ -302,28 +268,38 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center"
   },
+  questionCard: {
+    marginBottom: 10,
+    borderRadius: 18,
+    backgroundColor: 'rgba(10, 5, 28, 0.34)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    paddingTop: 10,
+    paddingHorizontal: 10,
+  },
   subchallengeImage: {
     width: "100%",
     height: Dimensions.get("window").height * 0.19,
     borderRadius: 12,
     resizeMode: "cover",
-    marginBottom: 3,
+    marginBottom: 8,
   },
   optionsWrapper: {
     marginTop: 10
   },
-
-  //
-  // ⭐ Radio Tiles (3 layout modes)
-  //
   radioTileBase: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 12,
+    borderRadius: 14,
     paddingHorizontal: 15,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(0,0,0,0.18)',
   },
-
-  // 3 options → spacious
+  radioTileSelected: {
+    borderColor: '#ffffff',
+    backgroundColor: 'rgba(255,255,255,0.14)',
+  },
   radioTileThree: {
     paddingVertical: 8,
     marginLeft: 15,
@@ -331,8 +307,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     minHeight: 60,
   },
-
-  // 4 options → medium
   radioTileFour: {
     paddingVertical: 3,
     marginTop: 1,
@@ -340,40 +314,27 @@ const styles = StyleSheet.create({
     marginBottom: 7,
     minHeight: 54,
   },
-
-  // 5 options → compact
   radioTileFive: {
     paddingVertical: 3,
     marginLeft: 20,
     marginBottom: 6,
     minHeight: 44,
   },
-
-  //
-  // Icons
-  //
   radioIconBase: {
     resizeMode: "contain",
     marginRight: 16,
   },
-
   radioIconThree: { width: 50, height: 50 },
   radioIconFour: { width: 45, height: 45 },
   radioIconFive: { width: 40, height: 40 },
-
-  //
-  // Labels
-  //
   radioLabelBase: {
     color: "white",
     flexShrink: 1,
     fontWeight: "600",
   },
-
   radioLabelThree: { fontSize: 24 },
   radioLabelFour: { fontSize: 22 },
   radioLabelFive: { fontSize: 22 },
-
   timer: {
     color: 'white',
     fontSize: 22,
