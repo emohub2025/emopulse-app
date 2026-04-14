@@ -9,6 +9,7 @@ import StateSelector, { autoDetectStateFromZip } from "../../components/StateSel
 import type { MobileUser, RootStackParamList } from "../../navigation/types";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import saveButton from "../../assets/buttons/save.png";
+import { AVATAR_URL } from "../../../config";
 
 const MIN_BIRTHDATE = new Date(1900, 0, 1);
 const MAX_BIRTHDATE = new Date();
@@ -60,6 +61,36 @@ export default function ProfileScreen() {
     avatar_url: (initialUser as any).avatar_url,
   });
 
+  const uploadAvatar = async (asset: ImagePicker.ImagePickerAsset) => {
+    const formData = new FormData();
+
+    const filePayload = {
+      uri: asset.uri,
+      type: asset.mimeType || "image/jpeg",
+      name: `${initialUser.email}.jpg`,
+    };
+
+    formData.append("image", filePayload as any);
+    formData.append("name", initialUser.email);
+    formData.append("type", "user");
+
+    const res = await fetch(`${AVATAR_URL}/uploadAvatar`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
+    return `${data.url}?t=${Date.now()}`;
+  };
+
   const pickAvatar = async () => {
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -77,12 +108,22 @@ export default function ProfileScreen() {
       });
 
       if (!result.canceled && result.assets?.length > 0) {
-        const selectedImage = result.assets[0].uri;
+        const hostedAvatarUrl = await uploadAvatar(result.assets[0]);
 
         setUpdate((prev) => ({
           ...prev,
-          avatar_url: selectedImage,
+          avatar_url: hostedAvatarUrl,
         }));
+
+        setUser((prev) => ({
+          ...prev,
+          avatar_url: hostedAvatarUrl,
+        }));
+
+        setStoredUser({
+          ...user,
+          avatar_url: hostedAvatarUrl,
+        } as MobileUser);
       }
     } catch (error) {
       console.error("❌ Failed to pick avatar:", error);
@@ -105,8 +146,6 @@ export default function ProfileScreen() {
         tiktok_url: update.tiktok_url,
       };
 
-      // Only send avatar_url if it is already a real hosted URL.
-      // Do not send local file:// or content:// URIs.
       if (
         update.avatar_url &&
         (update.avatar_url.startsWith("http://") ||
