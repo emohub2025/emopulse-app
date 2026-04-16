@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingTop: 0,
     paddingBottom: 22,
-    paddingHorizontal: 18,
+    paddingHorizontal: 15,
   },
   topLabel: {
     color: "white",
@@ -425,6 +425,7 @@ const styles = StyleSheet.create({
     paddingVertical: 26,
     paddingHorizontal: 20,
     marginBottom: 18,
+    marginHorizontal: 20,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.58)",
     alignItems: "center",
@@ -484,7 +485,7 @@ const styles = StyleSheet.create({
   heroSubtitle: {
     color: "rgba(255,255,255)",
     fontWeight: "600",
-    fontSize: 15,
+    fontSize: 16,
     textAlign: "center",
     lineHeight: 22,
   },

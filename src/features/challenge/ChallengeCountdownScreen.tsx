@@ -235,7 +235,7 @@ export default function ChallengeResultScreen() {
                 marginRight: -6,
                 marginBottom: 8,
                 borderColor: "rgba(225, 137, 232, 1.0)",
-                backgroundColor: '#120367',
+                backgroundColor: 'rgba(19, 14, 104, 0.55)',
                 padding: 10,
               }}>
 
@@ -316,7 +316,7 @@ export default function ChallengeResultScreen() {
                 marginLeft: -6,
                 marginRight: -6,
                 borderColor: '#c43dff',
-                backgroundColor: 'rgba(19, 14, 104, 0.88)',
+                backgroundColor: 'rgba(19, 14, 104, 0.65)',
                 shadowColor: '#c43dff',
                 shadowOpacity: 0.25,
                 shadowRadius: 8,

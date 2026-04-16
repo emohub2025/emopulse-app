@@ -88,7 +88,7 @@ export default function ChallengeDetailScreen({
   const FRAME_WIDTH = 365;
   const FRAME_HEIGHT = 559;
   const PLAYER_WIDTH = FRAME_WIDTH * 2.72;
-  const PLAYER_HEIGHT = FRAME_HEIGHT * 1.2;
+  const PLAYER_HEIGHT = FRAME_HEIGHT;
   const OFFSET = PLAYER_WIDTH / 2;
 
   const COLLAPSED_FRAME = {
@@ -103,6 +103,7 @@ export default function ChallengeDetailScreen({
     height: FRAME_HEIGHT,
     borderRadius: 25,
     marginTop: -22,
+    marginBottom: 11,
   };
 
   const frameStyle = expanded ? EXPANDED_FRAME : COLLAPSED_FRAME;
@@ -181,37 +182,33 @@ export default function ChallengeDetailScreen({
                 }}
               >
                 {/* ANIMATED WRAPPER (scale only — NEVER fade this) */}
-                  <Animated.View
-                    style={
-                      {
-                        ...frameStyle,
-                        overflow: 'hidden',
-                        backgroundColor: 'black',
-                        position: 'relative',
-                        transform: [{ scale: scaleAnim }],
-                      } as Animated.AnimatedProps<ViewStyle>
-                    }
-                  >                  {/* HERO IMAGE LAYER (always mounted) */}
+                <Animated.View
+                  style={
+                    {
+                      ...frameStyle,
+                      overflow: 'hidden',
+                      backgroundColor: 'black',
+                      position: 'relative',
+                      transform: [{ scale: scaleAnim }],
+                    } as Animated.AnimatedProps<ViewStyle>
+                  }
+                >
+                  {/* HERO IMAGE LAYER (always mounted) */}
                   <Animated.View
                     style={{
                       ...StyleSheet.absoluteFillObject,
                       opacity: expanded
                         ? fadeAnim.interpolate({
                             inputRange: [0, 1],
-                            outputRange: [1, 0], // fade OUT when expanding
+                            outputRange: [1, 0],
                           })
-                        : 1, // fully visible when collapsed
-                      zIndex: expanded ? 0 : 2, // hero on top when collapsed
+                        : 1,
+                      zIndex: expanded ? 0 : 2,
                     }}
                     pointerEvents={expanded ? 'none' : 'auto'}
                   >
                     <Pressable onPress={() => setExpanded(true)}>
-                      <Image
-                        source={imageSource}
-                        style={styles.image}
-                        //style={{ width: '100%', height: '100%' }}
-                        resizeMode="cover"
-                      />
+                      <Image source={imageSource} style={styles.image} resizeMode="cover" />
                     </Pressable>
                   </Animated.View>
 
