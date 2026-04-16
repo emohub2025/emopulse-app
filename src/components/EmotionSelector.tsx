@@ -78,7 +78,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   button: {
-    paddingBottom: 15,
+    marginTop: -13,
+    paddingBottom: 0,
   },
   icon: {
     width: 160,

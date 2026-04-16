@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { View, Text, ImageBackground, StyleSheet, ViewStyle, Image, Pressable, Animated, Easing } from 'react-native';
+import { View, Text, ImageBackground, StyleSheet, ViewStyle, Image, Pressable, Animated, Easing, StyleProp } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../../navigation/types';
@@ -181,16 +181,17 @@ export default function ChallengeDetailScreen({
                 }}
               >
                 {/* ANIMATED WRAPPER (scale only — NEVER fade this) */}
-                <Animated.View
-                  style={{
-                    ...frameStyle,
-                    overflow: 'hidden',
-                    backgroundColor: 'black',
-                    position: 'relative',
-                    transform: [{ scale: scaleAnim }],
-                  }}
-                >
-                  {/* HERO IMAGE LAYER (always mounted) */}
+                  <Animated.View
+                    style={
+                      {
+                        ...frameStyle,
+                        overflow: 'hidden',
+                        backgroundColor: 'black',
+                        position: 'relative',
+                        transform: [{ scale: scaleAnim }],
+                      } as Animated.AnimatedProps<ViewStyle>
+                    }
+                  >                  {/* HERO IMAGE LAYER (always mounted) */}
                   <Animated.View
                     style={{
                       ...StyleSheet.absoluteFillObject,
@@ -263,7 +264,7 @@ export default function ChallengeDetailScreen({
                 <View style={{ marginRight: -10 }}>
                   <AutoShrinkBlock
                     maxFontSize={20}
-                    height={230}
+                    height={245}
                     minHeight={230}
                     textAlign="left"
                     fontWeight="700"
@@ -315,7 +316,7 @@ const styles = StyleSheet.create({
     color: 'yellow',
     fontSize: 26,
     fontWeight: '700',
-    marginTop: 95,
+    marginTop: 98,
     textAlign: 'center',
     backgroundColor: 'black',
   },
@@ -353,7 +354,7 @@ const styles = StyleSheet.create({
     height: 47,
     resizeMode: 'contain',
     alignSelf: 'center',
-    marginTop: -10,
+    marginTop: -30,
   },
   winningEmotion: {
     marginTop: 20,
@@ -384,9 +385,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   timer: {
-    marginTop: 6,
+    marginTop: 2,
     color: 'yellow',
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '600',
     textAlign: 'center',
   },

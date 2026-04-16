@@ -317,8 +317,8 @@ const styles = StyleSheet.create({
   },
   imageWrapper: {
     width: '100%',
-    height: 176,
-    marginTop: 70,
+    height: 170,
+    marginTop: 60,
     borderRadius: 14,
     overflow: 'hidden',
     backgroundColor: 'rgba(0,0,0,0.22)',
@@ -355,8 +355,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.55)',
     marginBottom: 9,
     borderWidth: 2,
-    minHeight: 72,
-    maxHeight: 72,
+    height: 70,
     justifyContent: 'center',
     borderColor: 'rgba(255,255,255,0.06)',
   },
@@ -372,7 +371,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: 'rgba(255,255,255,0.10)',
+    backgroundColor: 'rgba(255,255,255,0.30)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -396,14 +395,14 @@ const styles = StyleSheet.create({
   },
   answerImage: {
     width: 210,
-    height: 48,
+    height: 46,
     marginTop: 0,
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 50,
+    marginTop: 40,
     gap: 18,
   },
   skipWrapper: {
@@ -412,7 +411,7 @@ const styles = StyleSheet.create({
   },
   skipImage: {
     width: 100,
-    height: 48,
+    height: 46,
   },
   errorText: {
     color: '#e26fae',
@@ -426,7 +425,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '600',
     textAlign: 'center',
-    marginTop: 6,
   },
   loadingText: {
     color: 'white',

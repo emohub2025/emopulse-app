@@ -37,7 +37,7 @@ const LogoHeader = () => (
   >
     <Image
       source={require("../assets/logos/logo.png")}
-      style={{ width: 500, height: 60, marginTop: -10, resizeMode: "contain" }}
+      style={{ width: "110%", height: 60, marginTop: -10, resizeMode: "cover" }}
     />
   </View>
 );

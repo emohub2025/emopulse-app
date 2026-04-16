@@ -73,7 +73,7 @@ export default function AutoShrinkBlock({
             textAlign,
             fontWeight,
             fontStyle,
-            lineHeight: fontSize * 1.15,
+            lineHeight: fontSize * 1.2,
           }
         ]}
         onLayout={(event) => {

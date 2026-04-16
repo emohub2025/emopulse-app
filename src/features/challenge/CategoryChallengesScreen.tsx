@@ -83,7 +83,7 @@ export default function CategoryChallengesScreen() {
 
   function enrichChallenge(ch: any) {
     snapshot.find(s => s.id === ch.id);
-    //const live = snapshot.find(s => s.id === ch.id);
+    const live = snapshot.find(s => s.id === ch.id);
     //const emotions = live ? normalizeEmotions(live.main) : null;
 
     // if (!emotions) {
@@ -101,7 +101,9 @@ export default function CategoryChallengesScreen() {
   }
 
   const enrichedActive = active.map(enrichChallenge);
+//console.log("active:", enrichedActive.length);
   const enrichedRecent = recent.map(enrichChallenge);
+//console.log("recent:", enrichedRecent.length);
 
   // --------------------------------------------------
   // CORRECT LOGIC:
@@ -113,10 +115,12 @@ export default function CategoryChallengesScreen() {
   const enrichedPlayed = enrichedActive.filter(ch =>
     playedIds.includes(ch.id)
   );
+//console.log("played:", enrichedPlayed.length);
 
   const filteredActive = enrichedActive.filter(ch =>
     !playedIds.includes(ch.id)
   );
+//console.log("active:", enrichedActive.length);
 
   // Sort previous challenges newest → oldest
   const sortedRecent = [...enrichedRecent].sort((a, b) => {
@@ -176,69 +180,84 @@ export default function CategoryChallengesScreen() {
           <Text style={styles.topLabel}>{category}</Text>
 
         <View style={styles.content}>
-          {active.length === 0 && recent.length === 0 ? (
+          {listData.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>No Available Challenges</Text>
             </View>
           ) : (
-            <FlatList
-              data={[...active, ...recent]}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item, index }) => {
-                const isActiveSectionStart = index === 0 && active.length > 0;
-                const isEmptyActiveSectionStart = index === 0 && active.length === 0;
-                const isRecentSectionStart = index === active.length && recent.length > 0;
+              <FlatList
+                data={listData}
+                keyExtractor={(_, index) => index.toString()}
+                renderItem={({ item }) => {
+                  if (item.type === "header") {
+                    return <Text style={styles.sectionHeader}>{item.title}</Text>;
+                  }
 
-                return (
-                  <>
-                    {/* ⭐ Active Section Header */}
-                    {isActiveSectionStart && (
-                      <Text style={styles.sectionHeader}>Active Challenges</Text>
-                    )}
+                  const ch = item.data;
+                  const played = playedIds.includes(ch.id);
+                  const previous = item.section === "previous";
+                  const isVideo = ch.source?.startsWith('YouTube');
 
-                    {/* ⭐ Empty Active Section */}
-                    {isEmptyActiveSectionStart && (
-                      <>
-                        <Text style={styles.sectionHeader}>Active Challenges</Text>
-                        <Text style={styles.emptyMessage}>No active challenges!</Text>
-                      </>
-                    )}
-
-                    {/* ⭐ Previous Section Header */}
-                    {isRecentSectionStart && (
-                      <Text style={[styles.sectionHeader, { marginTop: 50 }]}>
-                        Previous Challenges
-                      </Text>
-                    )}
-
-                    {/* ⭐ Challenge Card */}
+                  return (
                     <Pressable
                       style={styles.card}
-                      onPress={() =>
-                        navigation.navigate('ChallengeDetail', {
-                          challengeId: item.id,
-                        })
-                      }
+                      onPress={() => {
+                        if (played && !previous) {
+                          navigation.navigate("ChallengeCountdown", { challengeId: ch.id });
+                        } else {
+                          navigation.navigate("ChallengeDetail", { challengeId: ch.id });
+                        }
+                      }}
                     >
                       <Image
-                        source={getChallengeImageSource(item)}
+                        source={getChallengeImageSource(ch)}
                         style={styles.topicImage}
                         resizeMode="contain"
                       />
-                      <Text style={styles.title}>
-                        {item.topic}
-                        {item.source?.startsWith("YouTube") && (
-                          <Text style={{ color: "lime" }}>
-                            {"\n"} {`(Video: ${item.source.replace("YouTube: ", "")})`}
-                          </Text>
-                        )}
-                      </Text>
 
+                      <Text style={styles.title}>{ch.topic}</Text>
+                          {isVideo && (
+                            <View style={styles.videoBadge}>
+                              <Text style={styles.videoBadgeText}>
+                                Video: {ch.source.replace('YouTube: ', '')}
+                              </Text>
+                            </View>
+                          )}
+{/* 
+                          {isVideo && (
+                            <View style={styles.videoBadge}>
+                              <Text style={styles.videoBadgeText}>
+                                Video: {ch.source.replace('YouTube: ', '')}
+                              </Text>
+                            </View>
+                          )}
+
+
+                      {played && (
+                        <View style={styles.progressRow}>
+                          <Text style={{ fontSize: 26, marginRight: 8 }}>
+                            {EMOTION_EMOJI[ch.leadingEmotion] || "❓"}
+                          </Text>
+
+                          <View style={styles.progressBarBackground}>
+                            <View
+                              style={[
+                                styles.progressBarFill,
+                                {
+                                  width: `${ch.leadingPct}%`,
+                                  backgroundColor: EMOTION_COLORS[ch.leadingEmotion],
+                                },
+                              ]}
+                            />
+                          </View>
+
+                          <Text style={styles.percentText}>{ch.leadingPct}%</Text>
+                        </View>
+                      )} */}
                     </Pressable>
-                  </>
-                );
-              }}
-            />
+                  );
+                }}
+              />
           )}
         </View>
 
@@ -288,13 +307,13 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: 'rgba(34, 13, 88, 0.92)',
-    borderRadius: 18,
+    borderRadius: 30,
     marginLeft: 20,
     marginRight: 20,
     overflow: 'hidden',
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.6)',
   },
   cardSubmitted: {
     borderColor: 'rgba(168,255,159,0.45)',
@@ -322,6 +341,9 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   title: {
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingHorizontal: 15,
     fontSize: 18,
     fontWeight: '600',
     color: '#fff',
@@ -330,7 +352,7 @@ const styles = StyleSheet.create({
   },
   videoBadge: {
     alignSelf: 'center',
-    marginTop: 10,
+    marginBottom: 15,
     backgroundColor: 'rgba(102,255,102,0.14)',
     borderColor: 'rgba(102,255,102,0.4)',
     borderWidth: 1,
@@ -340,10 +362,10 @@ const styles = StyleSheet.create({
   },
   videoBadgeText: {
     color: '#A8FF9F',
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: '700',
-    marginTop: 10,
-    marginBottom: 10,
+    marginTop: 0,
+    marginBottom: 0,
     textAlign: 'center',
   },
   emptyContainer: {
@@ -372,9 +394,10 @@ const styles = StyleSheet.create({
   },
   timer: {
     color: 'yellow',
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 38,
+    marginTop: 4,
+    marginBottom: -11,
   },
 });

@@ -164,9 +164,9 @@ const styles = StyleSheet.create({
   },
   subLabel: {
     color: 'rgba(255,255,255,0.78)',
-    fontSize: 15,
+    fontSize: 18,
     textAlign: 'center',
-    marginBottom: 14,
+    marginBottom: 8,
     paddingHorizontal: 24,
   },
   list: {

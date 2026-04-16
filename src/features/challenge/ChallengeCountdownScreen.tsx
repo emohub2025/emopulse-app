@@ -22,13 +22,17 @@ type ProgressBarProps = {
 const ProgressBar = ({ label, pct, count, color }: ProgressBarProps) => {
   return (
     <View style={{ marginVertical: 6 }}>
-      <Text style={{ color: 'white', marginBottom: 4, fontSize: 18 }}>
-        {label} — {Math.round(pct * 100)}% ({count} votes)
+      <Text style={{ marginBottom: 4, fontSize: 18, fontWeight: '600' }}>
+        <Text style={{ color }}>{label}</Text>
+        <Text style={{ color: 'white' }}>
+          {` — ${Math.round(pct * 100)}% (${count} votes)`}
+        </Text>
       </Text>
 
       <View
         style={{
           height: 15,
+          borderRadius: 15,
           backgroundColor: 'rgba(255,255,255,0.2)',
         }}
       >
@@ -36,6 +40,7 @@ const ProgressBar = ({ label, pct, count, color }: ProgressBarProps) => {
           style={{
             width: `${pct * 100}%`,
             height: '100%',
+            borderRadius: 15,
             backgroundColor: color,
           }}
         />
@@ -205,7 +210,7 @@ export default function ChallengeResultScreen() {
 
       <ImageBackground
         source={require('../../assets/images/background.png')}
-        style={{ flex: 1 }}
+        style={{ flex: 1, marginBottom: 42 }}
         >
         <SafeAreaView style={styles.safe}>
 
@@ -228,8 +233,9 @@ export default function ChallengeResultScreen() {
                 borderRadius: 22,
                 marginLeft: -6,
                 marginRight: -6,
+                marginBottom: 8,
                 borderColor: "rgba(225, 137, 232, 1.0)",
-                backgroundColor: 'black',
+                backgroundColor: '#120367',
                 padding: 10,
               }}>
 
@@ -237,7 +243,7 @@ export default function ChallengeResultScreen() {
                 marginBottom: -5,
                 color: "white",
                 fontWeight: "700",
-                fontSize: 22,
+                fontSize: 24,
                 alignSelf: 'center',
                 }}>Comments</Text>
 
@@ -266,7 +272,6 @@ export default function ChallengeResultScreen() {
                 flexDirection: "row", 
                 alignItems: "center",
                 marginHorizontal: 4,
-                marginBottom: 4,
               }}>
                 <TextInput
                   value={commentText}
@@ -277,7 +282,7 @@ export default function ChallengeResultScreen() {
                     flex: 1,
                     height: 40,
                     borderWidth: 1,
-                    borderColor: "rgba(255,255,255,0.4)",
+                    borderColor: "rgba(255,255,255)",
                     color: "white",
                     paddingHorizontal: 10
                   }}
@@ -305,22 +310,25 @@ export default function ChallengeResultScreen() {
                 maxHeight: 290, 
                 minHeight: 290, 
                 justifyContent: 'flex-start',
-                borderWidth: 2.5,
+                borderWidth: 3,
                 borderRadius: 22,
                 marginTop: 8,
                 marginLeft: -6,
                 marginRight: -6,
-                borderColor: "rgba(225, 137, 232, 1.0)",
-                backgroundColor: 'black',
-                paddingBottom: 20,
+                borderColor: '#c43dff',
+                backgroundColor: 'rgba(19, 14, 104, 0.88)',
+                shadowColor: '#c43dff',
+                shadowOpacity: 0.25,
+                shadowRadius: 8,
+                shadowOffset: { width: 0, height: 0 },
               }}>
 
               <Text style={{ 
                 marginTop: 12,
-                marginBottom: -10,
+                marginBottom: -16,
                 color: "white",
                 fontWeight: "700",
-                fontSize: 22,
+                fontSize: 24,
                 alignSelf: 'center',
                 }}>Live Results</Text>
 
@@ -334,7 +342,7 @@ export default function ChallengeResultScreen() {
             </View>
 
             {/* ⭐ Bottom area: button + timer */}
-            <View style={{ alignItems: 'center' }}>
+            <View style={{ alignItems: 'center', marginBottom: -10 }}>
               <Pressable
                 onPress={() =>
                   navigation.reset({
@@ -384,7 +392,7 @@ const styles = StyleSheet.create({
     height: 48,
     resizeMode: 'contain',
     alignSelf: 'center',
-    marginTop: 10,
+    marginTop: 17,
   },
   timer: {
     color: 'yellow',

@@ -32,9 +32,8 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   const timerOpacity = useRef(new Animated.Value(1)).current;
   const [lastTap, setLastTap] = useState<number | null>(null);
   const [topicFontSize, setTopicFontSize] = useState(24);
-    const bottomStatusText =
-    formattedTime?.toLowerCase?.() === 'expired' ? 'Expired Challenges' : formattedTime;
-
+  //const bottomStatusText = formattedTime?.toLowerCase?.() === 'expired' ? 'Expired Challenges' : formattedTime;
+  const bottomStatusText = formattedTime?.toLowerCase?.() === 'expired' ? 'Expired' : formattedTime;
 
   const { challengeId } = route.params;
   const { feed } = useFeed();
@@ -93,6 +92,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
       });
 
       console.log("Prediction submitted:", response);
+      await markChallengePlayed(challengeId);
 
       if (isYouTube) {
         setLoading(false);
@@ -101,12 +101,13 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
       }
 
       const listResults = await getSubchallengeList(challenge.id);
+      console.log("results:", listResults?.length);
 
-      if (listResults?.length > 0) {
-        setPendingSubchallenges(listResults);
-        setShowSupplementalPrompt(true);
-        return;
-      }
+      // if (listResults?.length > 0) {
+      //   setPendingSubchallenges(listResults);
+      //   setShowSupplementalPrompt(true);
+      //   return;
+      // }
 
         navigation.navigate("Subchallenge", {
           challengeId: challenge.id,
@@ -131,24 +132,6 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleGoToSupplementals = () => {
-    setShowSupplementalPrompt(false);
-    navigation.navigate("Subchallenge", {
-      challenge,
-      subchallenges: pendingSubchallenges
-    });
-  };
-
-  const handleSkipSupplementals = () => {
-    setShowSupplementalPrompt(false);
-    navigation.navigate("ChallengeCountdown", { challenge });
-  };
-
-  const handleDuplicateOkay = () => {
-    setShowDuplicatePrompt(false);
-    navigation.navigate("ChallengeCountdown", { challenge });
   };
 
   useEffect(() => {
@@ -199,25 +182,10 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
       >
         <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
           <Text style={styles.topLabel}>What's your reaction?</Text>
-          <Text style={styles.subLabel}>Choose the emotion that best matches this challenge</Text>
+          <Text style={styles.subLabel}>Select the best matching emotion.</Text>
 
           <View style={styles.content}>
             <View style={styles.mainCard}>
-              <Text
-                style={[
-                  styles.valueMeasure,
-                  { fontSize: topicFontSize }
-                ]}
-                onLayout={(event) => {
-                  const h = event.nativeEvent.layout.height;
-
-                  if (h > 130 && topicFontSize > 14) {
-                    setTopicFontSize(topicFontSize - 1);
-                  }
-                }}
-              >
-                {challenge.topic}
-              </Text>
 
               <AutoShrinkBlock
                 height={110}
@@ -232,6 +200,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
             </View>
 
             <View style={styles.submitArea}>
+              <Text style={styles.costText}>Cost: 1 Coin</Text>
               <TouchableOpacity
                 onPress={handleSubmit}
                 disabled={isDisabled}
@@ -245,8 +214,6 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
                   style={styles.submitButton}
                 />
               </TouchableOpacity>
-
-              <Text style={styles.costText}>Cost: 1 Coin</Text>
             </View>
           </View>
 
@@ -275,54 +242,6 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
           </View>
         </SafeAreaView>
       </ImageBackground>
-
-      <Modal
-        visible={showSupplementalPrompt}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowSupplementalPrompt(false)}
-      >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Prediction Submitted</Text>
-            <Text style={styles.modalText}>
-              Your prediction has been submitted. Would you like to go on to see the supplemental challenges?
-            </Text>
-
-            <View style={styles.modalActions}>
-              <Pressable style={styles.modalSecondaryButton} onPress={handleSkipSupplementals}>
-                <Text style={styles.modalSecondaryText}>No</Text>
-              </Pressable>
-
-              <Pressable style={styles.modalPrimaryButton} onPress={handleGoToSupplementals}>
-                <Text style={styles.modalPrimaryText}>Yes</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal
-        visible={showDuplicatePrompt}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowDuplicatePrompt(false)}
-      >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Prediction Already Submitted</Text>
-            <Text style={styles.modalText}>
-              You are not allowed to place more than one prediction per challenge.
-            </Text>
-
-            <View style={styles.singleActionWrap}>
-              <Pressable style={styles.modalPrimaryButtonFull} onPress={handleDuplicateOkay}>
-                <Text style={styles.modalPrimaryText}>OK</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -336,7 +255,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 28,
     fontWeight: '700',
-    marginTop: 75,
+    marginTop: 65,
     marginBottom: 5,
     paddingHorizontal: 20,
     textAlign: 'center',
@@ -344,10 +263,11 @@ const styles = StyleSheet.create({
   },
   subLabel: {
     color: 'rgba(255,255,255,0.8)',
-    fontSize: 15,
+    fontSize: 18,
+    fontWeight: '500',
     textAlign: 'center',
     paddingHorizontal: 28,
-    marginBottom: 12,
+    marginBottom: 7,
   },
   content: {
     flex: 1,
@@ -356,8 +276,8 @@ const styles = StyleSheet.create({
   mainCard: {
     marginTop: 8,
     marginHorizontal: 14,
-    paddingTop: 18,
-    paddingBottom: 18,
+    paddingTop: 10,
+    paddingBottom: 0,
     paddingHorizontal: 14,
     borderRadius: 22,
     backgroundColor: 'rgba(20, 10, 46, 0.8)',
@@ -366,14 +286,7 @@ const styles = StyleSheet.create({
   },
   selectorWrap: {
     marginTop: 10,
-  },
-  valueMeasure: {
-    position: 'absolute',
-    opacity: 0,
-    width: '100%',
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 10,
+    marginBottom: 15,
   },
   submitArea: {
     alignItems: 'center',
@@ -388,22 +301,26 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   submitButton: {
+    marginTop: -6,
+    marginBottom: -2,
     width: 265,
     height: 54,
     resizeMode: 'contain',
   },
   costText: {
     color: '#FFD700',
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 24,
+    fontWeight: '800',
     textAlign: 'center',
-    marginTop: 2,
+    marginTop: 15,
+    marginBottom: 13,
   },
   timer: {
     color: 'yellow',
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '600',
     textAlign: 'center',
+    marginTop: 28,
   },
   errorText: {
     color: '#ff6b6b',
