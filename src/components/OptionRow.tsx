@@ -38,7 +38,7 @@ export default function OptionRow({
   subLabel,
   onPress,
 
-  height = 60,
+  height = 57,
 
   borderTopColor = '#474477',
   borderBottomColor = '#474477',
@@ -58,7 +58,7 @@ export default function OptionRow({
   iconWidth = 35,
   iconHeight = 35,
 
-  sideMargin = 12,
+  sideMargin = 18,
   borderRadius = 0,
 }: OptionRowProps) {
 

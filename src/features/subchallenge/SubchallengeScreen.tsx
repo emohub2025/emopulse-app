@@ -317,8 +317,8 @@ const styles = StyleSheet.create({
   },
   imageWrapper: {
     width: '100%',
-    height: 170,
-    marginTop: 60,
+    height: 165,
+    marginTop: 70,
     borderRadius: 14,
     overflow: 'hidden',
     backgroundColor: 'rgba(0,0,0,0.22)',

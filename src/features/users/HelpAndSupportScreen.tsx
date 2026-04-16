@@ -1,21 +1,18 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ImageBackground,
-  ScrollView,
-  TouchableOpacity,
-  Linking,
-} from "react-native";
+import { View, Text, StyleSheet, ImageBackground, ScrollView, TouchableOpacity, Linking } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import ButtonPanel from "../../components/ButtonPanel";
 
+type FAQItemProps = {
+  question: string;
+  answer: string;
+};
+
 // -----------------------------
 // Accordion Item Component
 // -----------------------------
-const FAQItem = ({ question, answer }) => {
+const FAQItem = ({ question, answer }: FAQItemProps) => {
   const [open, setOpen] = useState(false);
 
   return (
@@ -62,8 +59,9 @@ export default function HelpAndSupportScreen() {
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
+        <Text style={styles.topLabel}>Help & Support</Text>
+
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.topLabel}>Help & Support</Text>
 
           <View style={styles.card}>
             <Text style={styles.heading}>Emotional Pulse Beta</Text>
@@ -171,13 +169,14 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: "700",
     marginTop: 95,
-    marginBottom: 20,
+    marginBottom: 15,
     textAlign: "center",
   },
   card: {
     backgroundColor: "#fff",
     marginHorizontal: 20,
     borderRadius: 20,
+    marginBottom: -15,
     padding: 20,
   },
   heading: {

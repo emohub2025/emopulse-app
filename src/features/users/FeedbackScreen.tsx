@@ -90,9 +90,9 @@ export default function FeedbackScreen() {
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-        <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-          <Text style={styles.topLabel}>Beta Feedback</Text>
+        <Text style={styles.topLabel}>Beta Feedback</Text>
 
+        <ScrollView>
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>You’re logged in as</Text>
             <Text style={styles.name}>{user?.first_name}</Text>
@@ -199,19 +199,19 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: "700",
     marginTop: 95,
-    marginBottom: 20,
+    marginBottom: 5,
     textAlign: "center",
   },
 
   card: {
     backgroundColor: "#fff",
-    margin: 20,
+    margin: 15,
     borderRadius: 20,
     padding: 20,
   },
 
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "700",
     marginTop: 14,
     marginBottom: 6,
@@ -275,6 +275,7 @@ const styles = StyleSheet.create({
 
   suggestionCTA: {
     marginTop: 12,
+    fontSize: 16,
     color: "#7B61FF",
     fontWeight: "600",
   },
@@ -282,7 +283,7 @@ const styles = StyleSheet.create({
   submitBtn: {
     marginTop: 20,
     backgroundColor: "#7B61FF",
-    padding: 14,
+    padding: 12,
     borderRadius: 12,
     alignItems: "center",
   },
@@ -290,7 +291,7 @@ const styles = StyleSheet.create({
   submitText: {
     color: "#fff",
     fontWeight: "700",
-    fontSize: 16,
+    fontSize: 18,
   },
 
   successText: {

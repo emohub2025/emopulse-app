@@ -185,14 +185,12 @@ export default function ProfileScreen() {
         style={styles.background}
         resizeMode="cover"
       >
-        <View style={styles.dimOverlay} />
+        <Text style={styles.topLabel}>Profile Details</Text>
 
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.topLabel}>Profile Details</Text>
-
           <View style={styles.heroCard}>
             <Pressable
               style={({ pressed }) => [
@@ -400,10 +398,11 @@ const styles = StyleSheet.create({
   },
   background: {
     flex: 1,
+    marginBottom: 42,
   },
   scrollContent: {
-    paddingTop: 88,
-    paddingBottom: 72,
+    paddingTop: 0,
+    paddingBottom: 22,
     paddingHorizontal: 18,
   },
   topLabel: {
@@ -411,7 +410,8 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "800",
     textAlign: "center",
-    marginBottom: 18,
+    marginTop: 96,
+    marginBottom: 15,
     backgroundColor: "transparent",
   },
   dimOverlay: {
@@ -420,13 +420,13 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   heroCard: {
-    backgroundColor: "rgba(18,18,32,0.84)",
+    backgroundColor: "rgba(18,18,32,0.44)",
     borderRadius: 24,
     paddingVertical: 26,
     paddingHorizontal: 20,
     marginBottom: 18,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: "rgba(255,255,255,0.58)",
     alignItems: "center",
   },
   avatarWrapper: {
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: "rgba(0,0,0,0.72)",
     width: "100%",
-    paddingVertical: 8,
+    paddingVertical: 6,
     alignItems: "center",
   },
   avatarBadgeText: {
@@ -482,13 +482,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   heroSubtitle: {
-    color: "rgba(255,255,255,0.78)",
+    color: "rgba(255,255,255)",
+    fontWeight: "600",
     fontSize: 15,
     textAlign: "center",
     lineHeight: 22,
   },
   formCard: {
-    backgroundColor: "rgba(14,14,26,0.84)",
+    backgroundColor: "rgba(14,14,26,0.80)",
     borderRadius: 24,
     paddingVertical: 20,
     paddingHorizontal: 16,

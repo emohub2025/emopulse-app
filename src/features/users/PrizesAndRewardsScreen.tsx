@@ -42,12 +42,12 @@ export default function PrizesRewardsScreen() {
         style={styles.background}
         resizeMode="cover"
       >
+        <Text style={styles.topLabel}>Prizes & Rewards</Text>
+
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.topLabel}>Prizes & Rewards</Text>
-
           <View style={styles.heroCard}>
             <Text style={styles.badge}>Coming Soon</Text>
             <Text style={styles.title}>Amazing Rewards Are On The Way</Text>
@@ -97,9 +97,9 @@ const styles = StyleSheet.create({
   },
   background: {
     flex: 1,
+    marginBottom: 42
   },
   scrollContent: {
-    paddingTop: 90,
     paddingBottom: 40,
     paddingHorizontal: 20,
   },
@@ -108,7 +108,8 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "700",
     textAlign: "center",
-    marginBottom: 24,
+    marginTop: 92,
+    marginBottom: 10,
   },
   heroCard: {
     backgroundColor: "rgba(14,14,24,0.82)",
@@ -209,7 +210,7 @@ const styles = StyleSheet.create({
     lineHeight: 23,
   },
   footerCard: {
-    backgroundColor: "rgba(255,215,106,0.08)",
+    backgroundColor: "rgba(255,215,106,0.10)",
     borderColor: "rgba(255,215,106,0.24)",
     borderWidth: 1,
     borderRadius: 20,

@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
     paddingHorizontal: 28,
-    marginBottom: 7,
+    marginBottom: 17,
   },
   content: {
     flex: 1,
@@ -312,8 +312,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '800',
     textAlign: 'center',
-    marginTop: 15,
-    marginBottom: 13,
+    marginTop: 10,
+    marginBottom: 7,
   },
   timer: {
     color: 'yellow',

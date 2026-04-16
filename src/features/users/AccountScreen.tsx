@@ -200,17 +200,17 @@ export default function AccountScreen() {
           </Pressable>
         </View>
 
-        <View style={{ marginTop: 22 }}>
-          <View style={{ marginBottom: 20, marginLeft: 12, marginRight: 12 }}>
+        <View style={{ marginTop: 15 }}>
+          <View style={{ marginBottom: 15, marginHorizontal: 12 }}>
             <OptionRow
               icon={coinIcon}
               label="   Coin Balance"
               subLabel={`   ${user.coin_balance} Emo Coins`}
-              height={70}
+              height={65}
               borderTopWidth={2}
-              borderBottomWidth={4}
+              borderBottomWidth={2}
               iconWidth={70}
-              iconHeight={70}
+              iconHeight={60}
               topGradient={["#8A2BE2", "#DDA0DD", "#8A2BE2"]}
               bottomGradient={["#8A2BE2", "#DDA0DD", "#8A2BE2"]}
               leftGradient={["#8A2BE2", "#DDA0DD", "#8A2BE2"]}
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginLeft: 15,
     marginRight: 15,
-    marginTop: 20,
+    marginTop: 15,
     paddingHorizontal: 20,
   },
   rightColumn: {
