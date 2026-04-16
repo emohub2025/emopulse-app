@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   card: {
-    backgroundColor: 'rgba(34, 13, 88, 0.92)',
+    backgroundColor: 'rgba(34, 13, 88, 0.66)',
     borderRadius: 30,
     marginLeft: 20,
     marginRight: 20,
