@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   row: {
     marginTop: 10,
     borderRadius: 20,
-    backgroundColor: "#120367",
+    backgroundColor: "rgb(18, 3, 103, 0.6)",
     paddingVertical: 18,
     paddingHorizontal: 16,
     borderColor: "#ed84df",

@@ -62,7 +62,7 @@ function SummaryCard({
       end={{ x: 0.5, y: 1 }}
       style={[styles.cardGradient, styles.summaryGradient]}
     >
-      <View style={styles.cardInner}>
+      <View style={styles.summarycard}>
         <View style={styles.summaryHeaderPill}>
           <Text style={styles.summaryHeaderPillText}>Challenge Summary</Text>
         </View>
@@ -75,21 +75,22 @@ function SummaryCard({
           <Text style={styles.category}>{category}</Text>
         </View>
 
-        <View style={{ paddingHorizontal: 0 }}>
+        <View style={{ paddingHorizontal: 5 }}>
           <AutoShrinkBlock
             key={topic}
             height={100}
             fontWeight="700"
             minFontSize={12}
-            maxFontSize={22}
+            maxFontSize={24}
             textAlign="center"
             fontStyle="italic"
+            marginBottom={20}
           >
             {topic}
           </AutoShrinkBlock>
         </View>
 
-        <Text style={styles.cardLabel}>Net Coins:</Text>
+        <Text style={[styles.cardLabel, { marginTop: -22 }]}>Net Coins:</Text>
         <Text
           style={[
             styles.cardValue,
@@ -117,7 +118,7 @@ function ResultCard(props: ResultCardProps) {
 
   return (
     <LinearGradient
-      colors={['#ff00cc', '#8a2be2', '#4b0082']}
+      colors={[ 'rgba(255, 0, 204, 0.7)', 'rgba(138, 43, 226, 0.5)', 'rgba(75, 0, 130, 0.2)' ]}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={styles.cardGradient}
@@ -227,7 +228,6 @@ export default function ChallengeResultScreen() {
           <View style={styles.resultsShell}>
             <ScrollView
               style={{ maxHeight: fromHistory ? '105%' : '96%' }}
-              contentContainerStyle={styles.resultsScrollContent}
               showsVerticalScrollIndicator={false}
             >
               {results && (() => {
@@ -324,26 +324,28 @@ export const dynamicStyles = (fromHistory: boolean) => ({
 
 const styles = StyleSheet.create({
   resultsShell: {
-    backgroundColor: 'rgba(30,30,30,0.94)',
+    backgroundColor: 'transparent',
     paddingTop: 15,
-    paddingLeft: 15,
-    paddingRight: 15,
-    paddingBottom: 8,
     borderRadius: 18,
     marginTop: 20,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
   },
-  resultsScrollContent: {
-    paddingBottom: 10,
-  },
   summaryGradient: {
     marginBottom: 24,
+    marginHorizontal: 15,
+  },
+  summarycard: {
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderRadius: 42,
+    paddingBottom: 20,
+    borderWidth: 3,
+    borderColor: '#ed84df',
   },
   summaryHeaderPill: {
     alignSelf: 'center',
-    backgroundColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: 'rgba(194, 139, 210, 0.54)',
     borderRadius: 999,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -352,7 +354,7 @@ const styles = StyleSheet.create({
   },
   summaryHeaderPillText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
   },
@@ -361,7 +363,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: 2,
-    marginBottom: 2,
   },
   category: {
     color: "rgba(255,255,255,0.9)",
@@ -376,8 +377,8 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   cardImage: {
-    width: 220,
-    height: 99,
+    width: 178,
+    height: 157,
     resizeMode: 'cover',
     alignSelf: 'center',
     marginTop: 18,
@@ -396,13 +397,13 @@ const styles = StyleSheet.create({
     color: '#AAA',
     fontSize: 16,
     marginTop: 4,
-    marginLeft: 24,
+    marginLeft: 44,
   },
   cardValue: {
     color: 'white',
     fontSize: 18,
     fontWeight: '600',
-    marginLeft: 24,
+    marginLeft: 60,
   },
   cardGradient: {
     borderRadius: 44,

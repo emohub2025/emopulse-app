@@ -267,14 +267,12 @@ export default function ProfileScreen() {
             <View style={styles.locationRow}>
               <View style={styles.locationLeft}>
                 <Text style={styles.rowLabel}>State</Text>
-                <View style={styles.selectorWrap}>
                   <StateSelector
                     value={update.state ?? null}
                     onChange={(state) =>
                       setUpdate((prev) => ({ ...prev, state }))
                     }
                   />
-                </View>
               </View>
 
               <View style={styles.locationRight}>

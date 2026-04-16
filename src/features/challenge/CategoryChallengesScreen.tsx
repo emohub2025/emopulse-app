@@ -177,7 +177,7 @@ export default function CategoryChallengesScreen() {
         resizeMode="cover"
       >
         <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-          <Text style={styles.topLabel}>{category}</Text>
+          <Text style={styles.topLabel}>{category == 'Tech' ? 'Science & Technology' : category}</Text>
 
         <View style={styles.content}>
           {listData.length === 0 ? (
@@ -311,6 +311,7 @@ const styles = StyleSheet.create({
     marginLeft: 20,
     marginRight: 20,
     overflow: 'hidden',
+    paddingTop: 8,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.6)',

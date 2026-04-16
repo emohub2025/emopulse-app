@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-import {
-  Modal,
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-} from "react-native";
+import { Modal, View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
 
 //
 // 1. US State List
@@ -99,10 +92,11 @@ export default function StateSelector({
 //
 const styles = StyleSheet.create({
   input: {
+    height: 53,
     backgroundColor: "rgba(255,255,255,0.08)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
-    borderRadius: 8,
+    borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 12,
   },

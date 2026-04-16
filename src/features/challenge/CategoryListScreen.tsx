@@ -126,7 +126,6 @@ export default function CategoryListScreen() {
             <ImageBackground
               source={categoryImages[item.name] ?? null}
               style={styles.cardBackground}
-              imageStyle={styles.cardImage}
               resizeMode="stretch"
             >
               <View style={styles.cardOverlay} />
@@ -188,11 +187,8 @@ const styles = StyleSheet.create({
     height: 150,
     width: 160,
     marginBottom: 14,
-    borderRadius: 18,
     overflow: 'hidden',
     backgroundColor: '#16042f',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
   },
   cardPressed: {
     transform: [{ scale: 0.98 }],
@@ -201,9 +197,6 @@ const styles = StyleSheet.create({
   cardBackground: {
     flex: 1,
     justifyContent: 'flex-end',
-  },
-  cardImage: {
-    borderRadius: 18,
   },
   cardOverlay: {
     ...StyleSheet.absoluteFillObject,
