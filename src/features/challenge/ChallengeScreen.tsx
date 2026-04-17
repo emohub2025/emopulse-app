@@ -189,6 +189,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
 
               <AutoShrinkBlock
                 height={110}
+                width={"100%"}
                 fontWeight="500"
               >
                 {challenge.topic}

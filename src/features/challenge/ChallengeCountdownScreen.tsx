@@ -216,6 +216,7 @@ export default function ChallengeResultScreen() {
 
           <AutoShrinkBlock
             height={100}
+            width={"100%"}
             fontWeight="700"
             textAlign="center"
             marginTop={5}

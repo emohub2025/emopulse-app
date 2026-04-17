@@ -5,6 +5,7 @@ import { Text, View, StyleSheet } from "react-native";
 type Props = {
   children: ReactNode;
   height: number;
+  width: any;
   minHeight?: number;
   style?: any;
   marginTop?: number;
@@ -21,11 +22,12 @@ type Props = {
 export default function AutoShrinkBlock({
   children,
   height,
+  width,
   minHeight = height,
   style,
   marginTop,
   marginBottom,
-  minFontSize = 14,
+  minFontSize = 15,
   maxFontSize = 24,
   textAlign = "center",
   fontWeight = "700",
@@ -60,7 +62,7 @@ export default function AutoShrinkBlock({
   }, [content, maxFontSize]);
 
   return (
-    <View style={[{ width: "100%", marginTop, marginBottom }, style]}>
+    <View style={[{ marginTop, marginBottom }, style]}>
 
       {/* Invisible measurement text */}
       <Text
@@ -97,6 +99,7 @@ export default function AutoShrinkBlock({
           styles.sharedText,
           {
             height: Math.max(minHeight, height),
+            width: width,
             fontSize,
             textAlign,
             fontWeight,

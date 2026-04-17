@@ -153,8 +153,6 @@ export default function ChallengeDetailScreen({
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-        <View style={styles.dimOverlay} />
-
         <SafeAreaView style={styles.contentWrapper} edges={['top', 'bottom']}>
           <View style={styles.container}>
 
@@ -162,6 +160,7 @@ export default function ChallengeDetailScreen({
             {!expanded && (
               <AutoShrinkBlock
                 height={100}
+                width={"100%"}
                 fontWeight="700"
                 textAlign="center"
                 fontStyle="italic"
@@ -251,21 +250,20 @@ export default function ChallengeDetailScreen({
             {/* DETAILS (only when collapsed) */}
             {!expanded && (
               <>
-                <Text style={styles.source}>
-                  Source:{' '}
-                  {challenge.source?.startsWith('Wacky') || !challenge.source
-                    ? 'Emopulse'
-                    : challenge.source}
-                </Text>
-
-                <View style={{ marginRight: -10 }}>
+                <View style={styles.metaText}>
+                  <Text style={styles.source}>
+                    Source:{' '}
+                    {challenge.source?.startsWith('Wacky') || !challenge.source
+                      ? 'Emopulse'
+                      : challenge.source}
+                  </Text>
                   <AutoShrinkBlock
                     maxFontSize={20}
-                    height={245}
-                    minHeight={230}
+                    height={200}
+                    width={"105%"}
+                    minHeight={200}
                     textAlign="left"
                     fontWeight="700"
-                    marginBottom={10}
                   >
                     {combinedDetails}
                   </AutoShrinkBlock>
@@ -333,6 +331,17 @@ const styles = StyleSheet.create({
     position: 'relative',
     zIndex: 2,
   },
+  metaText: {
+    marginTop: 10,
+    marginBottom: 7,
+    borderRadius: 18,
+    backgroundColor: 'rgba(18, 10, 42, 0.78)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.58)',
+    paddingHorizontal: 10,
+    paddingTop: 0,
+    paddingBottom: 0,
+  },
   imageWrapper: {
     width: '100%',
     height: 200,
@@ -351,7 +360,7 @@ const styles = StyleSheet.create({
     height: 47,
     resizeMode: 'contain',
     alignSelf: 'center',
-    marginTop: -30,
+    marginTop: 8,
   },
   winningEmotion: {
     marginTop: 20,

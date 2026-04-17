@@ -79,6 +79,7 @@ function SummaryCard({
           <AutoShrinkBlock
             key={topic}
             height={100}
+            width={"100%"}
             fontWeight="700"
             minFontSize={12}
             maxFontSize={24}

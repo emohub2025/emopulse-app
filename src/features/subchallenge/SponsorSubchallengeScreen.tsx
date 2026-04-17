@@ -129,6 +129,7 @@ export default function SponsorSubchallengeScreen() {
               maxFontSize={26}
               minFontSize={18}
               height={82}
+              width={"100%"}
               minHeight={82}
               textAlign="center"
               fontWeight="500"

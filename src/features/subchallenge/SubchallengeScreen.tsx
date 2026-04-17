@@ -222,7 +222,7 @@ export default function SubchallengeScreen({
           </View>
 
           <View style={styles.questionCard}>
-            <AutoShrinkBlock height={100} textAlign="center" fontStyle="italic" marginBottom={0}>
+            <AutoShrinkBlock height={100} width={"100%"} textAlign="center" fontStyle="italic" marginBottom={0}>
               {String(current.question_text ?? "")}
             </AutoShrinkBlock>
           </View>
