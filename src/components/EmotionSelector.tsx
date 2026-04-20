@@ -78,12 +78,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   button: {
-    marginTop: -13,
+    marginTop: 0,
     paddingBottom: 0,
   },
   icon: {
-    width: 160,
-    height: 173,
+    width: 164,
+    height: 176,
     resizeMode: 'contain',
   },
 });

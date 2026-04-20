@@ -21,9 +21,6 @@ type NavProp = NativeStackNavigationProp<RootStackParamList, 'Challenge'>;
 export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }) {
   const [emotion, setEmotion] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showSupplementalPrompt, setShowSupplementalPrompt] = useState(false);
-  const [showDuplicatePrompt, setShowDuplicatePrompt] = useState(false);
-  const [pendingSubchallenges, setPendingSubchallenges] = useState<any[]>([]);
   const navigation = useNavigation<NavProp>();
   const { formattedTime } = useCycleTimer();
   const userId = useCurrentUserId();
@@ -31,8 +28,6 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   const errorOpacity = useRef(new Animated.Value(0)).current;
   const timerOpacity = useRef(new Animated.Value(1)).current;
   const [lastTap, setLastTap] = useState<number | null>(null);
-  const [topicFontSize, setTopicFontSize] = useState(24);
-  //const bottomStatusText = formattedTime?.toLowerCase?.() === 'expired' ? 'Expired Challenges' : formattedTime;
   const bottomStatusText = formattedTime?.toLowerCase?.() === 'expired' ? 'Expired' : formattedTime;
 
   const { challengeId } = route.params;
@@ -103,29 +98,14 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
       const listResults = await getSubchallengeList(challenge.id);
       console.log("results:", listResults?.length);
 
-      // if (listResults?.length > 0) {
-      //   setPendingSubchallenges(listResults);
-      //   setShowSupplementalPrompt(true);
-      //   return;
-      // }
-
-        navigation.navigate("Subchallenge", {
-          challengeId: challenge.id,
-          subchallenges: listResults
-        });
+      navigation.navigate("Subchallenge", {
+        challengeId: challenge.id,
+        subchallenges: listResults
+      });
     } catch (err: any) {
       console.log("❌ Prediction failed:", err);
 
       const msg = err?.message || "Unable to submit prediction.";
-
-      if (
-        typeof msg === 'string' &&
-        msg.toLowerCase().includes('only place one prediction')
-      ) {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-        setShowDuplicatePrompt(true);
-        return;
-      }
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       setErrorMessage(msg);
@@ -194,10 +174,10 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
               >
                 {challenge.topic}
               </AutoShrinkBlock>
+            </View>
 
-              <View style={styles.selectorWrap}>
-                <EmotionSelector selected={emotion} onSelect={setEmotion} />
-              </View>
+            <View style={styles.selectorWrap}>
+              <EmotionSelector selected={emotion} onSelect={setEmotion} />
             </View>
 
             <View style={styles.submitArea}>
@@ -275,15 +255,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   mainCard: {
-    marginTop: 8,
+    marginTop: 0,
     marginHorizontal: 14,
-    paddingTop: 10,
+    paddingTop: 0,
     paddingBottom: 0,
     paddingHorizontal: 14,
     borderRadius: 22,
-    backgroundColor: 'rgba(20, 10, 46, 0.8)',
+    backgroundColor: 'rgba(20, 10, 46, 0.4)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255,255,255,0.7)',
   },
   selectorWrap: {
     marginTop: 10,
@@ -313,7 +293,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '800',
     textAlign: 'center',
-    marginTop: 10,
+    marginTop: -2,
     marginBottom: 7,
   },
   timer: {

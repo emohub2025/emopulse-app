@@ -203,7 +203,7 @@ export default function CategoryChallengesScreen() {
                       style={styles.card}
                       onPress={() => {
                         if (played && !previous) {
-                          navigation.navigate("ChallengeCountdown", { challengeId: ch.id });
+                          navigation.navigate("ChallengeDetail", { challengeId: ch.id });
                         } else {
                           navigation.navigate("ChallengeDetail", { challengeId: ch.id });
                         }

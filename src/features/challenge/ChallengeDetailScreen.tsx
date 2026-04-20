@@ -258,9 +258,9 @@ export default function ChallengeDetailScreen({
                       : challenge.source}
                   </Text>
                   <AutoShrinkBlock
-                    maxFontSize={20}
-                    height={200}
-                    width={"105%"}
+                    maxFontSize={22}
+                    height={210}
+                    width={"104%"}
                     minHeight={200}
                     textAlign="left"
                     fontWeight="700"
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   metaText: {
-    marginTop: 10,
+    marginTop: 6,
     marginBottom: 7,
     borderRadius: 18,
     backgroundColor: 'rgba(18, 10, 42, 0.78)',
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     height: 47,
     resizeMode: 'contain',
     alignSelf: 'center',
-    marginTop: 8,
+    marginTop: 6,
   },
   winningEmotion: {
     marginTop: 20,
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   source: {
-    marginTop: 10,
+    marginTop: 8,
     marginLeft: 14,
     color: 'white',
     fontSize: 16,

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   LayoutAnimation,
   ImageBackground,
+  Pressable,
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import ButtonPanel from "../../components/ButtonPanel";
@@ -14,6 +15,7 @@ import { apiGet } from "../../api/engineClient";
 import payoutIcon from "../../assets/images/payout.png";
 import payoutSubIcon from "../../assets/images/payout-sub.png";
 import betIcon from "../../assets/images/bet.png";
+import betSubIcon from "../../assets/images/bet-sub.png";
 import { useCurrentUserId } from "../../state/useUserSelectors";
 
 type Transaction = {
@@ -24,19 +26,33 @@ type Transaction = {
   transaction_date: string;
   challenge_id: string | null;
   challenge_topic?: string | null;
+  challenge_category?: string | null;
+};
+
+// -----------------------------
+// Topic Icons
+// -----------------------------
+const topicIcons: Record<string, any> = {
+  politics: require("../../assets/icons/politics.png"),
+  sports: require("../../assets/icons/sports.png"),
+  entertainment: require("../../assets/icons/entertainment.png"),
+  tech: require("../../assets/icons/tech.png"),
+  music: require("../../assets/icons/music.png"),
+  finance: require("../../assets/icons/finance.png"),
+  gaming: require("../../assets/icons/gaming.png"),
+  health: require("../../assets/icons/health.png"),
 };
 
 // -----------------------------
 // Helpers
 // -----------------------------
-
 function formatAmount(amount: string) {
   const num = Number(amount);
   const isPositive = num > 0;
 
   return {
     text: `${isPositive ? "+" : ""}${num.toFixed(2)}`,
-    color: isPositive ? "#4CAF50" : "#FF5252",
+    color: isPositive ? "lime" : "#FF5252",
   };
 }
 
@@ -48,21 +64,44 @@ function iconFor(type: string) {
   switch (type) {
     case "payout":
       return payoutIcon;
+    case "payout_sub":
+      return payoutSubIcon;
     case "bet":
       return betIcon;
+    case "subchallenge_bet":
+      return betSubIcon;
     default:
       return payoutSubIcon;
   }
 }
 
-function groupTransactionsByDay(transactions: Transaction[]) {
-  const groups: Record<string, Transaction[]> = {};
+function labelFor(type: string) {
+  switch (type) {
+    case "payout":
+      return "Challenge Payout";
+    case "payout_sub":
+      return "Subchallenge Payout";
+    case "bet":
+      return "Challenge Bet";
+    case "subchallenge_bet":
+      return "Subchallenge Bet";
+    default:
+      return type.toUpperCase();
+  }
+}
+
+// -----------------------------
+// Grouping: Challenge Sessions + Day Buckets
+// -----------------------------
+function buildChallengeSessions(
+  transactions: Transaction[],
+  collapsed: Record<string, boolean>
+) {
   const today = new Date();
   const yesterday = new Date();
-
   yesterday.setDate(today.getDate() - 1);
 
-  function labelFor(date: string) {
+  function dayLabel(date: string) {
     const d = new Date(date);
 
     if (d.toDateString() === today.toDateString()) return "Today";
@@ -74,32 +113,118 @@ function groupTransactionsByDay(transactions: Transaction[]) {
     return "Older";
   }
 
-  transactions.forEach((tx) => {
-    const label = labelFor(tx.transaction_date);
-    if (!groups[label]) groups[label] = [];
-    groups[label].push(tx);
+  // -----------------------------------------
+  // 1) Group by challenge_id (REAL FIX)
+  // -----------------------------------------
+  const sessionsById: Record<
+    string,
+    { challenge_id: string; challenge_topic: string; challenge_category: string; items: Transaction[] }
+  > = {};
+
+  let lastSeenChallengeId: string | null = null;
+
+  for (const tx of transactions) {
+    const cid = tx.challenge_id;
+    const topic = tx.challenge_topic?.trim() || "(Unknown Challenge)";
+    const category = tx.challenge_category?.trim() || "(Unknown Category)";
+
+    if (cid) {
+      // Create session if needed
+      if (!sessionsById[cid]) {
+        sessionsById[cid] = {
+          challenge_id: cid,
+          challenge_topic: topic,
+          challenge_category: category,
+          items: [],
+        };
+      }
+
+      sessionsById[cid].items.push(tx);
+      lastSeenChallengeId = cid;
+    } else {
+      // Null challenge_id → inherit from last seen challenge
+      if (lastSeenChallengeId) {
+        const inherited = sessionsById[lastSeenChallengeId];
+        inherited.items.push({
+          ...tx,
+          challenge_id: inherited.challenge_id,
+          challenge_topic: inherited.challenge_topic,
+        });
+      }
+    }
+  }
+
+  const sessions = Object.values(sessionsById);
+
+  // -----------------------------------------
+  // 2) Build day buckets
+  // -----------------------------------------
+  const dayBuckets: Record<string, any[]> = {};
+
+  sessions.forEach((session) => {
+    const groupKey = `session-${session.challenge_id}`;
+    const isCollapsed = collapsed[groupKey] ?? true;
+
+    session.items.forEach((tx, index) => {
+      const label = dayLabel(tx.transaction_date);
+      if (!dayBuckets[label]) dayBuckets[label] = [];
+
+      // Insert header once per session per day
+      if (index === 0) {
+        const topicKey = session.challenge_category.toLowerCase().trim() || "__default";
+
+        dayBuckets[label].push({
+          type: "challengeHeader",
+          id: `header-${groupKey}-${label}`,
+          title: session.challenge_topic,
+          topicKey,
+          collapsed: isCollapsed,
+          groupKey,
+        });
+      }
+
+      // Insert items only if expanded
+      if (!isCollapsed) {
+        dayBuckets[label].push({
+          ...tx,
+          type: tx.type,
+        });
+      }
+    });
   });
 
-  return Object.entries(groups).map(([title, data]) => ({ title, data }));
+  return Object.entries(dayBuckets).map(([title, data]) => ({
+    title,
+    data,
+  }));
 }
 
 // -----------------------------
 // Screen Component
 // -----------------------------
-
 export default function TransactionsScreen() {
   const route = useRoute();
   const userId = useCurrentUserId();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [grouped, setGrouped] = useState<any[]>([]);
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
 
-  // -----------------------------
-  // Initial load
-  // -----------------------------
+  function toggleGroup(groupKey: string) {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+
+    const updated = {
+      ...collapsed,
+      [groupKey]: !collapsed[groupKey],
+    };
+
+    setCollapsed(updated);
+    setGrouped(buildChallengeSessions(transactions, updated));
+  }
+
   async function loadInitial() {
     if (!userId) {
       setInitialLoading(false);
@@ -117,8 +242,21 @@ export default function TransactionsScreen() {
 
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
+      // 1) Initialize collapsed state FIRST
+      const initialCollapsed: Record<string, boolean> = {};
+      for (const tx of data.transactions) {
+        if (tx.challenge_id) {
+          initialCollapsed[`session-${tx.challenge_id}`] = true; // default collapsed
+        }
+      }
+
+      // 2) Apply collapsed state BEFORE grouping
+      setCollapsed(initialCollapsed);
+
+      // 3) Build grouped using the correct collapsed state
       setTransactions(data.transactions);
-      setGrouped(groupTransactionsByDay(data.transactions));
+      setGrouped(buildChallengeSessions(data.transactions, initialCollapsed));
+
       setNextCursor(data.next_cursor);
     } catch (err) {
       console.error("Failed to load wallet", err);
@@ -127,9 +265,6 @@ export default function TransactionsScreen() {
     }
   }
 
-  // -----------------------------
-  // Load more (pagination)
-  // -----------------------------
   async function loadMore() {
     if (!userId || !nextCursor || loadingMore) return;
 
@@ -146,7 +281,7 @@ export default function TransactionsScreen() {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
       setTransactions(merged);
-      setGrouped(groupTransactionsByDay(merged));
+      setGrouped(buildChallengeSessions(merged, collapsed));
       setNextCursor(data.next_cursor);
     } catch (err) {
       console.error("Failed to load more transactions", err);
@@ -226,6 +361,24 @@ export default function TransactionsScreen() {
                 <Text style={styles.sectionHeader}>{section.title}</Text>
               )}
               renderItem={({ item }) => {
+                if (item.type === "challengeHeader") {
+                  const icon =
+                    topicIcons[item.topicKey] || topicIcons.__default;
+
+                  return (
+                    <Pressable
+                      onPress={() => toggleGroup(item.groupKey)}
+                      style={styles.challengeHeaderRow}
+                    >
+                      <Image source={icon} style={styles.challengeIcon} />
+                      <Text style={styles.challengeHeader}>{item.title}</Text>
+                      <Text style={styles.collapseIndicator}>
+                        {item.collapsed ? "▶" : "▼"}
+                      </Text>
+                    </Pressable>
+                  );
+                }
+
                 const { text, color } = formatAmount(item.amount);
 
                 return (
@@ -234,9 +387,9 @@ export default function TransactionsScreen() {
 
                     <View style={{ flex: 1 }}>
                       <Text style={styles.txType}>
-                        {item.type.toUpperCase()}
+                        {labelFor(item.type)}
                       </Text>
-                      <Text style={styles.txDesc}>{item.challenge_topic}</Text>
+
                       <Text style={styles.txDate}>
                         {formatDate(item.transaction_date)}
                       </Text>
@@ -261,7 +414,6 @@ export default function TransactionsScreen() {
 // -----------------------------
 // Styles
 // -----------------------------
-
 const styles = StyleSheet.create({
   topLabel: {
     color: "white",
@@ -276,6 +428,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.85)",
     marginHorizontal: 12,
     marginTop: 20,
+    paddingTop: 20,
+    paddingBottom: 15,
     marginBottom: 75,
     borderRadius: 20,
     overflow: "hidden",
@@ -286,8 +440,32 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     marginHorizontal: 14,
-    marginTop: 20,
     marginBottom: 8,
+  },
+  challengeHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  challengeIcon: {
+    width: 32,
+    height: 32,
+    marginRight: 10,
+  },
+  challengeHeader: {
+    color: "rgba(0, 255, 0, 0.9)",
+    fontSize: 16,
+    fontWeight: "700",
+    fontStyle: "italic",
+    flex: 1,
+  },
+  collapseIndicator: {
+    color: "rgba(0, 255, 0, 0.9)",
+    fontSize: 18,
+    fontWeight: "700",
+    marginLeft: 10,
   },
   txRow: {
     flexDirection: "row",
@@ -306,20 +484,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
   },
-  txDesc: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 14,
-    marginTop: -5,
-  },
   txDate: {
     color: "rgba(255, 255, 255, 1.0)",
     fontSize: 14,
     marginTop: -5,
   },
   txAmount: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "700",
     marginLeft: 12,
-    marginTop: -27,
+    marginTop: 0,
   },
 });

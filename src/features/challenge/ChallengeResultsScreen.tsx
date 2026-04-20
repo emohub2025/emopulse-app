@@ -35,7 +35,6 @@ interface ResultCardProps {
   userChoice: string | null;
   winningChoice: string | null;
   payout: number;
-  delta: number;
 }
 
 const format = (n: number) => Number(n.toFixed(2));
@@ -137,16 +136,6 @@ function ResultCard(props: ResultCardProps) {
 
         <Text style={styles.cardLabel}>Payout:</Text>
         <Text style={styles.cardValue}>{props.payout}</Text>
-
-        <Text style={styles.cardLabel}>Delta:</Text>
-        <Text
-          style={[
-            styles.cardValue,
-            { color: props.delta >= 0 ? 'lime' : 'gold' }
-          ]}
-        >
-          {props.delta >= 0 ? `+${format(props.delta)}` : format(props.delta)}
-        </Text>
       </View>
     </LinearGradient>
   );
