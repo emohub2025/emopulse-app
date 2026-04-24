@@ -5,11 +5,17 @@ import { decodeHtmlEntities } from "../utils/decodeHtmlEntities";
 export async function getFeedList() {
   const response = await apiGet<FeedResponse>(`/feed`);
 
-  // ⭐ Clean all HTML entities in all challenges
+  // ⭐ Clean + attach category to each challenge
   const cleanedCategories: FeedCategory[] = response.categories.map(cat => ({
     ...cat,
-    active: cat.active.map(ch => cleanChallenge(ch)),
-    recent: cat.recent.map(ch => cleanChallenge(ch)),
+    active: cat.active.map(ch => ({
+      ...cleanChallenge(ch),
+      category: cat.name   // ⭐ attach category here
+    })),
+    recent: cat.recent.map(ch => ({
+      ...cleanChallenge(ch),
+      category: cat.name   // ⭐ attach category here
+    }))
   }));
 
   const cleanedResponse: FeedResponse = {

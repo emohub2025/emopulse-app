@@ -255,7 +255,6 @@ export default function ChallengeResultScreen() {
                   userChoice={results.user_main.emotion}
                   winningChoice={results.challenge.winning_emotion}
                   payout={results.user_main.payout}
-                  delta={results.user_main.delta}
                 />
               )}
 
@@ -270,7 +269,6 @@ export default function ChallengeResultScreen() {
                     userChoice={sub.user_option_label}
                     winningChoice={sub.winning_option_label}
                     payout={sub.payout}
-                    delta={sub.delta}
                   />
                 ))}
 
@@ -367,8 +365,8 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   cardImage: {
-    width: 178,
-    height: 157,
+    width: 270,
+    height: 65,
     resizeMode: 'cover',
     alignSelf: 'center',
     marginTop: 18,
@@ -379,8 +377,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 10,
-    marginLeft: 7,
-    marginRight: 7,
+    marginLeft: 20,
+    marginRight: 20,
     textAlign: 'center',
   },
   cardLabel: {
@@ -394,6 +392,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginLeft: 60,
+    marginRight: 10,
   },
   cardGradient: {
     borderRadius: 44,

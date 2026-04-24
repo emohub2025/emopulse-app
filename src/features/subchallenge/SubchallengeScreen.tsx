@@ -98,6 +98,12 @@ export default function SubchallengeScreen({
       return;
     }
 
+    // ⭐ WACKY PULSE: skip subchallenge bets entirely
+    if (challenge.category === "Wacky") {
+      handleSkip();
+      return;
+    }
+
     try {
       setLoading(true);
       setErrorMessage(null);

@@ -12,6 +12,37 @@ import { useFeed } from "../../context/FeedContext";
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'ChallengeCountdown'>;
 
+function normalizeTo100(emotions: any) {
+  const total =
+    emotions.happy.pct +
+    emotions.angry.pct +
+    emotions.sad.pct +
+    emotions.anxious.pct;
+
+  // Avoid divide-by-zero
+  if (total === 0) return emotions;
+
+  return {
+    happy:   { ...emotions.happy,   pct: emotions.happy.pct   / total },
+    angry:   { ...emotions.angry,   pct: emotions.angry.pct   / total },
+    sad:     { ...emotions.sad,     pct: emotions.sad.pct     / total },
+    anxious: { ...emotions.anxious, pct: emotions.anxious.pct / total },
+  };
+}
+
+function wobblePct(pct: number) {
+  // Give Wacky a fake baseline if needed
+  if (pct === 0) pct = 0.10; // 10%
+
+  const wobble = (Math.random() * 0.06) - 0.03; // ±3%
+  let next = pct + wobble;
+
+  // clamp 1%–99%
+  next = Math.max(0.01, Math.min(0.99, next));
+
+  return next;
+}
+
 type ProgressBarProps = {
   label: string;
   pct: number;     // 0–1
@@ -25,7 +56,7 @@ const ProgressBar = ({ label, pct, count, color }: ProgressBarProps) => {
       <Text style={{ marginBottom: 4, fontSize: 18, fontWeight: '600' }}>
         <Text style={{ color }}>{label}</Text>
         <Text style={{ color: 'white' }}>
-          {` — ${Math.round(pct * 100)}% (${count} votes)`}
+          {` — ${Math.round(pct * 100)}%`}
         </Text>
       </Text>
 
@@ -68,6 +99,16 @@ export default function ChallengeResultScreen() {
     );
   }
 
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(t => t + 1);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const challenge = feed.categories
     .flatMap(c => [...c.active, ...c.recent])
     .find(ch => ch.id === challengeId);
@@ -96,6 +137,29 @@ export default function ChallengeResultScreen() {
     sad:     { pct: 0, count: 0 },
     anxious: { pct: 0, count: 0 },
   };
+
+  const isWacky =
+    challenge.category === "Wacky" ||
+    (typeof challenge.source === "string" &&
+      challenge.source.startsWith("WackyPulse:"));
+
+  const [wEmotion, setWEmotion] = useState(emotionData);
+    
+  useEffect(() => {
+    if (!isWacky) {
+      setWEmotion(normalizeTo100(emotionData));
+      return;
+    }
+
+    const wobbled = {
+      happy:   { ...emotionData.happy,   pct: wobblePct(emotionData.happy.pct) },
+      angry:   { ...emotionData.angry,   pct: wobblePct(emotionData.angry.pct) },
+      sad:     { ...emotionData.sad,     pct: wobblePct(emotionData.sad.pct) },
+      anxious: { ...emotionData.anxious, pct: wobblePct(emotionData.anxious.pct) },
+    };
+
+    setWEmotion(normalizeTo100(wobbled));
+  }, [tick, isWacky]);
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(1)).current;
@@ -335,10 +399,10 @@ export default function ChallengeResultScreen() {
 
               {/* ⭐ 4 Progress Bars */}
               <View style={{ paddingHorizontal: 24, marginTop: 20 }}>
-                <ProgressBar label="Happy"   pct={emotionData.happy.pct}   count={emotionData.happy.count}   color="#00C46B" />
-                <ProgressBar label="Angry"   pct={emotionData.angry.pct}   count={emotionData.angry.count}   color="#D7263D" />
-                <ProgressBar label="Sad"     pct={emotionData.sad.pct}     count={emotionData.sad.count}     color="#2D6BFF" />
-                <ProgressBar label="Anxious" pct={emotionData.anxious.pct} count={emotionData.anxious.count} color="#A259FF" />
+                <ProgressBar label="Happy"   pct={wEmotion.happy.pct}   count={wEmotion.happy.count}   color="#00C46B" />
+                <ProgressBar label="Angry"   pct={wEmotion.angry.pct}   count={wEmotion.angry.count}   color="#D7263D" />
+                <ProgressBar label="Sad"     pct={wEmotion.sad.pct}     count={wEmotion.sad.count}     color="#2D6BFF" />
+                <ProgressBar label="Anxious" pct={wEmotion.anxious.pct} count={wEmotion.anxious.count} color="#A259FF" />
               </View>
             </View>
 

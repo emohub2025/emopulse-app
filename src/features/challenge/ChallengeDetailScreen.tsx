@@ -279,7 +279,13 @@ export default function ChallengeDetailScreen({
                     navigation.navigate("Challenge", { challengeId: challenge.id })
                   }
                 >
-                  <Image source={playButton} style={styles.playImage} />
+                  <Image
+                    source={playButton}
+                    style={[
+                      styles.playImage,
+                      { marginTop: expanded ? -26 : 6 }
+                    ]}
+                  />
                 </Pressable>
 
                 <Text style={styles.timer}>{formattedTime}</Text>
@@ -360,7 +366,6 @@ const styles = StyleSheet.create({
     height: 47,
     resizeMode: 'contain',
     alignSelf: 'center',
-    marginTop: 6,
   },
   winningEmotion: {
     marginTop: 20,

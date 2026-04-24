@@ -1,14 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  SectionList,
-  StyleSheet,
-  LayoutAnimation,
-  ImageBackground,
-  Pressable,
-} from "react-native";
+import { View, Text, Image, SectionList, StyleSheet, LayoutAnimation, ImageBackground, Pressable } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import ButtonPanel from "../../components/ButtonPanel";
 import { apiGet } from "../../api/engineClient";

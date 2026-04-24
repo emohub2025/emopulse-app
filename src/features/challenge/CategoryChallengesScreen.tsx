@@ -19,19 +19,20 @@ type NavProp = NativeStackNavigationProp<
 
 type RouteProps = RouteProp<RootStackParamList, 'CategoryChallenges'>;
 
-// const EMOTION_COLORS: Record<string, string> = {
-//   happy: "#00C46B",
-//   angry: "#D7263D",
-//   sad: "#2D6BFF",
-//   anxious: "#A259FF",
-// };
-
-// const EMOTION_EMOJI: Record<string, string> = {
-//   happy: "😊",
-//   angry: "😡",
-//   sad: "😢",
-//   anxious: "😰",
-// };
+// -----------------------------
+// Topic Icons
+// -----------------------------
+const topicIcons: Record<string, any> = {
+  Politics: require("../../assets/icons/politics.png"),
+  Sports: require("../../assets/icons/sports.png"),
+  Entertainment: require("../../assets/icons/entertainment.png"),
+  Tech: require("../../assets/icons/tech.png"),
+  Music: require("../../assets/icons/music.png"),
+  Finance: require("../../assets/icons/finance.png"),
+  Gaming: require("../../assets/icons/gaming.png"),
+  Health: require("../../assets/icons/health.png"),
+  Wacky: require("../../assets/icons/wacky.png"),
+};
 
 export default function CategoryChallengesScreen() {
   const navigation = useNavigation<NavProp>();
@@ -177,14 +178,26 @@ export default function CategoryChallengesScreen() {
         resizeMode="cover"
       >
         <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-          <Text style={styles.topLabel}>{category == 'Tech' ? 'Science & Technology' : category}</Text>
-
-        <View style={styles.content}>
-          {listData.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No Available Challenges</Text>
-            </View>
-          ) : (
+          <View style={{ 
+            flexDirection: "row", 
+            alignItems: "center", 
+            justifyContent: "center",
+            marginTop: 65 
+          }}>
+            <Image
+              source={topicIcons[category]}
+              style={styles.icon}
+            />
+            <Text style={styles.topLabel}>
+              {category === "Tech" ? "Science & Technology" : category}
+            </Text>
+          </View>
+          <View style={styles.content}>
+            {listData.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No Available Challenges</Text>
+              </View>
+            ) : (
               <FlatList
                 data={listData}
                 keyExtractor={(_, index) => index.toString()}
@@ -203,7 +216,7 @@ export default function CategoryChallengesScreen() {
                       style={styles.card}
                       onPress={() => {
                         if (played && !previous) {
-                          navigation.navigate("ChallengeDetail", { challengeId: ch.id });
+                          navigation.navigate("ChallengeCountdown", { challengeId: ch.id });
                         } else {
                           navigation.navigate("ChallengeDetail", { challengeId: ch.id });
                         }
@@ -273,13 +286,16 @@ const styles = StyleSheet.create({
     flex: 1,
     marginBottom: -35,
   },
+  icon: {
+    width: 40,
+    height: 40,
+    resizeMode: "contain",
+  },
   topLabel: {
     color: 'white',
     fontSize: 28,
     fontWeight: '700',
-    marginTop: 65,
-    marginBottom: 6,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     textAlign: 'center',
   },
   subLabel: {
