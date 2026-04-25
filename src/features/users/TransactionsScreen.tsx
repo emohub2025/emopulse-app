@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, SectionList, StyleSheet, LayoutAnimation, ImageBackground, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  SectionList,
+  StyleSheet,
+  LayoutAnimation,
+  ImageBackground,
+  Pressable,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRoute } from "@react-navigation/native";
 import ButtonPanel from "../../components/ButtonPanel";
 import { apiGet } from "../../api/engineClient";
@@ -20,9 +30,6 @@ type Transaction = {
   challenge_category?: string | null;
 };
 
-// -----------------------------
-// Topic Icons
-// -----------------------------
 const topicIcons: Record<string, any> = {
   politics: require("../../assets/icons/politics.png"),
   sports: require("../../assets/icons/sports.png"),
@@ -34,16 +41,15 @@ const topicIcons: Record<string, any> = {
   health: require("../../assets/icons/health.png"),
 };
 
-// -----------------------------
-// Helpers
-// -----------------------------
 function formatAmount(amount: string) {
   const num = Number(amount);
   const isPositive = num > 0;
 
   return {
     text: `${isPositive ? "+" : ""}${num.toFixed(2)}`,
-    color: isPositive ? "lime" : "#FF5252",
+    color: isPositive ? "#00E676" : "#FF5C8A",
+    bg: isPositive ? "rgba(0, 230, 118, 0.15)" : "rgba(255, 92, 138, 0.15)",
+    border: isPositive ? "rgba(0, 230, 118, 0.7)" : "rgba(255, 92, 138, 0.7)",
   };
 }
 
@@ -69,21 +75,18 @@ function iconFor(type: string) {
 function labelFor(type: string) {
   switch (type) {
     case "payout":
-      return "Challenge Payout";
+      return "Challenge Reward";
     case "payout_sub":
-      return "Subchallenge Payout";
+      return "Subchallenge Reward";
     case "bet":
-      return "Challenge Bet";
+      return "Challenge Coin";
     case "subchallenge_bet":
-      return "Subchallenge Bet";
+      return "Subchallenge Coin";
     default:
       return type.toUpperCase();
   }
 }
 
-// -----------------------------
-// Grouping: Challenge Sessions + Day Buckets
-// -----------------------------
 function buildChallengeSessions(
   transactions: Transaction[],
   collapsed: Record<string, boolean>
@@ -104,12 +107,14 @@ function buildChallengeSessions(
     return "Older";
   }
 
-  // -----------------------------------------
-  // 1) Group by challenge_id (REAL FIX)
-  // -----------------------------------------
   const sessionsById: Record<
     string,
-    { challenge_id: string; challenge_topic: string; challenge_category: string; items: Transaction[] }
+    {
+      challenge_id: string;
+      challenge_topic: string;
+      challenge_category: string;
+      items: Transaction[];
+    }
   > = {};
 
   let lastSeenChallengeId: string | null = null;
@@ -120,7 +125,6 @@ function buildChallengeSessions(
     const category = tx.challenge_category?.trim() || "(Unknown Category)";
 
     if (cid) {
-      // Create session if needed
       if (!sessionsById[cid]) {
         sessionsById[cid] = {
           challenge_id: cid,
@@ -133,7 +137,6 @@ function buildChallengeSessions(
       sessionsById[cid].items.push(tx);
       lastSeenChallengeId = cid;
     } else {
-      // Null challenge_id → inherit from last seen challenge
       if (lastSeenChallengeId) {
         const inherited = sessionsById[lastSeenChallengeId];
         inherited.items.push({
@@ -146,10 +149,6 @@ function buildChallengeSessions(
   }
 
   const sessions = Object.values(sessionsById);
-
-  // -----------------------------------------
-  // 2) Build day buckets
-  // -----------------------------------------
   const dayBuckets: Record<string, any[]> = {};
 
   sessions.forEach((session) => {
@@ -160,9 +159,9 @@ function buildChallengeSessions(
       const label = dayLabel(tx.transaction_date);
       if (!dayBuckets[label]) dayBuckets[label] = [];
 
-      // Insert header once per session per day
       if (index === 0) {
-        const topicKey = session.challenge_category.toLowerCase().trim() || "__default";
+        const topicKey =
+          session.challenge_category.toLowerCase().trim() || "__default";
 
         dayBuckets[label].push({
           type: "challengeHeader",
@@ -174,7 +173,6 @@ function buildChallengeSessions(
         });
       }
 
-      // Insert items only if expanded
       if (!isCollapsed) {
         dayBuckets[label].push({
           ...tx,
@@ -190,9 +188,6 @@ function buildChallengeSessions(
   }));
 }
 
-// -----------------------------
-// Screen Component
-// -----------------------------
 export default function TransactionsScreen() {
   const route = useRoute();
   const userId = useCurrentUserId();
@@ -233,21 +228,16 @@ export default function TransactionsScreen() {
 
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
-      // 1) Initialize collapsed state FIRST
       const initialCollapsed: Record<string, boolean> = {};
       for (const tx of data.transactions) {
         if (tx.challenge_id) {
-          initialCollapsed[`session-${tx.challenge_id}`] = true; // default collapsed
+          initialCollapsed[`session-${tx.challenge_id}`] = true;
         }
       }
 
-      // 2) Apply collapsed state BEFORE grouping
       setCollapsed(initialCollapsed);
-
-      // 3) Build grouped using the correct collapsed state
       setTransactions(data.transactions);
       setGrouped(buildChallengeSessions(data.transactions, initialCollapsed));
-
       setNextCursor(data.next_cursor);
     } catch (err) {
       console.error("Failed to load wallet", err);
@@ -286,204 +276,360 @@ export default function TransactionsScreen() {
   }, [userId]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: "black" }}>
+    <View style={styles.root}>
       <ImageBackground
         source={require("../../assets/images/background.png")}
-        style={{ flex: 1, marginBottom: 42 }}
+        style={styles.background}
         resizeMode="cover"
       >
-        <Text style={styles.topLabel}>Transaction History</Text>
+        <View style={styles.overlay}>
+          <Text style={styles.topLabel}>Coin Ledger</Text>
+          <Text style={styles.subtitle}>Track coins earned and spent.</Text>
 
-        {!initialLoading && transactions.length === 0 && (
-          <View
-            style={{
-              flex: 0.7,
-              alignItems: "center",
-              justifyContent: "center",
-              paddingHorizontal: 34,
-            }}
-          >
-            <Text
-              style={{
-                color: "#fff",
-                fontSize: 22,
-                fontWeight: "600",
-                marginBottom: 20,
-              }}
-            >
-              No Transactions Yet
-            </Text>
+          {!initialLoading && transactions.length === 0 && (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyIcon}>🪙</Text>
+              <Text style={styles.emptyTitle}>No Transactions Yet</Text>
+              <Text style={styles.emptySubtitle}>
+                Your coin activity will appear here once you enter challenges or
+                earn payouts.
+              </Text>
+            </View>
+          )}
 
-            <Text
-              style={{
-                color: "rgba(255,255,255,0.8)",
-                fontSize: 20,
-                textAlign: "center",
-              }}
-            >
-              Your activity will appear here once you start entering challenges
-              or earning payouts.
-            </Text>
-          </View>
-        )}
+          {transactions.length > 0 && (
+            <View style={styles.listContainer}>
+              <SectionList
+                sections={grouped}
+                keyExtractor={(item) => item.id}
+                onEndReached={loadMore}
+                onEndReachedThreshold={0.5}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.listContent}
+                ListFooterComponent={
+                  loadingMore ? (
+                    <Text style={styles.loadingMore}>Loading more…</Text>
+                  ) : null
+                }
+                renderSectionHeader={({ section }) => (
+                  <View style={styles.sectionHeaderWrap}>
+                    <Text style={styles.sectionHeader}>{section.title}</Text>
+                  </View>
+                )}
+                renderItem={({ item }) => {
+                  if (item.type === "challengeHeader") {
+                    const icon = topicIcons[item.topicKey] || topicIcons.politics;
 
-        {transactions.length > 0 && (
-          <View style={styles.listContainer}>
-            <SectionList
-              sections={grouped}
-              keyExtractor={(item) => item.id}
-              onEndReached={loadMore}
-              onEndReachedThreshold={0.5}
-              ListFooterComponent={
-                loadingMore ? (
-                  <Text
-                    style={{
-                      color: "white",
-                      textAlign: "center",
-                      padding: 20,
-                      opacity: 0.7,
-                    }}
-                  >
-                    Loading more…
-                  </Text>
-                ) : null
-              }
-              renderSectionHeader={({ section }) => (
-                <Text style={styles.sectionHeader}>{section.title}</Text>
-              )}
-              renderItem={({ item }) => {
-                if (item.type === "challengeHeader") {
-                  const icon =
-                    topicIcons[item.topicKey] || topicIcons.__default;
+                    return (
+                      <Pressable onPress={() => toggleGroup(item.groupKey)}>
+                        <LinearGradient
+                          colors={[
+                            "rgba(59, 7, 100, 0.95)",
+                            "rgba(5, 0, 24, 0.98)",
+                          ]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={styles.challengeHeaderRow}
+                        >
+                          <View style={styles.challengeIconWrap}>
+                            <Image source={icon} style={styles.challengeIcon} />
+                          </View>
+
+                          <View style={styles.challengeTextWrap}>
+                            <Text style={styles.challengeHeader} numberOfLines={2}>
+                              {item.title}
+                            </Text>
+                            <Text style={styles.challengeSubtext}>
+                              {item.collapsed
+                                ? "Tap to view coin activity"
+                                : "Tap to collapse activity"}
+                            </Text>
+                          </View>
+
+                          <View style={styles.expandPill}>
+                            <Text style={styles.collapseIndicator}>
+                              {item.collapsed ? "▶" : "▼"}
+                            </Text>
+                          </View>
+                        </LinearGradient>
+                      </Pressable>
+                    );
+                  }
+
+                  const amount = formatAmount(item.amount);
 
                   return (
-                    <Pressable
-                      onPress={() => toggleGroup(item.groupKey)}
-                      style={styles.challengeHeaderRow}
-                    >
-                      <Image source={icon} style={styles.challengeIcon} />
-                      <Text style={styles.challengeHeader}>{item.title}</Text>
-                      <Text style={styles.collapseIndicator}>
-                        {item.collapsed ? "▶" : "▼"}
-                      </Text>
-                    </Pressable>
-                  );
-                }
+                    <View style={styles.txRow}>
+                      <View style={styles.txIconWrap}>
+                        <Image source={iconFor(item.type)} style={styles.txIcon} />
+                      </View>
 
-                const { text, color } = formatAmount(item.amount);
+                      <View style={styles.txTextWrap}>
+                        <Text style={styles.txType}>{labelFor(item.type)}</Text>
 
-                return (
-                  <View style={styles.txRow}>
-                    <Image source={iconFor(item.type)} style={styles.txIcon} />
+                        <Text style={styles.txDate}>
+                          {formatDate(item.transaction_date)}
+                        </Text>
+                      </View>
 
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.txType}>
-                        {labelFor(item.type)}
-                      </Text>
-
-                      <Text style={styles.txDate}>
-                        {formatDate(item.transaction_date)}
-                      </Text>
+                      <View
+                        style={[
+                          styles.amountPill,
+                          {
+                            backgroundColor: amount.bg,
+                            borderColor: amount.border,
+                          },
+                        ]}
+                      >
+                        <Text style={[styles.txAmount, { color: amount.color }]}>
+                          {amount.text}
+                        </Text>
+                      </View>
                     </View>
-
-                    <Text style={[styles.txAmount, { color }]}>{text}</Text>
-                  </View>
-                );
-              }}
-            />
-          </View>
-        )}
+                  );
+                }}
+              />
+            </View>
+          )}
+        </View>
       </ImageBackground>
 
-      <View>
-        <ButtonPanel currentScreen={route.name} />
-      </View>
+      <View style={styles.bottomSafeArea} />
+      <ButtonPanel currentScreen={route.name} />
     </View>
   );
 }
 
-// -----------------------------
-// Styles
-// -----------------------------
 const styles = StyleSheet.create({
-  topLabel: {
-    color: "white",
-    fontSize: 26,
-    fontWeight: "700",
-    marginTop: 95,
-    textAlign: "center",
-    backgroundColor: "transparent",
+  root: {
+    flex: 1,
+    backgroundColor: "#050018",
   },
+
+  background: {
+    flex: 1,
+  },
+
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(5, 0, 24, 0.32)",
+    paddingHorizontal: 16,
+    paddingTop: 42,
+  },
+
+  topLabel: {
+    color: "#FFD700",
+    fontSize: 32,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+
+  subtitle: {
+    color: "#FFFFFF",
+    textAlign: "center",
+    fontSize: 14,
+    opacity: 0.85,
+    marginTop: 3,
+    marginBottom: 14,
+  },
+
   listContainer: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.85)",
-    marginHorizontal: 12,
-    marginTop: 20,
-    paddingTop: 20,
-    paddingBottom: 15,
-    marginBottom: 75,
-    borderRadius: 20,
+    backgroundColor: "rgba(5, 0, 24, 0.82)",
+    borderRadius: 24,
+    borderWidth: 1.5,
+    borderColor: "rgba(216, 180, 255, 0.55)",
     overflow: "hidden",
   },
-  sectionHeader: {
-    color: "yellow",
-    textAlign: "center",
-    fontSize: 18,
-    fontWeight: "700",
-    marginHorizontal: 14,
-    marginBottom: 8,
+
+  listContent: {
+    padding: 12,
+    paddingBottom: 190,
   },
+
+  sectionHeaderWrap: {
+    alignSelf: "center",
+    marginTop: 8,
+    marginBottom: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: "rgba(160, 32, 240, 0.22)",
+    borderWidth: 1,
+    borderColor: "rgba(216, 180, 255, 0.65)",
+  },
+
+  sectionHeader: {
+    color: "#F3E8FF",
+    fontSize: 15,
+    fontWeight: "900",
+    letterSpacing: 0.8,
+  },
+
   challengeHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 22,
+    padding: 13,
+    marginBottom: 10,
+    borderWidth: 1.3,
+    borderColor: "rgba(216, 180, 255, 0.45)",
   },
+
+  challengeIconWrap: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+  },
+
   challengeIcon: {
-    width: 32,
-    height: 32,
-    marginRight: 10,
+    width: 38,
+    height: 38,
+    resizeMode: "contain",
   },
-  challengeHeader: {
-    color: "rgba(0, 255, 0, 0.9)",
-    fontSize: 16,
-    fontWeight: "700",
-    fontStyle: "italic",
+
+  challengeTextWrap: {
     flex: 1,
   },
-  collapseIndicator: {
-    color: "rgba(0, 255, 0, 0.9)",
-    fontSize: 18,
-    fontWeight: "700",
-    marginLeft: 10,
+
+  challengeHeader: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "900",
+    lineHeight: 20,
   },
+
+  challengeSubtext: {
+    color: "#00FFD1",
+    fontSize: 11,
+    fontWeight: "800",
+    marginTop: 4,
+  },
+
+  expandPill: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 215, 0, 0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 215, 0, 0.65)",
+    marginLeft: 8,
+  },
+
+  collapseIndicator: {
+    color: "#FFD700",
+    fontSize: 15,
+    fontWeight: "900",
+  },
+
   txRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
-    borderBottomColor: "rgba(255,255,255,0.1)",
-    marginHorizontal: 14,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderRadius: 18,
+    paddingVertical: 11,
+    paddingHorizontal: 12,
+    marginBottom: 9,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
   },
+
+  txIconWrap: {
+    width: 43,
+    height: 43,
+    borderRadius: 21.5,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 11,
+    backgroundColor: "rgba(255,255,255,0.08)",
+  },
+
   txIcon: {
-    width: 33,
-    height: 33,
-    marginRight: 12,
+    width: 30,
+    height: 30,
+    resizeMode: "contain",
   },
+
+  txTextWrap: {
+    flex: 1,
+  },
+
   txType: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  txDate: {
-    color: "rgba(255, 255, 255, 1.0)",
+    color: "#FFFFFF",
     fontSize: 14,
-    marginTop: -5,
+    fontWeight: "900",
   },
+
+  txDate: {
+    color: "rgba(255,255,255,0.68)",
+    fontSize: 11,
+    fontWeight: "600",
+    marginTop: 3,
+  },
+
+  amountPill: {
+    minWidth: 76,
+    alignItems: "center",
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginLeft: 10,
+  },
+
   txAmount: {
-    fontSize: 17,
+    fontSize: 14,
+    fontWeight: "900",
+  },
+
+  loadingMore: {
+    color: "white",
+    textAlign: "center",
+    padding: 20,
+    opacity: 0.7,
     fontWeight: "700",
-    marginLeft: 12,
-    marginTop: 0,
+  },
+
+  emptyContainer: {
+    flex: 0.78,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 30,
+  },
+
+  emptyIcon: {
+    fontSize: 52,
+    marginBottom: 10,
+  },
+
+  emptyTitle: {
+    color: "#FFD700",
+    fontSize: 24,
+    fontWeight: "900",
+    marginBottom: 10,
+  },
+
+  emptySubtitle: {
+    color: "rgba(255,255,255,0.82)",
+    fontSize: 16,
+    textAlign: "center",
+    lineHeight: 23,
+  },
+
+  bottomSafeArea: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 120,
+    backgroundColor: "#050018",
   },
 });

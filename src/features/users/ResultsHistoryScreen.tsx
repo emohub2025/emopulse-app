@@ -1,9 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, FlatList, StyleSheet, LayoutAnimation, ImageBackground, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  FlatList,
+  StyleSheet,
+  LayoutAnimation,
+  ImageBackground,
+  Pressable,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../navigation/types";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import ButtonPanel from '../../components/ButtonPanel';
+import ButtonPanel from "../../components/ButtonPanel";
 import { apiGet } from "../../api/engineClient";
 import { useCurrentUserId } from "../../state/useUserSelectors";
 
@@ -62,12 +72,7 @@ export default function ChallengeHistoryScreen() {
         challenges: ChallengeItem[];
       }>(`user-challenges?user_id=${userId}`);
 
-      // ⭐ Log the entire response
-      //console.log("User challenges response:", JSON.stringify(data, null, 2));
-      //console.log("User:", userId);
-
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-
       setChallenges(data.challenges);
     } catch (err) {
       console.error("Failed to load challenge history", err);
@@ -79,8 +84,7 @@ export default function ChallengeHistoryScreen() {
   useEffect(() => {
     loadChallenges();
   }, [userId]);
-    
-  // Group by Today / Yesterday / Last Week / Older
+
   const grouped = challenges.reduce((acc: any[], item) => {
     const label = getRelativeLabel(item.resolved_at);
 
@@ -94,11 +98,9 @@ export default function ChallengeHistoryScreen() {
     return acc;
   }, []);
 
-  // Sort groups in desired order
   const order = ["Today", "Yesterday", "Last Week", "Older"];
   grouped.sort((a, b) => order.indexOf(a.label) - order.indexOf(b.label));
 
-  // Flatten into final list
   const finalList: any[] = [];
   grouped.forEach((group) => {
     finalList.push({ type: "header", text: group.label });
@@ -107,176 +109,298 @@ export default function ChallengeHistoryScreen() {
     );
   });
 
-  // Debug logging
-  //console.log("🔥 GROUPED HISTORY:", JSON.stringify(grouped, null, 2));
-  //console.log("🔥 FINAL LIST:", JSON.stringify(finalList, null, 2));
-
   return (
-    <View style={{ flex: 1, backgroundColor: 'black' }}>
+    <View style={styles.root}>
       <ImageBackground
         source={require("../../assets/images/background.png")}
-        style={{ flex: 1, marginBottom: 42 }}
+        style={styles.background}
         resizeMode="cover"
       >
-        <Text style={styles.topLabel}>Challenge History</Text>
+        <View style={styles.overlay}>
+          <Text style={styles.topLabel}>Results History</Text>
+          <Text style={styles.subtitle}>Review your past predictions</Text>
 
-        {/* Empty State */}
-        {!initialLoading && challenges.length === 0 && (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>No Challenges Yet</Text>
-            <Text style={styles.emptySubtitle}>
-              Your played challenges will appear here once you start participating.
-            </Text>
-          </View>
-        )}
+          {!initialLoading && challenges.length === 0 && (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyIcon}>🏆</Text>
+              <Text style={styles.emptyTitle}>No Results Yet</Text>
+              <Text style={styles.emptySubtitle}>
+                Start predicting emotions and your completed challenges will appear here.
+              </Text>
+            </View>
+          )}
 
-        {/* Challenge List */}
-        {challenges.length > 0 && (
-        <View style={styles.listContainer}>
-          <FlatList
-            data={finalList}
-            keyExtractor={(item, index) => {
-            if (item.type === "header") {
-                return `header-${item.text}-${index}`;
-            }
-            return item.item.challenge_id;
-            }}
-            renderItem={({ item }) => {
-              if (item.type === "header") {
-                return (
-                <Text style={[styles.sectionHeader, { marginTop: 20 }]}>
-                    {item.text}
-                </Text>
-                );
-              }
-
-              // Challenge card
-              const c = item.item;
-              const categoryKey = c.category ?? "politics";
-
-              return (
-                <Pressable
-                  onPress={() =>
-                    navigation.navigate("ChallengeResults", {
-                      challengeId: c.challenge_id,
-                      fromHistory: true,
-                    })
+          {challenges.length > 0 && (
+            <View style={styles.listContainer}>
+              <FlatList
+                data={finalList}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.listContent}
+                keyExtractor={(item, index) => {
+                  if (item.type === "header") {
+                    return `header-${item.text}-${index}`;
                   }
-                  >
-                  <View style={styles.row}>
-                    <Text style={styles.topic}>{c.topic}</Text>
+                  return item.item.challenge_id;
+                }}
+                renderItem={({ item }) => {
+                  if (item.type === "header") {
+                    return (
+                      <View style={styles.sectionHeaderWrap}>
+                        <Text style={styles.sectionHeader}>{item.text}</Text>
+                      </View>
+                    );
+                  }
 
-                    <View style={styles.categoryRow}>
-                      <Image source={categoryIcons[categoryKey]} style={styles.icon} />
-                      <Text style={styles.category}>{c.category}</Text>
-                    </View>
+                  const c = item.item;
+                  const categoryKey = c.category ?? "Politics";
+                  const iconSource = categoryIcons[categoryKey] ?? categoryIcons.Politics;
 
-                    <Text style={styles.date}>
-                      {c.resolved_at
-                        ? new Date(c.resolved_at).toLocaleString()
-                        : "Pending"}
-                    </Text>
-                  </View>
-                </Pressable>
-              );
-            }}
-            />
-          </View>
-        )}
+                  return (
+                    <Pressable
+                      onPress={() =>
+                        navigation.navigate("ChallengeResults", {
+                          challengeId: c.challenge_id,
+                          fromHistory: true,
+                        })
+                      }
+                    >
+                      <LinearGradient
+                        colors={["rgba(59, 7, 100, 0.92)", "rgba(5, 0, 24, 0.95)"]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.card}
+                      >
+                        <View style={styles.cardTopRow}>
+                          <View style={styles.iconGlow}>
+                            <Image source={iconSource} style={styles.icon} />
+                          </View>
+
+                          <View style={styles.cardTextArea}>
+                            <Text style={styles.topic} numberOfLines={2}>
+                              {c.topic || "Untitled Challenge"}
+                            </Text>
+
+                            <View style={styles.categoryRow}>
+                              <Text style={styles.category}>{c.category || "Challenge"}</Text>
+                            </View>
+                          </View>
+
+                          <View style={styles.statusPill}>
+                            <Text style={styles.statusText}>VIEW</Text>
+                          </View>
+                        </View>
+
+                        <View style={styles.cardFooter}>
+                          <Text style={styles.date}>
+                            {c.resolved_at
+                              ? new Date(c.resolved_at).toLocaleString()
+                              : "Pending"}
+                          </Text>
+
+                          <Text style={styles.tapHint}>Tap for result →</Text>
+                        </View>
+                      </LinearGradient>
+                    </Pressable>
+                  );
+                }}
+              />
+            </View>
+          )}
+        </View>
       </ImageBackground>
 
-      <View>
-        <ButtonPanel currentScreen={route.name} />
-      </View>
+      <View style={styles.bottomSafeArea} />
+      <ButtonPanel currentScreen={route.name} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: "#050018",
+  },
+
+  background: {
+    flex: 1,
+  },
+
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(5, 0, 24, 0.28)",
+    paddingHorizontal: 16,
+    paddingTop: 42,
+  },
+
   topLabel: {
-    color: "white",
-    fontSize: 26,
-    fontWeight: "700",
-    marginTop: 95,
-    paddingBottom: 10,
+    color: "#FFD700",
+    fontSize: 32,
+    fontWeight: "900",
     textAlign: "center",
+  },
+
+  subtitle: {
+    color: "#FFFFFF",
+    textAlign: "center",
+    fontSize: 14,
+    opacity: 0.85,
+    marginTop: 3,
+    marginBottom: 12,
   },
 
   listContainer: {
     flex: 1,
-    backgroundColor: "transparent",
-    marginHorizontal: 12,
-    marginBottom: 20,
-    overflow: "hidden",
+  },
+
+  listContent: {
+    paddingBottom: 190,
+  },
+
+  sectionHeaderWrap: {
+    alignSelf: "center",
+    marginTop: 18,
+    marginBottom: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: "rgba(160, 32, 240, 0.22)",
+    borderWidth: 1,
+    borderColor: "rgba(216, 180, 255, 0.65)",
   },
 
   sectionHeader: {
-    color: "yellow",
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 10,
-    textAlign: "center",
-    paddingHorizontal: 4,
+    color: "#F3E8FF",
+    fontSize: 15,
+    fontWeight: "900",
+    letterSpacing: 0.8,
   },
 
-  row: {
-    marginTop: 10,
-    borderRadius: 20,
-    backgroundColor: "rgb(18, 3, 103, 0.6)",
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-    borderColor: "#ed84df",
-    borderWidth: 1.5,
+  card: {
+    borderRadius: 22,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1.4,
+    borderColor: "rgba(216, 180, 255, 0.48)",
+  },
+
+  cardTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  iconGlow: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.22)",
+  },
+
+  icon: {
+    width: 40,
+    height: 40,
+    resizeMode: "contain",
+  },
+
+  cardTextArea: {
+    flex: 1,
   },
 
   topic: {
-    color: "white",
-    fontSize: 17,
-    fontWeight: "700",
-    marginBottom: 4,
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "900",
+    lineHeight: 21,
   },
 
   categoryRow: {
     flexDirection: "row",
     alignItems: "center",
-  },
-
-  icon: {
-    width: 35,
-    height: 35,
-    marginRight: 6,
-    resizeMode: "contain",
+    marginTop: 5,
   },
 
   category: {
-    color: "rgba(255,255,255,0.9)",
-    fontSize: 18,
-    fontWeight: "600",
+    color: "#D8B4FF",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+
+  statusPill: {
+    backgroundColor: "rgba(255, 215, 0, 0.16)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 215, 0, 0.75)",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginLeft: 8,
+  },
+
+  statusText: {
+    color: "#FFD700",
+    fontSize: 11,
+    fontWeight: "900",
+  },
+
+  cardFooter: {
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.1)",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 
   date: {
-    color: "rgba(255,255,255,0.9)",
-    fontSize: 14,
-    marginTop: 4,
+    color: "rgba(255,255,255,0.74)",
+    fontSize: 12,
+    fontWeight: "600",
+    flex: 1,
+  },
+
+  tapHint: {
+    color: "#00FFD1",
+    fontSize: 12,
+    fontWeight: "900",
+    marginLeft: 10,
   },
 
   emptyContainer: {
-    flex: 0.7,
+    flex: 0.78,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 34,
+    paddingHorizontal: 30,
+  },
+
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: 10,
   },
 
   emptyTitle: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "600",
-    marginBottom: 20,
+    color: "#FFD700",
+    fontSize: 24,
+    fontWeight: "900",
+    marginBottom: 10,
   },
 
   emptySubtitle: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 20,
+    color: "rgba(255,255,255,0.82)",
+    fontSize: 16,
     textAlign: "center",
+    lineHeight: 23,
+  },
+
+  bottomSafeArea: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 120,
+    backgroundColor: "#050018",
   },
 });
