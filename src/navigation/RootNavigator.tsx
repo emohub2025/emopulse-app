@@ -3,27 +3,31 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as NavigationBar from "expo-navigation-bar";
 import { Image, View } from "react-native";
 import { RootStackParamList } from "./types";
-import HomePageScreen from '../features/users/HomePageScreen';
-import LoginScreen from '../features/users/LoginScreen';
-import SignupScreen from '../features/users/SignupScreen';
-import AccountScreen from '../features/users/AccountScreen';
-import HelpAndSupportScreen from '../features/users/HelpAndSupportScreen';
-import FeedbackScreen from '../features/users/FeedbackScreen';
-import SettingsScreen from '../features/users/SettingsScreen';
-import ProfileScreen from '../features/users/ProfileScreen';
-import ResultsHistoryScreen from '../features/users/ResultsHistoryScreen';
-import LiveChallengesScreen from '../features/challenge/LiveChallengesScreen';
-import TransactionsScreen from '../features/users/TransactionsScreen';
-import AchievementsScreen from '../features/users/AchievementsScreen';
-import PrizesAndRewardsScreen from '../features/users/PrizesAndRewardsScreen';
-import TeamsScreen from '../features/teams/TeamsScreen';
-import CategoryListScreen from '../features/challenge/CategoryListScreen';
-import CategoryChallengesScreen from '../features/challenge/CategoryChallengesScreen';
-import ChallengeDetailScreen from '../features/challenge/ChallengeDetailScreen';
-import ChallengeScreen from '../features/challenge/ChallengeScreen';
-import ChallengeCountdownScreen from '../features/challenge/ChallengeCountdownScreen';
-import ChallengeResultsScreen from '../features/challenge/ChallengeResultsScreen';
-import SubchallengeScreen from '../features/subchallenge/SubchallengeScreen';
+
+import HomePageScreen from "../features/users/HomePageScreen";
+import LoginScreen from "../features/users/LoginScreen";
+import SignupScreen from "../features/users/SignupScreen";
+import AccountScreen from "../features/users/AccountScreen";
+import HelpAndSupportScreen from "../features/users/HelpAndSupportScreen";
+import FeedbackScreen from "../features/users/FeedbackScreen";
+import SettingsScreen from "../features/users/SettingsScreen";
+import ProfileScreen from "../features/users/ProfileScreen";
+import ResultsHistoryScreen from "../features/users/ResultsHistoryScreen";
+import TransactionsScreen from "../features/users/TransactionsScreen";
+import AchievementsScreen from "../features/users/AchievementsScreen";
+import PrizesAndRewardsScreen from "../features/users/PrizesAndRewardsScreen";
+import LeaderboardScreen from "../features/users/LeaderboardScreen";
+
+import LiveChallengesScreen from "../features/challenge/LiveChallengesScreen";
+import CategoryListScreen from "../features/challenge/CategoryListScreen";
+import CategoryChallengesScreen from "../features/challenge/CategoryChallengesScreen";
+import ChallengeDetailScreen from "../features/challenge/ChallengeDetailScreen";
+import ChallengeScreen from "../features/challenge/ChallengeScreen";
+import ChallengeCountdownScreen from "../features/challenge/ChallengeCountdownScreen";
+import ChallengeResultsScreen from "../features/challenge/ChallengeResultsScreen";
+
+import TeamsScreen from "../features/teams/TeamsScreen";
+import SubchallengeScreen from "../features/subchallenge/SubchallengeScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -115,17 +119,13 @@ export default function RootNavigator({
       <Stack.Screen
         name="Achievements"
         component={AchievementsScreen}
-        options={{
-          headerTitle: () => <LogoHeader />,
-        }}
+        options={{ headerTitle: () => <LogoHeader /> }}
       />
 
       <Stack.Screen
         name="PrizesAndRewards"
         component={PrizesAndRewardsScreen}
-        options={{
-          headerTitle: () => <LogoHeader />,
-        }}
+        options={{ headerTitle: () => <LogoHeader /> }}
       />
 
       <Stack.Screen
@@ -149,6 +149,12 @@ export default function RootNavigator({
       <Stack.Screen
         name="Teams"
         component={TeamsScreen}
+        options={{ headerTitle: () => <LogoHeader /> }}
+      />
+
+      <Stack.Screen
+        name="Leaderboard"
+        component={LeaderboardScreen}
         options={{ headerTitle: () => <LogoHeader /> }}
       />
 

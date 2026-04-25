@@ -92,6 +92,7 @@ export type RootStackParamList = {
   Settings: undefined;
   PrizesRewards: undefined;
   Teams: undefined;
+  Leaderboard: undefined;
 
   Profile: {
     user: MobileUser;

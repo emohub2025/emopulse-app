@@ -205,7 +205,7 @@ export default function AccountScreen() {
             <OptionRow
               icon={coinIcon}
               label="   Coin Balance"
-              subLabel={`   ${user.coin_balance} Emo Coins`}
+              subLabel={`   ${user.coin_balance} Coins`}
               height={65}
               borderTopWidth={2}
               borderBottomWidth={2}

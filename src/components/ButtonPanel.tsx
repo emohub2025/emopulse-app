@@ -3,23 +3,23 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
+
 import homeIcon from '../assets/buttons/panel-home.png';
 import accountIcon from '../assets/buttons/panel-account.png';
 import teamsIcon from '../assets/buttons/panel-teams.png';
 import historyIcon from '../assets/buttons/panel-history.png';
+import leaderboardIcon from '../assets/buttons/panel-leaderboard.png';
 
 type ButtonPanelProps = {
   currentScreen: string;
 };
 
 export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
-  // Access navigation directly inside the component
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
 
   return (
     <View style={styles.container}>
-      {/* Gradient top line */}
       <LinearGradient
         colors={['#A020F0', '#D8B4FF', '#A020F0']}
         start={{ x: 0, y: 0 }}
@@ -27,10 +27,8 @@ export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
         style={styles.topLine}
       />
 
-      {/* Horizontal row of icons */}
       <View style={styles.row}>
-
-        {/* Category List */}
+        {/* Category List / Home */}
         {route.name !== 'CategoryList' && (
           <Pressable
             onPress={() => navigation.navigate('CategoryList')}
@@ -40,20 +38,9 @@ export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
             <Text style={styles.label}>Home</Text>
           </Pressable>
         )}
-        
-        {/* Live Challenges */}
-        {(route.name === 'CategoryList' || route.name === 'Teams' || route.name === 'Achievements' || route.name === 'HelpAndSupport') && (
-          <Pressable
-            onPress={() => navigation.navigate('LiveChallenges')}
-            style={styles.item}
-          >
-            <Image source={historyIcon} style={styles.icon} />
-            <Text style={styles.label}>Live</Text>
-          </Pressable>
-        )}
-        
+
         {/* History */}
-        {(route.name === 'CategoryList' || route.name === 'Teams' || route.name === 'Achievements' || route.name === 'HelpAndSupport') && (
+        {route.name !== 'ResultsHistory' && (
           <Pressable
             onPress={() => navigation.navigate('ResultsHistory')}
             style={styles.item}
@@ -74,8 +61,19 @@ export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
           </Pressable>
         )}
 
+        {/* Leaderboard */}
+        {route.name !== 'Leaderboard' && (
+          <Pressable
+            onPress={() => navigation.navigate('Leaderboard')}
+            style={styles.item}
+          >
+            <Image source={leaderboardIcon} style={styles.icon} />
+            <Text style={styles.label}>Leaderboard</Text>
+          </Pressable>
+        )}
+
         {/* Account */}
-        {(route.name === 'CategoryList' || route.name === 'Teams') && (
+        {route.name !== 'Account' && (
           <Pressable
             onPress={() => navigation.navigate('Account')}
             style={styles.item}
@@ -86,7 +84,6 @@ export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
         )}
       </View>
 
-      {/* Bottom gradient line */}
       <LinearGradient
         colors={['#A020F0', '#D8B4FF', '#A020F0']}
         start={{ x: 0, y: 0 }}
@@ -122,8 +119,8 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
 
-    bottomLine: {
-    position: "absolute",
+  bottomLine: {
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
@@ -150,7 +147,7 @@ const styles = StyleSheet.create({
   label: {
     marginTop: 0,
     color: '#fff',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
   },
 });
