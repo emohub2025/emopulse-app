@@ -155,3 +155,19 @@ export async function apiPost<T>(path: string, body: any): Promise<T> {
 }
 
 export { forceLogout, clearAuthStorage, refreshAuthToken };
+
+// Leader board Infomration
+
+export type LeaderboardUser = {
+  rank: number;
+  user_id: string;
+  display_name: string;
+  avatar_url: string | null;
+  coin_balance: number;
+  wins: number;
+};
+
+export async function getLeaderboard(): Promise<LeaderboardUser[]> {
+  const res = await apiGet<{ leaderboard: LeaderboardUser[] }>("/leaderboard");
+  return res.leaderboard;
+}
