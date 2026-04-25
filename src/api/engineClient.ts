@@ -164,7 +164,6 @@ export type LeaderboardUser = {
   display_name: string;
   avatar_url: string | null;
   coin_balance: number;
-  wins: number;
 };
 
 export async function getLeaderboard(): Promise<LeaderboardUser[]> {
