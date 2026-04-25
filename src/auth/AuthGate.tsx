@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import RootNavigator from "../navigation/RootNavigator";
+import { clearAuthStorage, refreshAuthToken } from "../api/engineClient";
 
 export default function AuthGate() {
   const [booting, setBooting] = useState(true);
@@ -20,16 +21,41 @@ export default function AuthGate() {
         const hasRefreshToken = !!refreshToken;
         const hasUserId = !!userId;
 
-        if (mounted) {
-          setIsLoggedIn(hasAccessToken && hasRefreshToken && hasUserId);
+        // Refresh token is the real session token.
+        // Access token is allowed to expire.
+        if (!hasRefreshToken || !hasUserId) {
+          await clearAuthStorage();
+
+          if (mounted) {
+            setIsLoggedIn(false);
+          }
+
+          return;
         }
 
-        if (!hasAccessToken || !hasRefreshToken || !hasUserId) {
-          await AsyncStorage.multiRemove(["authToken", "refreshToken", "userId"]);
+        // If the access token is missing, silently refresh it.
+        // If it exists but is expired, engineClient will refresh it on the next 401.
+        if (!hasAccessToken) {
+          try {
+            await refreshAuthToken();
+          } catch (refreshErr) {
+            console.log("❌ Startup token refresh failed:", refreshErr);
+            await clearAuthStorage();
+
+            if (mounted) {
+              setIsLoggedIn(false);
+            }
+
+            return;
+          }
+        }
+
+        if (mounted) {
+          setIsLoggedIn(true);
         }
       } catch (err) {
         console.log("❌ AuthGate bootstrap failed:", err);
-        await AsyncStorage.multiRemove(["authToken", "refreshToken", "userId"]);
+        await clearAuthStorage();
 
         if (mounted) {
           setIsLoggedIn(false);

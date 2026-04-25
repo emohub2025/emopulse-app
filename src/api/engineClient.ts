@@ -26,7 +26,7 @@ async function forceLogout(): Promise<void> {
   }
 }
 
-async function attemptTokenRefresh(): Promise<string> {
+async function refreshAuthToken(): Promise<string> {
   const refreshToken = await AsyncStorage.getItem("refreshToken");
 
   if (!refreshToken) {
@@ -50,6 +50,7 @@ async function attemptTokenRefresh(): Promise<string> {
   }
 
   let data: any;
+
   try {
     data = JSON.parse(rawText);
   } catch {
@@ -92,11 +93,13 @@ async function request<T>(
     let token = await AsyncStorage.getItem("authToken");
     let res = await doFetch(token ?? undefined);
 
-    if (res.status === 401) {
+    const isRefreshEndpoint = cleanPath === "/auth/refresh";
+
+    if (res.status === 401 && !isRefreshEndpoint) {
       console.log("🔐 Access token expired — attempting refresh");
 
       try {
-        token = await attemptTokenRefresh();
+        token = await refreshAuthToken();
       } catch (refreshErr) {
         console.log("❌ Refresh failed — forcing logout", refreshErr);
         await forceLogout();
@@ -111,6 +114,7 @@ async function request<T>(
 
       try {
         const errBody = await res.json();
+
         if (errBody?.error) {
           message = errBody.error;
         } else if (errBody?.message) {
@@ -119,11 +123,12 @@ async function request<T>(
       } catch {
         try {
           const fallbackText = await res.text();
+
           if (fallbackText) {
             message = fallbackText;
           }
         } catch {
-          // ignore
+          // ignore fallback parsing errors
         }
       }
 
@@ -149,4 +154,4 @@ export async function apiPost<T>(path: string, body: any): Promise<T> {
   return request<T>("POST", path, body);
 }
 
-export { forceLogout, clearAuthStorage };
+export { forceLogout, clearAuthStorage, refreshAuthToken };
