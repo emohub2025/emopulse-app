@@ -399,10 +399,10 @@ export default function ChallengeResultScreen() {
 
               {/* ⭐ 4 Progress Bars */}
               <View style={{ paddingHorizontal: 24, marginTop: 20 }}>
-                <ProgressBar label="Happy"   pct={wEmotion.happy.pct}   count={wEmotion.happy.count}   color="#00C46B" />
-                <ProgressBar label="Angry"   pct={wEmotion.angry.pct}   count={wEmotion.angry.count}   color="#D7263D" />
-                <ProgressBar label="Sad"     pct={wEmotion.sad.pct}     count={wEmotion.sad.count}     color="#2D6BFF" />
-                <ProgressBar label="Anxious" pct={wEmotion.anxious.pct} count={wEmotion.anxious.count} color="#A259FF" />
+                <ProgressBar label={isWacky ? "LOL"      : "Happy"}   pct={wEmotion.happy.pct}   count={wEmotion.happy.count}   color="#00C46B" />
+                <ProgressBar label={isWacky ? "Stupid"   : "Angry"}   pct={wEmotion.angry.pct}   count={wEmotion.angry.count}   color="#D7263D" />
+                <ProgressBar label={isWacky ? "WTF"      : "Sad"}     pct={wEmotion.sad.pct}     count={wEmotion.sad.count}     color="#2D6BFF" />
+                <ProgressBar label={isWacky ? "Confused" : "Anxious"} pct={wEmotion.anxious.pct} count={wEmotion.anxious.count} color="#A259FF" />
               </View>
             </View>
 
