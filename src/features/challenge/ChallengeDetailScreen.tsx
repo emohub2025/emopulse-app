@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { View, Text, ImageBackground, StyleSheet, ViewStyle, Image, Pressable, Animated, Easing, StyleProp } from 'react-native';
+import { View, Text, ImageBackground, StyleSheet, ViewStyle, Image, Pressable, Animated, Easing, ScrollView } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../../navigation/types';
@@ -257,16 +257,14 @@ export default function ChallengeDetailScreen({
                       ? 'Emopulse'
                       : challenge.source}
                   </Text>
-                  <AutoShrinkBlock
-                    maxFontSize={22}
-                    height={210}
-                    width={"104%"}
-                    minHeight={200}
-                    textAlign="left"
-                    fontWeight="700"
+                  <ScrollView
+                    style={{ height: 197 }}
+                    showsVerticalScrollIndicator={false}
                   >
-                    {combinedDetails}
-                  </AutoShrinkBlock>
+                    <Text style={styles.meta}>
+                      {combinedDetails}
+                    </Text>
+                  </ScrollView>
                 </View>
               </>
             )}
@@ -339,14 +337,14 @@ const styles = StyleSheet.create({
   },
   metaText: {
     marginTop: 6,
-    marginBottom: 7,
+    marginBottom: 5,
     borderRadius: 18,
     backgroundColor: 'rgba(18, 10, 42, 0.78)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.58)',
     paddingHorizontal: 10,
     paddingTop: 0,
-    paddingBottom: 0,
+    paddingBottom: 12,
   },
   imageWrapper: {
     width: '100%',
@@ -388,8 +386,16 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
   },
+  meta: {
+    marginTop: -2,
+    marginLeft: 14,
+    color: 'white',
+    fontSize: 19,
+    fontWeight: '500',
+  },
   source: {
     marginTop: 8,
+    marginBottom: 8,
     marginLeft: 14,
     color: 'white',
     fontSize: 16,

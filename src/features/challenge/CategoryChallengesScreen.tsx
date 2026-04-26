@@ -83,28 +83,13 @@ export default function CategoryChallengesScreen() {
   }
 
   function enrichChallenge(ch: any) {
-    snapshot.find(s => s.id === ch.id);
-    const live = snapshot.find(s => s.id === ch.id);
-    //const emotions = live ? normalizeEmotions(live.main) : null;
-
-    // if (!emotions) {
-    //   return { ...ch, leadingEmotion: null, leadingPct: 0 };
-    // }
-
-    // const sorted = Object.entries(emotions).sort((a, b) => b[1].pct - a[1].pct);
-    // const [winner, data] = sorted[0];
-
     return {
       ...ch,
-//      leadingEmotion: winner,
-//      leadingPct: Math.round(data.pct * 100),
     };
   }
 
   const enrichedActive = active.map(enrichChallenge);
-//console.log("active:", enrichedActive.length);
   const enrichedRecent = recent.map(enrichChallenge);
-//console.log("recent:", enrichedRecent.length);
 
   // --------------------------------------------------
   // CORRECT LOGIC:
@@ -229,44 +214,13 @@ export default function CategoryChallengesScreen() {
                       />
 
                       <Text style={styles.title}>{ch.topic}</Text>
-                          {isVideo && (
-                            <View style={styles.videoBadge}>
-                              <Text style={styles.videoBadgeText}>
-                                Video: {ch.source.replace('YouTube: ', '')}
-                              </Text>
-                            </View>
-                          )}
-{/* 
-                          {isVideo && (
-                            <View style={styles.videoBadge}>
-                              <Text style={styles.videoBadgeText}>
-                                Video: {ch.source.replace('YouTube: ', '')}
-                              </Text>
-                            </View>
-                          )}
-
-
-                      {played && (
-                        <View style={styles.progressRow}>
-                          <Text style={{ fontSize: 26, marginRight: 8 }}>
-                            {EMOTION_EMOJI[ch.leadingEmotion] || "❓"}
-                          </Text>
-
-                          <View style={styles.progressBarBackground}>
-                            <View
-                              style={[
-                                styles.progressBarFill,
-                                {
-                                  width: `${ch.leadingPct}%`,
-                                  backgroundColor: EMOTION_COLORS[ch.leadingEmotion],
-                                },
-                              ]}
-                            />
+                        {isVideo && (
+                          <View style={styles.videoBadge}>
+                            <Text style={styles.videoBadgeText}>
+                              Video: {ch.source.replace('YouTube: ', '')}
+                            </Text>
                           </View>
-
-                          <Text style={styles.percentText}>{ch.leadingPct}%</Text>
-                        </View>
-                      )} */}
+                        )}
                     </Pressable>
                   );
                 }}
@@ -297,13 +251,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     paddingHorizontal: 10,
     textAlign: 'center',
-  },
-  subLabel: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 15,
-    textAlign: 'center',
-    marginBottom: 10,
-    paddingHorizontal: 24,
   },
   content: {
     flex: 1,
@@ -361,7 +308,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 10,
     paddingHorizontal: 15,
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '600',
     color: '#fff',
     textAlign: 'center',

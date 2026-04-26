@@ -1,69 +1,38 @@
 import { View, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { emotionImages } from './EmotionImage';
 
 interface Props {
   selected: string | null;
   onSelect: (emotion: string) => void;
+  category: string;
 }
 
-const emotions = [
-  {
-    key: 'happy',
-    src: require('../assets/emotions/happy.png'),
-    selectedSrc: require('../assets/emotions/happy-select.png'),
-  },
-  {
-    key: 'anxious',
-    src: require('../assets/emotions/anxiety.png'),
-    selectedSrc: require('../assets/emotions/anxiety-select.png'),
-  },
-  {
-    key: 'angry',
-    src: require('../assets/emotions/angry.png'),
-    selectedSrc: require('../assets/emotions/angry-select.png'),
-  },
-  {
-    key: 'sad',
-    src: require('../assets/emotions/sadness.png'),
-    selectedSrc: require('../assets/emotions/sadness-select.png'),
-  },
-];
+const emotionKeys = ['happy', 'anxious', 'angry', 'sad'];
 
-export default function EmotionSelector({ selected, onSelect }: Props) {
+export default function EmotionSelector({ selected, onSelect, category }: Props) {
+  const images = emotionImages[category];
+
   return (
     <View style={styles.container}>
-
-      {/* Row 1 */}
-      <View style={styles.row}>
-        {emotions.slice(0, 2).map(e => (
-          <TouchableOpacity
-            key={e.key}
-            onPress={() => onSelect(e.key)}
-            style={styles.button}
-          >
-            <Image
-              source={selected === e.key ? e.selectedSrc : e.src}
-              style={styles.icon}
-            />
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Row 2 */}
-      <View style={styles.row}>
-        {emotions.slice(2, 4).map(e => (
-          <TouchableOpacity
-            key={e.key}
-            onPress={() => onSelect(e.key)}
-            style={styles.button}
-          >
-            <Image
-              source={selected === e.key ? e.selectedSrc : e.src}
-              style={styles.icon}
-            />
-          </TouchableOpacity>
-        ))}
-      </View>
-
+      {Array.from({ length: 2 }).map((_, rowIndex) => (
+        <View style={styles.row} key={rowIndex}>
+          {emotionKeys.slice(rowIndex * 2, rowIndex * 2 + 2).map(key => {
+            const { src, selected: selectedSrc } = images[key];
+            return (
+              <TouchableOpacity
+                key={key}
+                onPress={() => onSelect(key)}
+                style={styles.button}
+              >
+                <Image
+                  source={selected === key ? selectedSrc : src}
+                  style={styles.icon}
+                />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      ))}
     </View>
   );
 }
@@ -82,8 +51,8 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
   },
   icon: {
-    width: 164,
-    height: 176,
+    width: 180,
+    height: 184,
     resizeMode: 'contain',
   },
 });

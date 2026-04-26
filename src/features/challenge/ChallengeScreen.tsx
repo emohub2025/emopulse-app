@@ -177,7 +177,11 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
             </View>
 
             <View style={styles.selectorWrap}>
-              <EmotionSelector selected={emotion} onSelect={setEmotion} />
+              <EmotionSelector 
+                selected={emotion} 
+                onSelect={setEmotion} 
+                category={challenge.category}
+              />
             </View>
 
             <View style={styles.submitArea}>
@@ -290,11 +294,11 @@ const styles = StyleSheet.create({
   },
   costText: {
     color: '#FFD700',
-    fontSize: 24,
+    fontSize: 23,
     fontWeight: '800',
     textAlign: 'center',
-    marginTop: -2,
-    marginBottom: 7,
+    marginTop: -10,
+    marginBottom: 5,
   },
   timer: {
     color: 'yellow',
