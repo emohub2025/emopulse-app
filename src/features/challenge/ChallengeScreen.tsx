@@ -83,17 +83,19 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
       const response = await postPlaceUserBet({
         challenge_id: challenge.id,
         user_id: userId,
-        emotion
+        emotion,
+        amount: 1
       });
 
       console.log("Prediction submitted:", response);
       await markChallengePlayed(challengeId);
 
-      if (isYouTube) {
-        setLoading(false);
-        navigation.navigate("ChallengeCountdown", { challengeId: challenge.id })
-        return;
-      }
+      // Allow subchallenges now for Youtube!
+      // if (isYouTube) {
+      //   setLoading(false);
+      //   navigation.navigate("ChallengeCountdown", { challengeId: challenge.id })
+      //   return;
+      // }
 
       const listResults = await getSubchallengeList(challenge.id);
       console.log("results:", listResults?.length);

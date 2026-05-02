@@ -32,11 +32,12 @@ export default function AchievementsScreen() {
         style={styles.background}
         resizeMode="cover"
       >
+        <Text style={styles.topLabel}>Achievements</Text>
+
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.topLabel}>Achievements</Text>
 
           <View style={styles.heroCard}>
             <View style={styles.heroGlow} />
@@ -117,7 +118,6 @@ const styles = StyleSheet.create({
     marginBottom: 42,
   },
   scrollContent: {
-    paddingTop: 90,
     paddingBottom: 40,
     paddingHorizontal: 20,
   },
@@ -126,7 +126,8 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "700",
     textAlign: "center",
-    marginBottom: 24,
+    marginTop: 95,
+    marginBottom: 15,
     backgroundColor: "transparent",
   },
   heroCard: {

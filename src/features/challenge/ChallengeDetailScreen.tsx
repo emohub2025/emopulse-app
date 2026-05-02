@@ -17,6 +17,9 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 type ChallengeDetailRouteProp = RouteProp<RootStackParamList, 'ChallengeDetail'>;
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'ChallengeDetail'>;
 
+const truncate = (str: string, n: number) =>
+  str.length > n ? str.slice(0, n) + '…' : str;
+
 // Shorts-only extractor
 function extractShortsId(url: string) {
   if (!url) return '';
@@ -247,25 +250,55 @@ export default function ChallengeDetailScreen({
               </View>
             )}
 
-            {/* DETAILS (only when collapsed) */}
+            {/* DETAILS OR POLL RESULTS (only when collapsed) */}
             {!expanded && (
               <>
-                <View style={styles.metaText}>
-                  <Text style={styles.source}>
-                    Source:{' '}
-                    {challenge.source?.startsWith('Wacky') || !challenge.source
-                      ? 'Emopulse'
-                      : challenge.source}
-                  </Text>
-                  <ScrollView
-                    style={{ height: 197 }}
-                    showsVerticalScrollIndicator={false}
-                  >
-                    <Text style={styles.meta}>
-                      {combinedDetails}
+                {challenge.source === 'polling' && challenge.status !== 'open' ? (
+                  <View style={styles.metaText}>
+                    <Text style={styles.polltitle}>Polling Result</Text>
+                      {challenge.main?.poll_results?.map(
+                        (opt: { index: number; pct: number }, i: number) => (
+                          <View key={i} style={{ marginBottom: 14, paddingLeft: 20, paddingRight: 20, }}>
+                            <Text style={{ color: 'white', fontSize: 18, marginBottom: 4 }}>
+                              {truncate(challenge.polling_answers?.[opt.index] ?? `Option ${opt.index + 1}`, 25)}
+                              {' — '}
+                              {(opt.pct * 100).toFixed(0)}%
+                            </Text>
+
+                            <View
+                              style={{
+                                height: 10,
+                                backgroundColor: '#333',
+                                borderRadius: 5,
+                                overflow: 'hidden',
+                              }}
+                            >
+                              <View
+                                style={{
+                                  width: `${Math.max(opt.pct * 100, 1)}%`,
+                                  height: '100%',
+                                  backgroundColor: '#4da6ff',
+                                }}
+                              />
+                            </View>
+                          </View>
+                        )
+                      )}
+
+                    </View>
+                      ) : (
+                  <View style={styles.metaText}>
+                    <Text style={styles.source}>
+                      Source:{' '}
+                      {challenge.source?.startsWith('Wacky') || !challenge.source
+                        ? 'Emopulse'
+                        : challenge.source}
                     </Text>
-                  </ScrollView>
-                </View>
+                    <ScrollView style={{ height: 197 }} showsVerticalScrollIndicator={false}>
+                      <Text style={styles.meta}>{combinedDetails}</Text>
+                    </ScrollView>
+                  </View>
+                )}
               </>
             )}
 
@@ -399,6 +432,15 @@ const styles = StyleSheet.create({
     marginLeft: 14,
     color: 'white',
     fontSize: 16,
+    fontWeight: '500',
+  },
+  polltitle: {
+    textAlign: 'center',
+    marginTop: 15,
+    marginBottom: 15,
+    marginLeft: 14,
+    color: 'white',
+    fontSize: 22,
     fontWeight: '500',
   },
   timer: {

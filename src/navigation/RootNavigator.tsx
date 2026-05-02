@@ -18,7 +18,6 @@ import AchievementsScreen from "../features/users/AchievementsScreen";
 import PrizesAndRewardsScreen from "../features/users/PrizesAndRewardsScreen";
 import LeaderboardScreen from "../features/users/LeaderboardScreen";
 
-import LiveChallengesScreen from "../features/challenge/LiveChallengesScreen";
 import CategoryListScreen from "../features/challenge/CategoryListScreen";
 import CategoryChallengesScreen from "../features/challenge/CategoryChallengesScreen";
 import ChallengeDetailScreen from "../features/challenge/ChallengeDetailScreen";
@@ -28,6 +27,7 @@ import ChallengeResultsScreen from "../features/challenge/ChallengeResultsScreen
 
 import TeamsScreen from "../features/teams/TeamsScreen";
 import SubchallengeScreen from "../features/subchallenge/SubchallengeScreen";
+import PollingChallengeScreen from "../features/subchallenge/PollingChallengeScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -135,12 +135,6 @@ export default function RootNavigator({
       />
 
       <Stack.Screen
-        name="LiveChallenges"
-        component={LiveChallengesScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
-      />
-
-      <Stack.Screen
         name="Transactions"
         component={TransactionsScreen}
         options={{ headerTitle: () => <LogoHeader /> }}
@@ -202,6 +196,12 @@ export default function RootNavigator({
           headerLeft: () => null,
           headerTitle: () => <LogoHeader />,
         }}
+      />
+
+      <Stack.Screen
+        name="PollingChallenge"
+        component={PollingChallengeScreen}
+        options={{ headerTitle: () => <LogoHeader /> }}
       />
     </Stack.Navigator>
   );

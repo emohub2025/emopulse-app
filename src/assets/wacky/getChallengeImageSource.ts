@@ -42,6 +42,7 @@ export function getChallengeImageSource(challenge: Challenge | null | undefined)
   // ⭐ Normal remote image
   if (challenge.image_url) {
     return { uri: challenge.image_url };
+    
   }
 
   // ⭐ Final fallback

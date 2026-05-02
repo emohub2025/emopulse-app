@@ -60,8 +60,8 @@ export default function CategoryChallengesScreen() {
   }
 
   const categoryData = feed.categories.find(c => c.name === category);
-  const active = categoryData?.active ?? [];
-  const recent = categoryData?.recent ?? [];
+  const active = Array.isArray(categoryData?.active) ? categoryData.active : [];
+  const recent = Array.isArray(categoryData?.recent) ? categoryData.recent : [];
 
   useEffect(() => {
     if (!isFocused) return;
@@ -101,12 +101,10 @@ export default function CategoryChallengesScreen() {
   const enrichedPlayed = enrichedActive.filter(ch =>
     playedIds.includes(ch.id)
   );
-//console.log("played:", enrichedPlayed.length);
 
   const filteredActive = enrichedActive.filter(ch =>
     !playedIds.includes(ch.id)
   );
-//console.log("active:", enrichedActive.length);
 
   // Sort previous challenges newest → oldest
   const sortedRecent = [...enrichedRecent].sort((a, b) => {
@@ -126,6 +124,27 @@ export default function CategoryChallengesScreen() {
 
   const filteredRecent = sortedRecent;
 
+  interface SectionHeaderProps {
+    title: string;
+  }
+
+  const SectionHeader = ({ title }: SectionHeaderProps) => (
+    <View style={{ 
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 3,
+      marginHorizontal: 25,
+    }}>
+      <View style={{ flex: 1, height: 1, backgroundColor: 'yellow' }} />
+      
+      <Text style={[styles.sectionHeader, { marginHorizontal: 15 }]}>
+        {title}
+      </Text>
+      
+      <View style={{ flex: 1, height: 1, backgroundColor: 'yellow' }} />
+    </View>
+  );
+
   // --------------------------------------------------
   // Build Sectioned List (Active → Played → Previous)
   // --------------------------------------------------
@@ -139,15 +158,18 @@ export default function CategoryChallengesScreen() {
     );
   }
 
-  // Played second
+  // Played second — ONLY for active challenges the user has played
   if (enrichedPlayed.length > 0) {
     listData.push({ type: "header", title: "Played Challenges" });
-    enrichedPlayed.forEach(ch =>
-      listData.push({ type: "item", data: ch, section: "played" })
-    );
+    enrichedPlayed.forEach(ch => {
+      // ❗ Skip if resolved
+      if (ch.resolved_at) return;
+
+      listData.push({ type: "item", data: ch, section: "played" });
+    });
   }
 
-  // Previous last
+  // Previous last — resolved challenges
   if (filteredRecent.length > 0) {
     listData.push({ type: "header", title: "Previous Challenges" });
     filteredRecent.forEach(ch =>
@@ -188,13 +210,15 @@ export default function CategoryChallengesScreen() {
                 keyExtractor={(_, index) => index.toString()}
                 renderItem={({ item }) => {
                   if (item.type === "header") {
-                    return <Text style={styles.sectionHeader}>{item.title}</Text>;
+                    return <Text style={styles.statusPill}>{item.title}</Text>;
+                    //return <SectionHeader title={item.title} />;
                   }
 
                   const ch = item.data;
                   const played = playedIds.includes(ch.id);
                   const previous = item.section === "previous";
                   const isVideo = ch.source?.startsWith('YouTube');
+                  const isPolling = ch.source === "polling";
 
                   return (
                     <Pressable
@@ -202,6 +226,8 @@ export default function CategoryChallengesScreen() {
                       onPress={() => {
                         if (played && !previous) {
                           navigation.navigate("ChallengeCountdown", { challengeId: ch.id });
+                        } else if (isPolling && !previous) {
+                          navigation.navigate("PollingChallenge", { challengeId: ch.id });
                         } else {
                           navigation.navigate("ChallengeDetail", { challengeId: ch.id });
                         }
@@ -218,6 +244,13 @@ export default function CategoryChallengesScreen() {
                           <View style={styles.videoBadge}>
                             <Text style={styles.videoBadgeText}>
                               Video: {ch.source.replace('YouTube: ', '')}
+                            </Text>
+                          </View>
+                        )}
+                        {isPolling && (
+                          <View style={styles.videoBadge}>
+                            <Text style={styles.videoBadgeText}>
+                              Polling Question
                             </Text>
                           </View>
                         )}
@@ -324,6 +357,14 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
+  PollingBadgeText: {
+    color: '#A8FF9F',
+    fontSize: 16,
+    fontWeight: '700',
+    marginTop: 0,
+    marginBottom: 0,
+    textAlign: 'center',
+  },
   videoBadgeText: {
     color: '#A8FF9F',
     fontSize: 16,
@@ -331,6 +372,20 @@ const styles = StyleSheet.create({
     marginTop: 0,
     marginBottom: 0,
     textAlign: 'center',
+  },
+  statusPill: {
+    marginTop: 20,
+    marginBottom: 25,
+    marginHorizontal: 40,
+    backgroundColor: "rgba(255, 215, 0, 0.16)",
+    textAlign: 'center',
+    borderWidth: 1,
+    borderColor: "rgba(255, 215, 0, 0.75)",
+    borderRadius: 999,
+    paddingVertical: 5,
+    fontSize: 21,
+    color: "yellow",
+    fontWeight: '700',
   },
   emptyContainer: {
     flex: 1,

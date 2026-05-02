@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { apiGet } from "./engineClient";
-import type { LiveSnapshotResponse, LiveSnapshotItem, LiveMainEmotions } from "../navigation/types";
+import type { LiveSnapshotResponse, LiveSnapshotItem, LiveMain } from "../navigation/types";
 
-/* Normalize emotions */
-export function normalizeEmotions(main: LiveMainEmotions) {
+/* --------------------------------------------------
+   Normalize emotions
+-------------------------------------------------- */
+export function normalizeEmotions(main: LiveMain) {
   const total =
     (main.angry?.total ?? 0) +
     (main.happy?.total ?? 0) +
@@ -27,14 +29,47 @@ export function normalizeEmotions(main: LiveMainEmotions) {
   };
 }
 
-/* Simple fetcher */
+/* --------------------------------------------------
+   Normalize polling
+-------------------------------------------------- */
+export function normalizePoll(main: LiveMain) {
+  const results = main.poll_results ?? [];
+
+  // If backend returns nothing yet, default to option 0 = 100%
+  if (results.length === 0) {
+    return [{ index: 0, pct: 1 }];
+  }
+
+  return results.map(r => ({
+    index: r.index,
+    pct: r.pct ?? 0,
+  }));
+}
+
+/* --------------------------------------------------
+   Enriched type (extends backend type safely)
+-------------------------------------------------- */
+export type EnrichedLiveSnapshotItem = LiveSnapshotItem & {
+  isPoll: boolean;
+  pollResults?: { index: number; pct: number }[];
+  polling_answers?: string[];   // ⭐ ADD THIS
+  leadingOption?: number;
+  leadingEmotion?: string;
+  leadingPct: number;
+};
+
+/* --------------------------------------------------
+   Fetcher
+-------------------------------------------------- */
 export async function getLiveSnapshot() {
   return apiGet<LiveSnapshotResponse>("/live/snapshot");
 }
 
-/* React hook */
+/* --------------------------------------------------
+   Hook with polling + emotion enrichment
+-------------------------------------------------- */
 export function useLiveSnapshot(pollIntervalMs: number = 2000) {
-  const [snapshot, setSnapshot] = useState<LiveSnapshotItem[]>([]);
+  const [snapshot, setSnapshot] = useState<EnrichedLiveSnapshotItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,8 +79,39 @@ export function useLiveSnapshot(pollIntervalMs: number = 2000) {
     async function fetchSnapshot() {
       try {
         const response = await getLiveSnapshot();
+
         if (mounted) {
-          setSnapshot(response.snapshot);
+          const enriched: EnrichedLiveSnapshotItem[] = response.snapshot.map(ch => {
+            const isPoll = !!ch.main.poll_results;
+
+            if (isPoll) {
+              const poll = normalizePoll(ch.main);
+              const sorted = [...poll].sort((a, b) => b.pct - a.pct);
+              const winner = sorted[0];
+
+              return {
+                ...ch,
+                isPoll: true,
+                pollResults: poll,
+                leadingOption: winner.index,
+                leadingPct: Math.round(winner.pct * 100),
+              };
+            }
+
+            // Emotion challenge
+            const emotions = normalizeEmotions(ch.main);
+            const sorted = Object.entries(emotions).sort((a, b) => b[1].pct - a[1].pct);
+            const [winner, data] = sorted[0];
+
+            return {
+              ...ch,
+              isPoll: false,
+              leadingEmotion: winner,
+              leadingPct: Math.round(data.pct * 100),
+            };
+          });
+
+          setSnapshot(enriched);
           setError(null);
         }
       } catch (err) {
@@ -62,24 +128,7 @@ export function useLiveSnapshot(pollIntervalMs: number = 2000) {
       mounted = false;
       clearInterval(interval);
     };
-  }, []);
-/*
-  // ⭐ Log vote totals whenever snapshot updates
-  useEffect(() => {
-    if (snapshot.length > 0) {
-      console.log("🔥 Live Snapshot Updated:");
+  }, [pollIntervalMs]);
 
-      snapshot.forEach(ch => {
-        console.log(
-          `Challenge ${ch.id}:`,
-          `happy=${ch.main.happy?.count ?? 0},`,
-          `angry=${ch.main.angry?.count ?? 0},`,
-          `sad=${ch.main.sad?.count ?? 0},`,
-          `anxious=${ch.main.anxious?.count ?? 0}`
-        );
-      });
-    }
-  }, [snapshot]);
-*/
   return { snapshot, loading, error };
 }

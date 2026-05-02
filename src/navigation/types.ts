@@ -73,6 +73,7 @@ export interface Challenge {
   subchallenge_id?: string | null;
   external_url?: string | null;
   popularity_score?: number | null;
+  polling_answers?: number | null;
   winning_emotion?: string | null;
   audit_log?: any[] | null;
 }
@@ -128,8 +129,8 @@ export type RootStackParamList = {
     subchallenges: SubchallengeList[];
   };
 
-  SponsorSubchallenge: {
-    challenge: Challenge;
+  PollingChallenge: {
+    challengeId: string;
   };
 };
 
@@ -261,11 +262,20 @@ export interface LiveEmotionCount {
   total: number;
 }
 
-export interface LiveMainEmotions {
+export interface LiveMain {
+  // Emotion challenges
   angry?: LiveEmotionCount;
   happy?: LiveEmotionCount;
   sad?: LiveEmotionCount;
   anxious?: LiveEmotionCount;
+
+  // Polling challenges
+  poll_results?: LivePollResult[];
+}
+
+export interface LivePollResult {
+  index: number;
+  pct: number;
 }
 
 export interface LiveSnapshotItem {
@@ -278,7 +288,7 @@ export interface LiveSnapshotItem {
   snippet: string | null;
   image_url: string | null;
   url: string | null;
-  main: LiveMainEmotions;
+  main: LiveMain;
   subchallenges: Record<string, any>;
 }
 

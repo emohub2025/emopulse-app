@@ -5,27 +5,39 @@ export interface ChallengeResult {
 
   challenge: {
     challenge_id: string;
-    category: string;
     batch_id: string;
     topic: string;
+    category: string;
     source: string;
     resolved_at: string;
     paid_out_at: string;
-    winning_emotion: string;
+
+    // Emotion challenge fields (null for polling)
+    winning_emotion: string | null;
+    emotion_counts: {
+      emotion: string;
+      count: number;
+    }[] | null;
 
     total_participants: number | null;
     total_amount: number | null;
     total_bets: number | null;
 
-    emotion_counts: {
-      emotion: string;
-      count: number;
-    }[];
+    // Polling challenge fields
+    winning_answer: string | null;
+    winning_answer_index: number | null;
   };
 
   user_main: {
     user_id: string;
+
+    // Emotion challenge
     emotion: string | null;
+
+    // Polling challenge
+    selected_index: number | null;
+    selected_answer: string | null;
+
     amount: number;
     payout: number;
     delta: number;
@@ -45,6 +57,14 @@ export interface ChallengeResult {
     user_option_label: string | null;
     winning_option_label: string | null;
   }[];
+
+  // Polling results live at the top level
+  poll_results: {
+    text: string;
+    count: number;
+    index: number;
+    percent: number;
+  }[] | null;
 }
 
 export function getChallengeResults(

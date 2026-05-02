@@ -30,7 +30,7 @@ export async function getFeedList() {
 
 function cleanChallenge(ch: Challenge): Challenge {
   return {
-    ...ch,
+    ...ch, // ⭐ keep everything (including poll fields)
     topic: decodeHtmlEntities(ch.topic),
     snippet: decodeHtmlEntities(ch.snippet),
     quote: decodeHtmlEntities(ch.quote),

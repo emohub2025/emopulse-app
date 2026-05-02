@@ -46,6 +46,77 @@ interface SummaryCardProps {
   totalPayout: number;
 }
 
+function PollBreakdownCard({
+  pollResults,
+  winningAnswer
+}: {
+  pollResults: {
+    text: string;
+    count: number;
+    index: number;
+    percent: number;
+  }[];
+  winningAnswer: string | null;
+}) {
+  return (
+    <LinearGradient
+      colors={[
+        'rgba(255, 0, 204, 0.7)',
+        'rgba(138, 43, 226, 0.5)',
+        'rgba(75, 0, 130, 0.2)'
+      ]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={styles.cardGradient}
+    >
+      <View style={styles.cardInner}>
+        <Text
+          style={{
+            color: 'white',
+            fontSize: 20,
+            fontWeight: '700',
+            textAlign: 'center',
+            marginTop: 16,
+            marginBottom: 10
+          }}
+        >
+          Poll Breakdown
+        </Text>
+
+        {pollResults.map(opt => {
+          const isWinner = opt.text.toLowerCase() === winningAnswer?.toLowerCase();
+
+          return (
+            <View key={opt.index} style={{ marginBottom: 14, paddingHorizontal: 20 }}>
+              <Text style={{ color: 'white', fontSize: 18, marginBottom: 4 }}>
+                {opt.text} — {opt.percent}%
+              </Text>
+
+              <View
+                style={{
+                  height: 8,
+                  backgroundColor: '#333',
+                  borderRadius: 4,
+                  overflow: 'hidden'
+                }}
+              >
+                <View
+                  style={{
+                    width: `${opt.percent}%`,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: isWinner ? 'lime' : 'red'
+                  }}
+                />
+              </View>
+            </View>
+          );
+        })}
+      </View>
+    </LinearGradient>
+  );
+}
+
 function SummaryCard({
   topic,
   category,
@@ -207,6 +278,13 @@ export default function ChallengeResultScreen() {
     return () => sub.remove();
   }, [fromHistory, navigation]);
 
+
+  //console.log("📦 Challenge param:", results?.challenge);
+
+  const isPolling = results?.challenge.source === "polling";
+  //console.log("❌IS POLLING:", isPolling);
+
+
   return (
     <View style={{ flex: 1, backgroundColor: 'black' }}>
       <ImageBackground
@@ -235,7 +313,7 @@ export default function ChallengeResultScreen() {
 
                 return (
                   <>
-                    {totalBets > 1 && (
+                    {(isPolling || totalBets > 1) && (
                       <SummaryCard
                         topic={results.challenge.topic}
                         category={results.challenge.category}
@@ -247,8 +325,8 @@ export default function ChallengeResultScreen() {
                 );
               })()}
 
-              {results?.user_main && !results.user_main.skipped && (
-                <ResultCard
+              {!isPolling && results?.user_main && !results.user_main.skipped && (
+               <ResultCard
                   title="Main Challenge"
                   won={results.user_main.won}
                   skipped={results.user_main.skipped}
@@ -257,8 +335,25 @@ export default function ChallengeResultScreen() {
                   payout={results.user_main.payout}
                 />
               )}
+              {isPolling && results?.user_main && (
+                <ResultCard
+                  title="Polling Result"
+                  won={results.user_main.won}
+                  skipped={results.user_main.skipped}
+                  userChoice={results.user_main.selected_answer}
+                  winningChoice={results.challenge.winning_answer}
+                  payout={results.user_main.payout}
+                />
+              )}
 
-              {results?.subchallenge_results
+              {isPolling && results?.poll_results && (
+                <PollBreakdownCard
+                  pollResults={results.poll_results}
+                  winningAnswer={results.challenge.winning_answer}
+                />
+              )}
+
+              {!isPolling && results?.subchallenge_results
                 ?.filter(sub => !sub.skipped && sub.user_option_label)
                 .map(sub => (
                   <ResultCard
@@ -374,7 +469,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     color: 'white',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     marginBottom: 10,
     marginLeft: 20,
@@ -400,7 +495,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   cardInner: {
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: 'rgba(0,0,0,0.45)',
     borderRadius: 42,
     paddingBottom: 20,
     borderWidth: 3,
