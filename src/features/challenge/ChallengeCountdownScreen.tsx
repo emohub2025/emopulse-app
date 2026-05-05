@@ -9,6 +9,7 @@ import { useLiveSnapshot, normalizeEmotions, type EnrichedLiveSnapshotItem } fro
 import activeButton from '../../assets/buttons/active.png';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useFeed } from '../../context/FeedContext';
+import { emotionLookup, emotionSlotMap } from '../../utils/emotionList';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'ChallengeCountdown'>;
 
@@ -57,32 +58,45 @@ type ProgressBarProps = {
 };
 
 const ProgressBar = ({ label, pct, color, labelColor }: ProgressBarProps) => {
-  const barWidth = Math.max(pct * 100, 1); // ensures at least 1%
+  const barWidth = Math.max(pct * 100, 1);
 
   return (
-    <View style={{ marginVertical: 6 }}>
-      <Text style={{ marginBottom: 4, fontSize: 18, fontWeight: '600' }}>
-        <Text style={{ color, ...(labelColor && { color: labelColor }) }}>
-          {label}
-        </Text>
-        <Text style={{ color: 'white' }}>{` — ${Math.round(pct * 100)}%`}</Text>
-      </Text>
-
-      <View
-        style={{
-          height: 15,
-          borderRadius: 15,
-          backgroundColor: 'rgba(255,255,255,0.2)',
-        }}
-      >
+    <View style={{ marginVertical: 10 }}>
+      <View style={{ position: 'relative', height: 25, justifyContent: 'center' }}>
+        
+        {/* Background bar */}
         <View
           style={{
-            width: `${barWidth}%`,
-            height: '100%',
+            height: 30,
             borderRadius: 15,
-            backgroundColor: color,
+            backgroundColor: 'rgba(255,255,255,0.2)',
+            overflow: 'hidden',
           }}
-        />
+        >
+          {/* Fill bar */}
+          <View
+            style={{
+              width: `${barWidth}%`,
+              height: '100%',
+              borderRadius: 15,
+              backgroundColor: color,
+            }}
+          />
+        </View>
+
+        {/* Overlay text */}
+        <Text
+          style={{
+            position: 'absolute',
+            width: '100%',
+            textAlign: 'center',
+            color: labelColor || color,
+            fontSize: 18,
+            fontWeight: '700',
+          }}
+        >
+          {label} — {Math.round(pct * 100)}%
+        </Text>
       </View>
     </View>
   );
@@ -219,16 +233,17 @@ export default function ChallengeResultScreen() {
     const test = [
       'This is wild!',
       'No way this is happening, how crazy!',
-      'I knew it!',
+      'The new Taylor Swift album is Fire 🔥',
       'Let’s goooo',
+      'Throw the bums out... tired of losing! 😮‍💨',
     ];
 
     const testUsers = [
       'Joe Cool',
-      'Johhny Goofball',
-      'Geogry Porgy',
-      'Meathead Magoo',
-      'Joey Knuckles',
+      'Rebellious Johhny',
+      'Swifty Sally',
+      'Big Mike',
+      'Sam Shalabam',
     ];
 
     let i = 0;
@@ -299,7 +314,7 @@ export default function ChallengeResultScreen() {
       >
         <SafeAreaView style={styles.safe}>
           <AutoShrinkBlock
-            height={100}
+            height={130}
             width={'100%'}
             fontWeight="700"
             textAlign="center"
@@ -333,7 +348,7 @@ export default function ChallengeResultScreen() {
                   alignSelf: 'center',
                 }}
               >
-                Comments
+                Comments (coming soon)
               </Text>
 
               <View
@@ -424,8 +439,8 @@ export default function ChallengeResultScreen() {
             {/* Live Results block */}
             <View
               style={{
-                maxHeight: 290,
-                minHeight: 290,
+                maxHeight: 250,
+                minHeight: 250,
                 justifyContent: 'flex-start',
                 borderWidth: 3,
                 borderRadius: 22,
@@ -471,28 +486,28 @@ export default function ChallengeResultScreen() {
                   /* ⭐ EMOTION RESULTS */
                   <>
                     <ProgressBar
-                      label={isWacky ? 'LOL' : 'Happy'}
+                      label={emotionLookup[emotionSlotMap['happy']][challenge.category]}
                       pct={wEmotion.happy.pct}
                       count={wEmotion.happy.count}
                       color="#00C46B"
                       labelColor="white"
                     />
                     <ProgressBar
-                      label={isWacky ? 'Stupid' : 'Angry'}
+                      label={emotionLookup[emotionSlotMap['angry']][challenge.category]}
                       pct={wEmotion.angry.pct}
                       count={wEmotion.angry.count}
                       color="#D7263D"
                       labelColor="white"
                     />
                     <ProgressBar
-                      label={isWacky ? 'WTF' : 'Sad'}
+                      label={emotionLookup[emotionSlotMap['sad']][challenge.category]}
                       pct={wEmotion.sad.pct}
                       count={wEmotion.sad.count}
                       color="#2D6BFF"
                       labelColor="white"
                     />
                     <ProgressBar
-                      label={isWacky ? 'Confused' : 'Anxious'}
+                      label={emotionLookup[emotionSlotMap['anxious']][challenge.category]}
                       pct={wEmotion.anxious.pct}
                       count={wEmotion.anxious.count}
                       color="#A259FF"
@@ -547,10 +562,18 @@ const styles = StyleSheet.create({
     marginTop: 17,
   },
   timer: {
+    marginHorizontal: 40,
+    width: 250,
+    backgroundColor: "rgba(255, 215, 0, 0.16)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 215, 0, 0.75)",
+    borderRadius: 999,
+    paddingVertical: 0,
     color: 'yellow',
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '700',
     textAlign: 'center',
-    marginTop: 4,
-  },
-});
+    marginTop: 15,
+    marginBottom: 0,
+    alignSelf: 'center',
+  },});

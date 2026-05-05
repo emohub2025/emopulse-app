@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   sharedText: {
     width: "100%",
     paddingTop: 10,
-    paddingBottom: 10,
+    paddingBottom: 0,
     paddingHorizontal: 15,
     color: "#fff",
     textAlignVertical: "top",

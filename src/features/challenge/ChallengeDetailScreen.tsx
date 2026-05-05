@@ -294,7 +294,7 @@ export default function ChallengeDetailScreen({
                         ? 'Emopulse'
                         : challenge.source}
                     </Text>
-                    <ScrollView style={{ height: 197 }} showsVerticalScrollIndicator={false}>
+                    <ScrollView style={{ height: 182 }} showsVerticalScrollIndicator={false}>
                       <Text style={styles.meta}>{combinedDetails}</Text>
                     </ScrollView>
                   </View>
@@ -444,10 +444,19 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   timer: {
-    marginTop: 2,
+    marginHorizontal: 40,
+    width: 250,
+    backgroundColor: "rgba(255, 215, 0, 0.16)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 215, 0, 0.75)",
+    borderRadius: 999,
+    paddingVertical: 0,
     color: 'yellow',
-    fontSize: 24,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
     textAlign: 'center',
+    marginTop: 15,
+    marginBottom: -11,
+    alignSelf: 'center',
   },
 });

@@ -10,6 +10,7 @@ import { useCycleTimer } from '../../components/CycleTimerContext';
 import { LinearGradient } from "expo-linear-gradient";
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useCurrentUserId } from "../../state/useUserSelectors";
+import { emotionLookup, getEmotionLabel } from '../../utils/emotionList';
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -326,15 +327,21 @@ export default function ChallengeResultScreen() {
               })()}
 
               {!isPolling && results?.user_main && !results.user_main.skipped && (
-               <ResultCard
+                <ResultCard
                   title="Main Challenge"
                   won={results.user_main.won}
                   skipped={results.user_main.skipped}
-                  userChoice={results.user_main.emotion}
-                  winningChoice={results.challenge.winning_emotion}
+                  userChoice={getEmotionLabel(
+                    results.user_main.emotion,
+                    results.challenge.category
+                  )}
+                  winningChoice={getEmotionLabel(
+                    results.challenge.winning_emotion,
+                    results.challenge.category
+                  )}
                   payout={results.user_main.payout}
                 />
-              )}
+              )}              
               {isPolling && results?.user_main && (
                 <ResultCard
                   title="Polling Result"

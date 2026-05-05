@@ -1,5 +1,6 @@
-import { View, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Image, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { emotionImages } from './EmotionImage';
+import { emotionLookup, emotionSlotMap } from '../utils/emotionList';
 
 interface Props {
   selected: string | null;
@@ -24,10 +25,20 @@ export default function EmotionSelector({ selected, onSelect, category }: Props)
                 onPress={() => onSelect(key)}
                 style={styles.button}
               >
-                <Image
-                  source={selected === key ? selectedSrc : src}
-                  style={styles.icon}
-                />
+                <View style={styles.iconWrapper}>
+                  <Image
+                    source={selected === key ? selectedSrc : src}
+                    style={styles.icon}
+                  />
+                  <Text
+                    style={[
+                      styles.iconLabel,
+                      selected === key && styles.iconLabelSelected
+                    ]}
+                  >
+                    {emotionLookup[emotionSlotMap[key]][category]}
+                  </Text>
+                </View>
               </TouchableOpacity>
             );
           })}
@@ -47,12 +58,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   button: {
-    marginTop: 0,
+    marginTop: 4,
     paddingBottom: 0,
   },
   icon: {
     width: 180,
-    height: 184,
+    height: 182,
     resizeMode: 'contain',
+  },
+  iconWrapper: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconLabel: {
+    position: 'absolute',
+    top: -4,               // adjust to move text up/down
+    alignSelf: 'center',
+    color: 'white',
+    fontSize: 24,
+    fontWeight: '800',
+    textShadowColor: 'rgba(0,0,0,0.7)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
+  },
+  iconLabelSelected: {
+    color: 'lime',
   },
 });

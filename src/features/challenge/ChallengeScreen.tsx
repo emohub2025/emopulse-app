@@ -172,7 +172,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
               <AutoShrinkBlock
                 height={110}
                 width={"100%"}
-                fontWeight="500"
+                fontWeight="600"
               >
                 {challenge.topic}
               </AutoShrinkBlock>
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
     paddingHorizontal: 28,
-    marginBottom: 17,
+    marginBottom: 13,
   },
   content: {
     flex: 1,
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.7)',
   },
   selectorWrap: {
-    marginTop: 10,
+    marginTop: 4,
     marginBottom: 15,
   },
   submitArea: {
@@ -295,20 +295,28 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   costText: {
-    color: '#FFD700',
-    fontSize: 23,
+    color: 'gold',
+    fontSize: 20,
     fontWeight: '800',
     textAlign: 'center',
-    marginTop: -10,
-    marginBottom: 5,
+    marginTop: -11,
+    marginBottom: 0,
   },
   timer: {
+    marginHorizontal: 40,
+    width: 250,
+    backgroundColor: "rgba(255, 215, 0, 0.16)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 215, 0, 0.75)",
+    borderRadius: 999,
+    paddingVertical: 0,
     color: 'yellow',
-    fontSize: 24,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
     textAlign: 'center',
-    marginTop: 28,
-  },
+    marginTop: 15,
+    marginBottom: -11,
+    alignSelf: 'center',  },
   errorText: {
     color: '#ff6b6b',
     fontSize: 14,

@@ -9,7 +9,9 @@ import StateSelector, { autoDetectStateFromZip } from "../../components/StateSel
 import type { MobileUser, RootStackParamList } from "../../navigation/types";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import saveButton from "../../assets/buttons/save.png";
+import passwordButton from "../../assets/buttons/password.png";
 import { AVATAR_URL } from "../../../config";
+import { changePassword } from "../../api/changePassword";
 
 const MIN_BIRTHDATE = new Date(1900, 0, 1);
 const MAX_BIRTHDATE = new Date();
@@ -60,6 +62,10 @@ export default function ProfileScreen() {
     tiktok_url: initialUser.tiktok_url,
     avatar_url: (initialUser as any).avatar_url,
   });
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const canSubmit = currentPassword.length > 0 && newPassword.length > 0;
 
   const uploadAvatar = async (asset: ImagePicker.ImagePickerAsset) => {
     const formData = new FormData();
@@ -175,6 +181,25 @@ export default function ProfileScreen() {
     } catch (err) {
       console.error("❌ Failed to update user:", err);
       alert("Failed to save changes.");
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    try {
+      const res = await changePassword(currentPassword, newPassword);
+
+      if (!res.success) {
+        alert("Failed to change password.");
+        return;
+      }
+
+      alert("Password updated successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+
+    } catch (err) {
+      console.error("❌ Failed to update password:", err);
+      alert("Failed to save new password.");
     }
   };
 
@@ -383,6 +408,53 @@ export default function ProfileScreen() {
               />
             </Pressable>
           </View>
+
+        <Text style={styles.securityLabel}>Security</Text>
+
+
+          <View style={styles.formCard}>
+            <View style={styles.rowField}>
+              <Text style={styles.rowLabel}>Current Password</Text>
+              <TextInput
+                style={styles.rowInput}
+                value={currentPassword}
+                placeholder="Current Password"
+                placeholderTextColor="rgba(255,255,255,0.35)"
+                secureTextEntry
+                onChangeText={setCurrentPassword}
+              />
+            </View>
+
+            <View style={styles.rowField}>
+              <Text style={styles.rowLabel}>New Password</Text>
+              <TextInput
+                style={styles.rowInput}
+                value={newPassword}
+                onChangeText={setNewPassword}
+                placeholder="New Password"
+                placeholderTextColor="rgba(255,255,255,0.35)"
+                secureTextEntry
+              />
+            </View>
+
+            <Pressable
+              pointerEvents={canSubmit ? "auto" : "none"}
+              onPress={handlePasswordChange}
+              style={({ pressed }) => [
+                styles.saveButtonImageWrapper,
+                !canSubmit && { opacity: 0.65 }, // visually disabled
+                pressed && canSubmit && { opacity: 0.7, transform: [{ scale: 0.98 }] },
+              ]}
+            >
+              <Image
+                source={passwordButton}
+                style={styles.saveButtonImage}
+                resizeMode="contain"
+              />
+            </Pressable>
+          </View>
+
+
         </ScrollView>
       </ImageBackground>
     </View>
@@ -409,6 +481,15 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     textAlign: "center",
     marginTop: 96,
+    marginBottom: 15,
+    backgroundColor: "transparent",
+  },
+  securityLabel: {
+    color: "white",
+    fontSize: 28,
+    fontWeight: "800",
+    textAlign: "center",
+    marginTop: 10,
     marginBottom: 15,
     backgroundColor: "transparent",
   },
