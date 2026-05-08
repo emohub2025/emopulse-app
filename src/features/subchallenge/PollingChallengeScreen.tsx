@@ -156,7 +156,7 @@ export default function PollingChallengeScreen() {
 
           {/* ⭐ Correct wrapper restored */}
           <View style={styles.optionsContainer}>
-            {challenge.polling_answers.map((text, idx) => {
+            {challenge.polling_answers.slice(0, 4).map((text, idx) => {
               const isSelected = selected === idx;
 
               return (

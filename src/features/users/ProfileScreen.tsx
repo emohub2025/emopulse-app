@@ -194,6 +194,8 @@ export default function ProfileScreen() {
       }
 
       alert("Password updated successfully!");
+
+      // Clear inputs → disables button automatically
       setCurrentPassword("");
       setNewPassword("");
 

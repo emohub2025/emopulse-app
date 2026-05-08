@@ -93,7 +93,7 @@ async function request<T>(
     let token = await AsyncStorage.getItem("authToken");
     let res = await doFetch(token ?? undefined);
 
-    const isRefreshEndpoint = cleanPath === "/auth/refresh";
+    const isRefreshEndpoint = path.replace(API_PREFIX, "").endsWith("/auth/refresh");
 
     if (res.status === 401 && !isRefreshEndpoint) {
       console.log("🔐 Access token expired — attempting refresh");

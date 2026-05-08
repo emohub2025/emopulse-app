@@ -34,6 +34,18 @@ const topicIcons: Record<string, any> = {
   Wacky: require("../../assets/icons/wacky.png"),
 };
 
+// Ensure polls go last
+function sortPollingLast(list: any) {
+  return [...list].sort((a, b) => {
+    const aPoll = a.source === "polling";
+    const bPoll = b.source === "polling";
+
+    if (aPoll && !bPoll) return 1;   // a goes after b
+    if (!aPoll && bPoll) return -1;  // a goes before b
+    return 0;                        // keep original order
+  });
+}
+
 export default function CategoryChallengesScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<RouteProps>();
@@ -122,28 +134,9 @@ export default function CategoryChallengesScreen() {
     return b.id.localeCompare(a.id);
   });
 
-  const filteredRecent = sortedRecent;
-
-  interface SectionHeaderProps {
-    title: string;
-  }
-
-  const SectionHeader = ({ title }: SectionHeaderProps) => (
-    <View style={{ 
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginVertical: 3,
-      marginHorizontal: 25,
-    }}>
-      <View style={{ flex: 1, height: 1, backgroundColor: 'yellow' }} />
-      
-      <Text style={[styles.sectionHeader, { marginHorizontal: 15 }]}>
-        {title}
-      </Text>
-      
-      <View style={{ flex: 1, height: 1, backgroundColor: 'yellow' }} />
-    </View>
-  );
+  const finalActive = sortPollingLast(filteredActive);
+  const finalPlayed = sortPollingLast(enrichedPlayed);
+  const finalRecent = sortPollingLast(sortedRecent);
 
   // --------------------------------------------------
   // Build Sectioned List (Active → Played → Previous)
@@ -151,17 +144,17 @@ export default function CategoryChallengesScreen() {
   const listData: any[] = [];
 
   // Active first
-  if (filteredActive.length > 0) {
+  if (finalActive.length > 0) {
     listData.push({ type: "header", title: "Active Challenges" });
-    filteredActive.forEach(ch =>
+    finalActive.forEach(ch =>
       listData.push({ type: "item", data: ch, section: "active" })
     );
   }
 
   // Played second — ONLY for active challenges the user has played
-  if (enrichedPlayed.length > 0) {
+  if (finalPlayed.length > 0) {
     listData.push({ type: "header", title: "Played Challenges" });
-    enrichedPlayed.forEach(ch => {
+    finalPlayed.forEach(ch => {
       // ❗ Skip if resolved
       if (ch.resolved_at) return;
 
@@ -170,9 +163,9 @@ export default function CategoryChallengesScreen() {
   }
 
   // Previous last — resolved challenges
-  if (filteredRecent.length > 0) {
+  if (finalRecent.length > 0) {
     listData.push({ type: "header", title: "Previous Challenges" });
-    filteredRecent.forEach(ch =>
+    finalRecent.forEach(ch =>
       listData.push({ type: "item", data: ch, section: "previous" })
     );
   }
@@ -211,7 +204,6 @@ export default function CategoryChallengesScreen() {
                 renderItem={({ item }) => {
                   if (item.type === "header") {
                     return <Text style={styles.statusPill}>{item.title}</Text>;
-                    //return <SectionHeader title={item.title} />;
                   }
 
                   const ch = item.data;
