@@ -1,14 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  SectionList,
-  StyleSheet,
-  LayoutAnimation,
-  ImageBackground,
-  Pressable,
-} from "react-native";
+import { View, Text, Image, SectionList, StyleSheet, LayoutAnimation, ImageBackground, Pressable } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRoute } from "@react-navigation/native";
 import ButtonPanel from "../../components/ButtonPanel";
@@ -408,18 +399,20 @@ const styles = StyleSheet.create({
 
   background: {
     flex: 1,
+    marginBottom: 0,
   },
 
   overlay: {
     flex: 1,
     backgroundColor: "rgba(5, 0, 24, 0.32)",
     paddingHorizontal: 16,
-    paddingTop: 42,
+    paddingTop: 80,
   },
 
   topLabel: {
-    color: "#FFD700",
-    fontSize: 32,
+    color: "white",
+    marginTop: 15,
+    fontSize: 28,
     fontWeight: "900",
     textAlign: "center",
   },
@@ -427,7 +420,7 @@ const styles = StyleSheet.create({
   subtitle: {
     color: "#FFFFFF",
     textAlign: "center",
-    fontSize: 14,
+    fontSize: 18,
     opacity: 0.85,
     marginTop: 3,
     marginBottom: 14,
@@ -435,6 +428,7 @@ const styles = StyleSheet.create({
 
   listContainer: {
     flex: 1,
+    marginBottom: 115,
     backgroundColor: "rgba(5, 0, 24, 0.82)",
     borderRadius: 24,
     borderWidth: 1.5,
@@ -449,7 +443,6 @@ const styles = StyleSheet.create({
 
   sectionHeaderWrap: {
     alignSelf: "center",
-    marginTop: 8,
     marginBottom: 10,
     paddingHorizontal: 18,
     paddingVertical: 6,
@@ -629,7 +622,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: 120,
+    height: 100,
     backgroundColor: "#050018",
   },
 });

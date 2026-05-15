@@ -62,12 +62,12 @@ const ProgressBar = ({ label, pct, color, labelColor }: ProgressBarProps) => {
 
   return (
     <View style={{ marginVertical: 10 }}>
-      <View style={{ position: 'relative', height: 25, justifyContent: 'center' }}>
+      <View style={{ position: 'relative', height: 20, justifyContent: 'center' }}>
         
         {/* Background bar */}
         <View
           style={{
-            height: 30,
+            height: 25,
             borderRadius: 15,
             backgroundColor: 'rgba(255,255,255,0.2)',
             overflow: 'hidden',
@@ -93,6 +93,7 @@ const ProgressBar = ({ label, pct, color, labelColor }: ProgressBarProps) => {
             color: labelColor || color,
             fontSize: 18,
             fontWeight: '700',
+            paddingVertical: -1,
           }}
         >
           {label} — {Math.round(pct * 100)}%
@@ -313,15 +314,17 @@ export default function ChallengeResultScreen() {
         style={{ flex: 1, marginBottom: 42 }}
       >
         <SafeAreaView style={styles.safe}>
-          <AutoShrinkBlock
-            height={130}
-            width={'100%'}
-            fontWeight="700"
-            textAlign="center"
-            marginTop={5}
-          >
-            {challenge.topic}
-          </AutoShrinkBlock>
+          <View style={styles.text}>
+            <AutoShrinkBlock
+              height={120}
+              width={'100%'}
+              fontWeight="700"
+              textAlign="center"
+              marginTop={5}
+            >
+              {challenge.topic}
+            </AutoShrinkBlock>
+          </View>
 
           <View style={{ flex: 1, justifyContent: 'space-between' }}>
             {/* Comments block */}
@@ -329,7 +332,7 @@ export default function ChallengeResultScreen() {
               style={{
                 height: 200,
                 justifyContent: 'flex-start',
-                borderWidth: 2.5,
+                borderWidth: 2,
                 borderRadius: 22,
                 marginLeft: -6,
                 marginRight: -6,
@@ -439,10 +442,10 @@ export default function ChallengeResultScreen() {
             {/* Live Results block */}
             <View
               style={{
-                maxHeight: 250,
-                minHeight: 250,
+                maxHeight: 230,
+                minHeight: 230,
                 justifyContent: 'flex-start',
-                borderWidth: 3,
+                borderWidth: 2,
                 borderRadius: 22,
                 marginTop: 8,
                 marginLeft: -6,
@@ -560,6 +563,15 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     alignSelf: 'center',
     marginTop: 17,
+  },
+  text: {
+    marginTop: 18,
+    marginBottom: 15,
+    borderRadius: 18,
+    backgroundColor: 'rgba(18, 10, 42, 0.33)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255,255,255,0.58)',
+    paddingHorizontal: 10,
   },
   timer: {
     marginHorizontal: 40,

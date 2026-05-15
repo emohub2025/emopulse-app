@@ -117,7 +117,7 @@ export default function ChallengeHistoryScreen() {
         resizeMode="cover"
       >
         <View style={styles.overlay}>
-          <Text style={styles.topLabel}>Results History</Text>
+          <Text style={styles.topLabel}>Challenge Results</Text>
           <Text style={styles.subtitle}>Review your past predictions</Text>
 
           {!initialLoading && challenges.length === 0 && (
@@ -223,6 +223,7 @@ const styles = StyleSheet.create({
 
   background: {
     flex: 1,
+    paddingTop: 55,
   },
 
   overlay: {
@@ -233,8 +234,8 @@ const styles = StyleSheet.create({
   },
 
   topLabel: {
-    color: "#FFD700",
-    fontSize: 32,
+    color: "white",
+    fontSize: 26,
     fontWeight: "900",
     textAlign: "center",
   },
@@ -242,10 +243,9 @@ const styles = StyleSheet.create({
   subtitle: {
     color: "#FFFFFF",
     textAlign: "center",
-    fontSize: 14,
+    fontSize: 18,
     opacity: 0.85,
-    marginTop: 3,
-    marginBottom: 12,
+    marginTop: 0,
   },
 
   listContainer: {

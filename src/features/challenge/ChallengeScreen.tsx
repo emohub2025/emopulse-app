@@ -100,6 +100,16 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
       const listResults = await getSubchallengeList(challenge.id);
       console.log("results:", listResults?.length);
 
+      // ⭐ If no subchallenges → go straight to countdown
+      if (!listResults || listResults.length === 0) {
+        navigation.navigate("ChallengeCountdown", { 
+          challengeId: challenge.id, 
+          from: "play" 
+        });
+        return;
+      }
+
+      // Otherwise → go to Subchallenge screen
       navigation.navigate("Subchallenge", {
         challengeId: challenge.id,
         subchallenges: listResults

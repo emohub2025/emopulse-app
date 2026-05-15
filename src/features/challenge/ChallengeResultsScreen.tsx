@@ -84,7 +84,7 @@ function PollBreakdownCard({
           Poll Breakdown
         </Text>
 
-        {pollResults.map(opt => {
+        {pollResults.slice(0,4)?.map(opt => {
           const isWinner = opt.text.toLowerCase() === winningAnswer?.toLowerCase();
 
           return (
@@ -405,10 +405,10 @@ export default function ChallengeResultScreen() {
 export const dynamicStyles = (fromHistory: boolean) => ({
   safe: {
     flex: 1,
-    paddingTop: 50,
+    paddingTop: 40,
     paddingBottom: 50,
     paddingHorizontal: 20,
-    marginBottom: fromHistory ? 0 : -50,
+    marginBottom: fromHistory ? -20 : -75,
   }
 });
 

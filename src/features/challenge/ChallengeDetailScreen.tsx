@@ -256,11 +256,11 @@ export default function ChallengeDetailScreen({
                 {challenge.source === 'polling' && challenge.status !== 'open' ? (
                   <View style={styles.metaText}>
                     <Text style={styles.polltitle}>Polling Result</Text>
-                      {challenge.main?.poll_results?.map(
+                      {challenge.main?.poll_results?.slice(0,4).map(
                         (opt: { index: number; pct: number }, i: number) => (
                           <View key={i} style={{ marginBottom: 14, paddingLeft: 20, paddingRight: 20, }}>
                             <Text style={{ color: 'white', fontSize: 18, marginBottom: 4 }}>
-                              {truncate(challenge.polling_answers?.[opt.index] ?? `Option ${opt.index + 1}`, 25)}
+                              {truncate(challenge.polling_answers?.slice(0,4)[opt.index] ?? `Option ${opt.index + 1}`, 25)}
                               {' — '}
                               {(opt.pct * 100).toFixed(0)}%
                             </Text>

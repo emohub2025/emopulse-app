@@ -132,7 +132,7 @@ export default function SubchallengeScreen({
         setIndex(index + 1);
         setSelected(null);
       } else {
-        navigation.navigate("ChallengeCountdown", { challengeId: challenge.id });
+        navigation.navigate("ChallengeCountdown", { challengeId: challenge.id, from: "play" });
       }
 
     } catch (err: any) {

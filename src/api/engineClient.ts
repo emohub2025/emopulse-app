@@ -33,7 +33,7 @@ async function refreshAuthToken(): Promise<string> {
     throw new Error("No refresh token available");
   }
 
-  const refreshUrl = `${BASE_URL}${API_PREFIX}/auth/refresh`;
+  const refreshUrl = `${BASE_URL}${API_PREFIX}/refresh`;
 
   const res = await fetch(refreshUrl, {
     method: "POST",
