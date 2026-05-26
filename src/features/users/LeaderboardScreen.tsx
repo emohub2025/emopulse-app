@@ -244,7 +244,7 @@ export default function LeaderboardScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Leaderboard</Text>
-      <Text style={styles.subtitle}>Climb the ranks. Stack the coins.</Text>
+      <Text style={styles.subtitle}>Stack the coins. Climb the ranks.</Text>
 
       {champion && (
         <Animated.View
@@ -337,20 +337,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#050018",
     paddingHorizontal: 16,
-    paddingTop: 42,
+    paddingTop: 92,
   },
 
   title: {
-    color: "#FFD700",
-    fontSize: 34,
+    color: "white",
+    fontSize: 28,
     fontWeight: "900",
     textAlign: "center",
   },
 
   subtitle: {
-    color: "#FFF",
+    color: 'rgba(255,255,255,0.78)',
+    fontSize: 18,
     textAlign: "center",
-    marginBottom: 14,
+    marginBottom: 16,
   },
 
   spotlightWrapper: {
@@ -363,13 +364,16 @@ const styles = StyleSheet.create({
   spotlight: {
     borderRadius: 20,
     padding: 12,
+    borderWidth: 1,
+    borderColor: "white",
   },
 
   spotlightLabel: {
-    color: "#003B1F",
-    fontSize: 12,
+    color: "white",
+    fontSize: 20,
     fontWeight: "900",
     marginBottom: 6,
+    textAlign: "center",
   },
 
   spotlightName: {

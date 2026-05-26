@@ -3,12 +3,17 @@ import type { Challenge } from "../../navigation/types.js"; // or wherever it li
 export const WACKY_IMAGES: Record<string, any> = {
   PiratesAndNauticalAbsurdity: require("../../assets/wacky/pirates.png"),
   FoodThatFightsBack: require("./food-fights-back.png"),
+  VegetonPrime: require("./vegeton-prime.png"),
+  WhenDogsTakeOver: require("./dogs-take-over.png"),
+  WhenCatsTakeOver: require("./cats-take-over.png"),
+  AliensVisitEarth: require("./aliens-visit-earth.png"),
+  FloridaBecomesIndependent: require("./florida-becomes-independent.png"),
   FantasyCreaturesInModernJobs: require("./fantasy.png"),
   HauntedButInconvenient: require("./ghosts.png"),
-  AlienTourists: require("./aliens.png"),
   OverlyLiteralGenies: require("./genie.png"),
   HistoricalFiguresGoneWrong: require("./famous.png"),
   SportsInImpossibleWorlds: require("../../assets/wacky/sports.png"),
+  //AlienTourists: require("./aliens.png"),
 };
 
 export function getChallengeImageSource(challenge: Challenge | null | undefined) {

@@ -290,7 +290,10 @@ export default function ChallengeResultScreen() {
      Timer + back handling
   ------------------------------------------------------- */
   useEffect(() => {
-    if (from === 'play' && isExpired) {
+    //console.log("from:", from);
+
+    if (isExpired) {
+    //if (from === 'play' && isExpired) {
       setTimeout(() => {
         navigation.navigate('ChallengeResults', {
           challengeId: challenge.id,
