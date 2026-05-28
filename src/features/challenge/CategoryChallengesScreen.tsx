@@ -279,6 +279,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    marginTop: -5,
   },
   listContent: {
     paddingTop: 6,
@@ -412,11 +413,11 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingVertical: 0,
     color: 'yellow',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
     marginTop: 12,
-    marginBottom: -11,
+    marginBottom: -13,
     alignSelf: 'center',
   },
 });

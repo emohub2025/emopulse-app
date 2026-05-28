@@ -125,26 +125,24 @@ export default function PollingChallengeScreen() {
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <ImageBackground
         source={require("../../assets/images/background.png")}
-        style={{ flex: 1, marginBottom: -35 }}
+        style={{ flex: 1, marginBottom: -45 }}
         resizeMode="cover"
       >
         <View style={styles.container}>
-          <View style={styles.imageWrapper}>
             <Image
               source={{
                 uri: `${challenge.image_url}?v=${challenge.category}`
               }}
               style={styles.image}
             />
-          </View>
 
           <View style={styles.questionCard}>
             <AutoShrinkBlock
               maxFontSize={26}
-              minFontSize={18}
-              height={82}
+              minFontSize={15}
+              height={55}
               width={"100%"}
-              minHeight={82}
+              minHeight={55}
               marginTop={-8}
               marginBottom={5}
               textAlign="center"
@@ -220,11 +218,11 @@ export default function PollingChallengeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
+    padding: 12,
     justifyContent: "flex-start"
   },
   bottomBar: {
-    marginTop: 42,
+    marginTop: 18,
     alignItems: "center"
   },
   submitButton: {
@@ -234,8 +232,8 @@ const styles = StyleSheet.create({
     resizeMode: "contain"
   },
   questionCard: {
-    marginTop: 10,
-    marginBottom: 12,
+    marginTop: 8,
+    marginBottom: 10,
     borderRadius: 18,
     backgroundColor: "rgba(18, 10, 42, 0.78)",
     borderWidth: 0.5,
@@ -243,19 +241,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingTop: 10
   },
-  imageWrapper: {
-    width: "100%",
-    height: 165,
-    marginTop: 70,
-    borderRadius: 14,
-    overflow: "hidden",
-    backgroundColor: "rgba(0,0,0,0.22)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.10)"
-  },
   image: {
+    marginTop: 80,
     width: "100%",
-    height: "100%",
+    height: "30%",
     resizeMode: "contain"
   },
   optionsContainer: {
@@ -271,7 +260,7 @@ const styles = StyleSheet.create({
     paddingRight: 12,
     borderRadius: 14,
     backgroundColor: "rgba(0,0,0,0.55)",
-    marginBottom: 9,
+    marginBottom: 6,
     borderWidth: 2,
     height: 70,
     justifyContent: "center",
@@ -312,11 +301,18 @@ const styles = StyleSheet.create({
     color: "#ffffff"
   },
   timer: {
-    color: "yellow",
-    fontSize: 24,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 43,
-    opacity: 0.9
-  }
+    marginHorizontal: 40,
+    width: 250,
+    backgroundColor: "rgba(255, 215, 0, 0.16)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 215, 0, 0.75)",
+    borderRadius: 999,
+    color: 'yellow',
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 40,
+    alignSelf: 'center',
+  },
 });
