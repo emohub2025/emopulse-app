@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start"
   },
   bottomBar: {
-    marginTop: 18,
+    marginTop: 17,
     alignItems: "center"
   },
   submitButton: {

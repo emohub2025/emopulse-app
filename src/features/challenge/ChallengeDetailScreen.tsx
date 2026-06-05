@@ -139,6 +139,8 @@ export default function ChallengeDetailScreen({
     return parts.join('\n\n');
   }, [challenge]);
 
+  //console.log("📦 TEST:", challenge.polling_answers?.slice(0,4));
+
   return (
     <View style={{ flex: 1, backgroundColor: 'black' }}>
 

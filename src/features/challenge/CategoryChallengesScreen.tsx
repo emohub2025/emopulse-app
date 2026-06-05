@@ -22,16 +22,43 @@ type RouteProps = RouteProp<RootStackParamList, 'CategoryChallenges'>;
 // -----------------------------
 // Topic Icons
 // -----------------------------
-const topicIcons: Record<string, any> = {
-  Politics: require("../../assets/icons/politics.png"),
-  Sports: require("../../assets/icons/sports.png"),
-  Entertainment: require("../../assets/icons/entertainment.png"),
-  Tech: require("../../assets/icons/tech.png"),
-  Music: require("../../assets/icons/music.png"),
-  Finance: require("../../assets/icons/finance.png"),
-  Gaming: require("../../assets/icons/gaming.png"),
-  Health: require("../../assets/icons/health.png"),
-  Wacky: require("../../assets/icons/wacky.png"),
+const categoryMeta: Record<string, { icon: any; label: string }> = {
+  Politics: {
+    icon: require("../../assets/icons/politics.png"),
+    label: "Politics",
+  },
+  Sports: {
+    icon: require("../../assets/icons/sports.png"),
+    label: "Sports",
+  },
+  Entertainment: {
+    icon: require("../../assets/icons/entertainment.png"),
+    label: "Entertainment",
+  },
+  Tech: {
+    icon: require("../../assets/icons/tech.png"),
+    label: "Technology & Science",
+  },
+  Music: {
+    icon: require("../../assets/icons/music.png"),
+    label: "Music",
+  },
+  Finance: {
+    icon: require("../../assets/icons/finance.png"),
+    label: "Finance",
+  },
+  Gaming: {
+    icon: require("../../assets/icons/gaming.png"),
+    label: "Gaming",
+  },
+  Health: {
+    icon: require("../../assets/icons/health.png"),
+    label: "Health",
+  },
+  Wacky: {
+    icon: require("../../assets/icons/wacky.png"),
+    label: "Wacky Pulse",   // ← your custom display name
+  },
 };
 
 // Ensure polls go last
@@ -185,11 +212,11 @@ export default function CategoryChallengesScreen() {
             marginTop: 65 
           }}>
             <Image
-              source={topicIcons[category]}
+              source={categoryMeta[category]?.icon}
               style={styles.icon}
             />
             <Text style={styles.topLabel}>
-              {category === "Tech" ? "Science & Technology" : category}
+              {categoryMeta[category]?.label}
             </Text>
           </View>
           <View style={styles.content}>

@@ -16,18 +16,19 @@ type NavProp = NativeStackNavigationProp<
 >;
 
 const CATEGORY_ORDER = [
+  'Wacky',
+  'Entertainment',
   'Politics',
   'Sports',
-  'Entertainment',
   'Tech',
   'Gaming',
   'Music',
   'Finance',
   'Health',
-  'Wacky',
 ];
 
 const categoryImages: Record<string, any> = {
+  Wacky: require('../../assets/images/category-wacky.png'),
   Politics: require('../../assets/images/category-politics.png'),
   Sports: require('../../assets/images/category-sports.png'),
   Entertainment: require('../../assets/images/category-entertainment.png'),
@@ -36,7 +37,6 @@ const categoryImages: Record<string, any> = {
   Gaming: require('../../assets/images/category-gaming.png'),
   Finance: require('../../assets/images/category-finance.png'),
   Health: require('../../assets/images/category-health.png'),
-  Wacky: require('../../assets/images/category-wacky.png'),
 };
 
 export default function CategoryListScreen() {
