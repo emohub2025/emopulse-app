@@ -176,6 +176,7 @@ export interface FeedChallenge {
   id: string;
   category: string;
   headline: string;
+  source: string;
   image_url: string | null;
   snippet: string | null;
   quote: string | null;

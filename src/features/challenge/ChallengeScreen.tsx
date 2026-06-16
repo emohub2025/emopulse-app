@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   submitButton: {
-    marginTop: -6,
+    marginTop: -3,
     marginBottom: -2,
     width: 265,
     height: 54,
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 15,
+    marginTop: 30,
     marginBottom: -11,
     alignSelf: 'center',  },
   errorText: {

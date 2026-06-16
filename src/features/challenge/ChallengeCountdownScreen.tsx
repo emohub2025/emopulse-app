@@ -161,7 +161,7 @@ export default function ChallengeResultScreen() {
     paddedPollData.push({ index: paddedPollData.length, pct: 0 });
   }
   const polling_answers = challenge.polling_answers ?? [];
-
+  //console.log(challenge);
   /* -------------------------------------------------------
      Emotion Data
   ------------------------------------------------------- */
@@ -481,7 +481,7 @@ export default function ChallengeResultScreen() {
                     <ProgressBar
                       key={i}
                       label={truncate(
-                      polling_answers[opt.index] ?? `Option ${opt.index + 1}`, 23)}   // Max char=22
+                      polling_answers[opt.index] ?? `Option ${opt.index}`, 23)}   // Max char=22
                       pct={opt.pct}
                       count={0}
                       color="#4da6ff"
@@ -561,11 +561,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   buttonImage: {
-    width: 285,
-    height: 48,
+    width: 250,
+    height: 60,
     resizeMode: 'contain',
     alignSelf: 'center',
-    marginTop: 17,
+    marginTop: 7,
   },
   text: {
     marginTop: 18,
@@ -588,7 +588,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 15,
+    marginTop: 5,
     marginBottom: 0,
     alignSelf: 'center',
   },});

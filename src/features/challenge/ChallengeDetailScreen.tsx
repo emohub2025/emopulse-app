@@ -88,17 +88,18 @@ export default function ChallengeDetailScreen({
   }, [expanded]);
 
   // Frame sizing
-  const FRAME_WIDTH = 365;
-  const FRAME_HEIGHT = 559;
+  const FRAME_WIDTH = 360;
+  const FRAME_HEIGHT = 546;
   const PLAYER_WIDTH = FRAME_WIDTH * 2.72;
   const PLAYER_HEIGHT = FRAME_HEIGHT;
   const OFFSET = PLAYER_WIDTH / 2;
 
   const COLLAPSED_FRAME = {
-    width: '100%',
-    height: 220,
+    width: 330,
+    height: 208,
     borderRadius: 8,
-    marginBottom: -24,
+    marginTop: 12,
+    marginBottom: -20,
   };
 
   const EXPANDED_FRAME = {
@@ -144,6 +145,11 @@ export default function ChallengeDetailScreen({
   return (
     <View style={{ flex: 1, backgroundColor: 'black' }}>
 
+      <ImageBackground
+        source={require('../../assets/images/background.png')}
+        style={{ flex: 1, marginBottom: 40 }}
+        resizeMode="cover"
+      >
       {/* Collapse trigger */}
       {expanded ? (
         <Pressable onPress={() => setExpanded(false)}>
@@ -153,11 +159,6 @@ export default function ChallengeDetailScreen({
         <Text style={styles.topLabel}>Challenge Details</Text>
       )}
 
-      <ImageBackground
-        source={require('../../assets/images/background.png')}
-        style={{ flex: 1, marginBottom: 42 }}
-        resizeMode="cover"
-      >
         <SafeAreaView style={styles.contentWrapper} edges={['top', 'bottom']}>
           <View style={styles.container}>
 
@@ -169,7 +170,7 @@ export default function ChallengeDetailScreen({
                 fontWeight="700"
                 textAlign="center"
                 fontStyle="italic"
-                marginTop={-35}
+                marginTop={-45}
               >
                 {challenge.topic}
               </AutoShrinkBlock>
@@ -193,7 +194,7 @@ export default function ChallengeDetailScreen({
                       overflow: 'hidden',
                       backgroundColor: 'black',
                       position: 'relative',
-                      transform: [{ scale: scaleAnim }],
+                      transform: expanded ? [{ scale: scaleAnim }] : [],
                     } as Animated.AnimatedProps<ViewStyle>
                   }
                 >
@@ -316,7 +317,7 @@ export default function ChallengeDetailScreen({
                     source={playButton}
                     style={[
                       styles.playImage,
-                      { marginTop: expanded ? -26 : 6 }
+                      { marginTop: expanded ? -26 : 9 }
                     ]}
                   />
                 </Pressable>
@@ -352,7 +353,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 98,
     textAlign: 'center',
-    backgroundColor: 'black',
   },
   container: {
     flex: 1,
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 15,
+    marginTop: 14,
     marginBottom: -11,
     alignSelf: 'center',
   },

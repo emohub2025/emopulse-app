@@ -33,6 +33,7 @@ function cleanChallenge(ch: Challenge): Challenge {
     ...ch, // ⭐ keep everything (including poll fields)
     topic: decodeHtmlEntities(ch.topic),
     snippet: decodeHtmlEntities(ch.snippet),
+    source: decodeHtmlEntities(ch.source),
     quote: decodeHtmlEntities(ch.quote),
     stat: decodeHtmlEntities(ch.stat),
   };
