@@ -47,7 +47,7 @@ export async function postPlaceUserBet(payload: PlaceBetRequest) {
         ? err
         : typeof err?.message === "string"
         ? err.message
-        : "Failed to place bet";
+        : "Failed to submit challenge prediction";
 
     throw new Error(msg);
   }
@@ -63,7 +63,7 @@ export async function postPlaceUserSubBet(payload: PlaceSubBetRequest) {
         ? err
         : typeof err?.message === "string"
         ? err.message
-        : "Failed to place sub-bet";
+        : "Failed to submit subchallenge prediction";
 
     throw msg; // ⭐ throw STRING, not Error
   }
@@ -78,7 +78,7 @@ export async function postPlaceUserPollingBet(payload: PollingBetRequest) {
         ? err
         : typeof err?.message === "string"
         ? err.message
-        : "Failed to place polling bet";
+        : "Failed to submit polling response";
 
     throw new Error(msg);
   }

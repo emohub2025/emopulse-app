@@ -62,8 +62,6 @@ export default function LoginScreen() {
       await AsyncStorage.setItem("userId", String(response.userId));
       await AsyncStorage.setItem("walletId", String(response.walletId));
 
-      console.log("MOBILE TOKEN:", response.accessToken);
-
       const fullUser = await getUserInfo(response.userId.toString());
       useUserStore.getState().setUser(fullUser);
 
@@ -133,6 +131,13 @@ export default function LoginScreen() {
                 />
               </Pressable>
             </View>
+
+            <Pressable
+              onPress={() => navigation.navigate("ForgotPassword")}
+              style={styles.forgotPasswordAction}
+            >
+              <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+            </Pressable>
 
             {error !== "" && (
               <View style={styles.errorBox}>
@@ -298,6 +303,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  forgotPasswordAction: {
+    alignSelf: "flex-end",
+    marginTop: -6,
+    marginBottom: 12,
+    paddingVertical: 4,
+  },
+  forgotPasswordText: {
+    color: "#A78BFA",
+    fontSize: 14,
+    fontWeight: "800",
   },
   buttonWrapper: {
     alignItems: 'center',

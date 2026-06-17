@@ -1,0 +1,30 @@
+Validation run:
+- npx tsc --noEmit
+  Result: PASS
+
+- npx expo config --type public
+  Result: PASS
+  Notes: Confirms iOS bundle ID com.emopulse.app, iOS buildNumber 1.0.0, Android package com.emopulse.app, HTTPS transport config, and image-picker permission strings.
+
+- node API smoke test for https://api.emopulse.ai/health
+  Result: PASS
+  Response: 200 {"status":"ok"}
+
+- node API smoke test for POST https://api.emopulse.ai/mobile/forgot-password
+  Result: PASS
+  Response: 200 generic success message
+
+- npx eas build --platform ios --profile production
+  Result: BLOCKED
+  Reason: EAS CLI requires Expo login or EXPO_TOKEN.
+
+Audit notes:
+- Production API URL is https://api.emopulse.ai.
+- No http:// or old 172.236.119.144 API references remain in app/config/src.
+- Reset-token completion was removed from mobile per backend/web reset flow.
+- Public guessed URLs for privacy/terms/support returned 404:
+  https://emopulse.ai/privacy-policy
+  https://emopulse.ai/privacy
+  https://emopulse.ai/terms
+  https://emopulse.ai/terms-of-service
+  https://emopulse.ai/support

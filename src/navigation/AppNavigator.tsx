@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "./types";
 
 import LoginScreen from "../features/users/LoginScreen";
+import ForgotPasswordScreen from "../features/users/ForgotPasswordScreen";
 import SignupScreen from "../features/users/SignupScreen";
 import CategoryListScreen from "../features/challenge/CategoryListScreen";
 import HomePage from "../features/users/HomePageScreen";
@@ -24,6 +25,7 @@ export default function AppNavigator({ initialRouteName }: Props) {
       }}
     >
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
       <Stack.Screen name="CategoryList" component={CategoryListScreen} />
 

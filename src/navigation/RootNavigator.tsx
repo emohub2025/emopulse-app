@@ -6,6 +6,7 @@ import { RootStackParamList } from "./types";
 
 import HomePageScreen from "../features/users/HomePageScreen";
 import LoginScreen from "../features/users/LoginScreen";
+import ForgotPasswordScreen from "../features/users/ForgotPasswordScreen";
 import SignupScreen from "../features/users/SignupScreen";
 import AccountScreen from "../features/users/AccountScreen";
 import HelpAndSupportScreen from "../features/users/HelpAndSupportScreen";
@@ -77,6 +78,12 @@ export default function RootNavigator({
       <Stack.Screen
         name="Login"
         component={LoginScreen}
+        options={{ headerTitle: () => <LogoHeader /> }}
+      />
+
+      <Stack.Screen
+        name="ForgotPassword"
+        component={ForgotPasswordScreen}
         options={{ headerTitle: () => <LogoHeader /> }}
       />
 

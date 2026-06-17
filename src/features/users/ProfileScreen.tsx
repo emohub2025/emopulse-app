@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Image, Pressable, ImageBackground, StyleSheet, TextInput, ScrollView } from "react-native";
+import { View, Text, Image, Pressable, ImageBackground, StyleSheet, TextInput, ScrollView, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -10,7 +10,7 @@ import type { MobileUser, RootStackParamList } from "../../navigation/types";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import saveButton from "../../assets/buttons/save.png";
 import passwordButton from "../../assets/buttons/password.png";
-import { AVATAR_URL } from "../../../config";
+import { AVATAR_URL, normalizeAvatarUrl } from "../../../config";
 import { changePassword } from "../../api/changePassword";
 
 const MIN_BIRTHDATE = new Date(1900, 0, 1);
@@ -94,10 +94,10 @@ export default function ProfileScreen() {
       throw new Error(data.error);
     }
 
-    return `${data.url}?t=${Date.now()}`;
+    return `${normalizeAvatarUrl(data.url)}?t=${Date.now()}`;
   };
 
-  const pickAvatar = async () => {
+  const chooseAvatarFromLibrary = async () => {
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -137,6 +137,54 @@ export default function ProfileScreen() {
     }
   };
 
+  const takeAvatarPhoto = async () => {
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+
+      if (!permission.granted) {
+        Alert.alert("Permission required", "Camera access is required to take an avatar photo.");
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ["images"] as any,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.9,
+      });
+
+      if (!result.canceled && result.assets?.length > 0) {
+        const hostedAvatarUrl = await uploadAvatar(result.assets[0]);
+
+        setUpdate((prev) => ({
+          ...prev,
+          avatar_url: hostedAvatarUrl,
+        }));
+
+        setUser((prev) => ({
+          ...prev,
+          avatar_url: hostedAvatarUrl,
+        }));
+
+        setStoredUser({
+          ...user,
+          avatar_url: hostedAvatarUrl,
+        } as MobileUser);
+      }
+    } catch (error) {
+      console.error("Failed to take avatar photo:", error);
+      Alert.alert("Unable to take avatar photo.");
+    }
+  };
+
+  const pickAvatar = () => {
+    Alert.alert("Update Avatar", "Choose how you want to set your avatar.", [
+      { text: "Take Photo", onPress: takeAvatarPhoto },
+      { text: "Choose From Library", onPress: chooseAvatarFromLibrary },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  };
+
   const handleSave = async () => {
     try {
       const payload: any = {
@@ -154,8 +202,7 @@ export default function ProfileScreen() {
 
       if (
         update.avatar_url &&
-        (update.avatar_url.startsWith("http://") ||
-          update.avatar_url.startsWith("https://"))
+        update.avatar_url.startsWith("https://")
       ) {
         payload.avatar_url = update.avatar_url;
       }
@@ -227,7 +274,10 @@ export default function ProfileScreen() {
               onPress={pickAvatar}
             >
               {update.avatar_url ? (
-                <Image source={{ uri: update.avatar_url }} style={styles.avatarImage} />
+                <Image
+                  source={{ uri: normalizeAvatarUrl(update.avatar_url) }}
+                  style={styles.avatarImage}
+                />
               ) : (
                 <View style={styles.avatarPlaceholder}>
                   <Text style={styles.avatarPlaceholderText}>
