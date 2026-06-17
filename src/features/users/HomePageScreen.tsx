@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ImageBackground, StyleSheet, Pressable, Image } from 'react-native';
+import { View, Text, ImageBackground, StyleSheet, Pressable, Image, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -16,6 +16,8 @@ type NavProp = NativeStackNavigationProp<
 
 export default function HomePageScreen() {
   const navigation = useNavigation<NavProp>();
+  const openTerms = () => Linking.openURL('https://emopulse.ai/terms/');
+  const openPrivacy = () => Linking.openURL('https://emopulse.ai/privacy-policy/');
 
   return (
 <View style={{ flex: 1, backgroundColor: 'black' }}>
@@ -58,7 +60,16 @@ export default function HomePageScreen() {
     {/* <Pressable style={styles.buttonWrapper}>
       <Image source={googleButton} style={styles.googleImage} />
     </Pressable> */}
-    <Text style={styles.bottomLabel}>By continuing, you agree to our Term & Privacy Policy</Text>
+    <View style={styles.legalRow}>
+      <Text style={styles.bottomLabel}>By continuing, you agree to our </Text>
+      <Pressable onPress={openTerms}>
+        <Text style={styles.legalLink}>Terms</Text>
+      </Pressable>
+      <Text style={styles.bottomLabel}> & </Text>
+      <Pressable onPress={openPrivacy}>
+        <Text style={styles.legalLink}>Privacy Policy</Text>
+      </Pressable>
+    </View>
   </SafeAreaView>
 
 </View>
@@ -121,7 +132,19 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 15,
     fontWeight: '400',
-    marginTop: 25,
     textAlign: 'center',
+  },
+  legalRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginTop: 25,
+    paddingHorizontal: 22,
+  },
+  legalLink: {
+    color: '#A78BFA',
+    fontSize: 15,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
   },
 });

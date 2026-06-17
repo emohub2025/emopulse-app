@@ -8,7 +8,7 @@ import FeedbackIcon from "../../assets/buttons/feedback-icon.png";
 import { useUserStore } from "../../state/useUserStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import { View, Text, ImageBackground, StyleSheet, Image, Pressable, Animated } from "react-native";
+import { View, Text, ImageBackground, StyleSheet, Image, Pressable, Animated, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
@@ -17,7 +17,7 @@ import type { RootStackParamList, MobileUser } from "../../navigation/types";
 import { logout } from "../../auth/logout";
 import OptionRow from "../../components/OptionRow";
 import coinIcon from "../../assets/images/coin.png";
-import { AVATAR_URL } from "../../../config";
+import { AVATAR_URL, normalizeAvatarUrl } from "../../../config";
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, "Account">;
 
@@ -111,7 +111,22 @@ export default function AccountScreen() {
     return null;
   }
 
-  const pickAvatar = async () => {
+  const uploadSelectedAvatar = async (result: ImagePicker.ImagePickerResult) => {
+    const asset = result.assets?.[0];
+
+    if (asset) {
+      uploadAvatar(asset);
+    }
+  };
+
+  const chooseAvatarFromLibrary = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      Alert.alert("Permission required", "Photo library access is required to choose an avatar.");
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
@@ -119,10 +134,37 @@ export default function AccountScreen() {
       quality: 0.8,
     });
 
-    const asset = result.assets?.[0];
-    if (asset) {
-      uploadAvatar(asset);
+    if (!result.canceled) {
+      uploadSelectedAvatar(result);
     }
+  };
+
+  const takeAvatarPhoto = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (!permission.granted) {
+      Alert.alert("Permission required", "Camera access is required to take an avatar photo.");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      uploadSelectedAvatar(result);
+    }
+  };
+
+  const pickAvatar = () => {
+    Alert.alert("Update Avatar", "Choose how you want to set your avatar.", [
+      { text: "Take Photo", onPress: takeAvatarPhoto },
+      { text: "Choose From Library", onPress: chooseAvatarFromLibrary },
+      { text: "Cancel", style: "cancel" },
+    ]);
   };
 
   const uploadAvatar = async (asset: ImagePicker.ImagePickerAsset) => {
@@ -156,7 +198,7 @@ export default function AccountScreen() {
         return;
       }
 
-      const freshUrl = `${data.url}?t=${Date.now()}`;
+      const freshUrl = `${normalizeAvatarUrl(data.url)}?t=${Date.now()}`;
 
       setUser((prev) => (prev ? { ...prev, avatar_url: freshUrl } : prev));
       setStoredUser({
@@ -180,7 +222,10 @@ export default function AccountScreen() {
         <View style={styles.profileRow}>
           <Pressable onPress={pickAvatar}>
             {user.avatar_url ? (
-              <Image source={{ uri: user.avatar_url }} style={styles.avatar} />
+              <Image
+                source={{ uri: normalizeAvatarUrl(user.avatar_url) }}
+                style={styles.avatar}
+              />
             ) : (
               <View style={[styles.avatar, styles.emptyAvatar]}>
                 <Text style={styles.emptyAvatarText}>Press to upload avatar</Text>
@@ -284,7 +329,7 @@ export default function AccountScreen() {
 
           <OptionRow
             icon={FeedbackIcon}
-            label="Beta Feedback"
+            label="Feedback"
             iconWidth={50}
             iconHeight={50}
             onPress={() => {

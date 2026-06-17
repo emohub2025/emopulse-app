@@ -73,8 +73,7 @@ export default function SignupScreen() {
 
       const response = await apiPost<LoginResponse>(
         "signup",
-        { name: cleanName, email: cleanEmail, password },
-        navigation
+        { name: cleanName, email: cleanEmail, password }
       );
 
       // Save auth info

@@ -1,4 +1,6 @@
-const BASE_URL = 'http://172.236.119.144:3000';
+import { INGEST_URL } from "../../config";
+
+const BASE_URL = INGEST_URL;
 
 export async function apiGet<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`);

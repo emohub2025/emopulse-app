@@ -52,6 +52,22 @@ export default function HelpAndSupportScreen() {
     );
   };
 
+  const openPrivacyPolicy = () => {
+    Linking.openURL("https://emopulse.ai/privacy-policy/");
+  };
+
+  const openTerms = () => {
+    Linking.openURL("https://emopulse.ai/terms/");
+  };
+
+  const openSupport = () => {
+    Linking.openURL("https://emopulse.ai/support/");
+  };
+
+  const openDeleteAccount = () => {
+    Linking.openURL("https://emopulse.ai/delete-account/");
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <ImageBackground
@@ -64,11 +80,11 @@ export default function HelpAndSupportScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
 
           <View style={styles.card}>
-            <Text style={styles.heading}>Emotional Pulse Beta</Text>
+            <Text style={styles.heading}>Emotional Pulse</Text>
 
             <Text style={styles.subText}>
               Explore trends, join challenges, compete with teams, and earn Coins.
-              This is an early beta, so your feedback matters.
+              Your feedback helps us keep improving the experience.
             </Text>
 
             {/* ----------------------------- */}
@@ -110,6 +126,24 @@ export default function HelpAndSupportScreen() {
               <Text style={styles.reportText}>Report a Bug</Text>
             </TouchableOpacity>
 
+            <Text style={styles.sectionTitle}>Resources</Text>
+
+            <TouchableOpacity onPress={openSupport}>
+              <Text style={styles.resourceLink}>Support Center</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={openPrivacyPolicy}>
+              <Text style={styles.resourceLink}>Privacy Policy</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={openTerms}>
+              <Text style={styles.resourceLink}>Terms of Service</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={openDeleteAccount}>
+              <Text style={styles.resourceLink}>Delete Account</Text>
+            </TouchableOpacity>
+
             {/* ----------------------------- */}
             {/* FAQ ACCORDION */}
             {/* ----------------------------- */}
@@ -127,22 +161,22 @@ export default function HelpAndSupportScreen() {
 
             <FAQItem
               question="Is this free?"
-              answer="Yes. The beta is completely free and includes bonus Coins for early users."
+              answer="Yes. EmoPulse is free to use and includes Coins for gameplay."
             />
 
             <FAQItem
               question="Why do things change?"
-              answer="We’re actively improving the app during beta, so features and gameplay may evolve."
+              answer="We're actively improving the app, so features and gameplay may evolve."
             />
 
             <FAQItem
               question="Will my progress reset?"
-              answer="Some resets may happen during beta while we refine the system."
+              answer="Some resets may happen while we refine the system."
             />
 
             <FAQItem
-              question="When is launch?"
-              answer="We’re moving fast—your feedback helps determine the final release timeline."
+              question="What should I do if I need help?"
+              answer="Use the support links above or email app@emopulse.ai."
             />
 
             <Text style={styles.footerNote}>
@@ -235,6 +269,13 @@ const styles = StyleSheet.create({
     color: "#fff",
     marginLeft: 6,
     fontWeight: "600",
+  },
+
+  resourceLink: {
+    color: "#007AFF",
+    fontSize: 16,
+    marginBottom: 12,
+    textDecorationLine: "underline",
   },
 
   faqItem: {

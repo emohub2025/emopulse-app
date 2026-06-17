@@ -6,6 +6,7 @@ import { RootStackParamList } from "./types";
 
 import HomePageScreen from "../features/users/HomePageScreen";
 import LoginScreen from "../features/users/LoginScreen";
+import ForgotPasswordScreen from "../features/users/ForgotPasswordScreen";
 import SignupScreen from "../features/users/SignupScreen";
 import AccountScreen from "../features/users/AccountScreen";
 import HelpAndSupportScreen from "../features/users/HelpAndSupportScreen";
@@ -37,11 +38,12 @@ const LogoHeader = () => (
       width: "100%",
       alignItems: "center",
       justifyContent: "center",
+      height: 52,
     }}
   >
     <Image
       source={require("../assets/logos/logo.png")}
-      style={{ width: "110%", height: 60, marginTop: -10, resizeMode: "cover" }}
+      style={{ width: "100%", height: 52, resizeMode: "stretch" }}
     />
   </View>
 );
@@ -62,7 +64,14 @@ export default function RootNavigator({
       screenOptions={{
         headerTransparent: false,
         headerTitleAlign: "center",
-        headerBackground: () => <View style={{ backgroundColor: "#121212" }} />,
+        headerShadowVisible: false,
+        headerStyle: {
+          backgroundColor: "#000",
+        },
+        headerBackground: () => <View style={{ flex: 1, backgroundColor: "#000" }} />,
+        contentStyle: {
+          backgroundColor: "#000",
+        },
         headerTintColor: "white",
         headerBackVisible: false,
         headerLeft: () => null,
@@ -77,6 +86,12 @@ export default function RootNavigator({
       <Stack.Screen
         name="Login"
         component={LoginScreen}
+        options={{ headerTitle: () => <LogoHeader /> }}
+      />
+
+      <Stack.Screen
+        name="ForgotPassword"
+        component={ForgotPasswordScreen}
         options={{ headerTitle: () => <LogoHeader /> }}
       />
 

@@ -90,7 +90,7 @@ export default function FeedbackScreen() {
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-        <Text style={styles.topLabel}>Beta Feedback</Text>
+        <Text style={styles.topLabel}>Feedback</Text>
 
         <ScrollView>
           <View style={styles.card}>

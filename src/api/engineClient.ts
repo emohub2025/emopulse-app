@@ -1,8 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CommonActions } from "@react-navigation/native";
 import { navigationRef } from "../navigation/navigationRef";
+import { ENGINE_URL } from "../../config";
 
-const BASE_URL = "http://172.236.119.144:4100";
+const BASE_URL = ENGINE_URL;
 const API_PREFIX = "/mobile";
 
 function normalizePath(path: string): string {

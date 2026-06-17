@@ -82,6 +82,7 @@ export type RootStackParamList = {
   CategoryList: undefined;
   HomePage: undefined;
   Login: undefined;
+  ForgotPassword: undefined;
   Signup: undefined;
   Account: undefined;
   ResultsHistory: undefined;
