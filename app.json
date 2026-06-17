@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "EmoPulse",
+    "name": "Emotional Pulse",
     "slug": "emopulse-app",
     "version": "1.0.0",
+    "description": "Predict the crowd pulse across games, trends, and challenges.",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -10,14 +11,14 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#000000"
     },
     "plugins": [
       [
         "expo-image-picker",
         {
-          "photosPermission": "EmoPulse uses your photo library so you can choose and upload a profile avatar.",
-          "cameraPermission": "EmoPulse uses your camera so you can take a profile avatar photo.",
+          "photosPermission": "Emotional Pulse uses your photo library so you can choose and upload a profile avatar.",
+          "cameraPermission": "Emotional Pulse uses your camera so you can take a profile avatar photo.",
           "microphonePermission": false
         }
       ]
@@ -25,7 +26,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.emopulse.app",
-      "buildNumber": "1.0.2",
+      "buildNumber": "1.0.4",
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": false
@@ -42,7 +43,7 @@
       "predictiveBackGestureEnabled": false,
       "usesCleartextTraffic": false,
       "package": "com.emopulse.app",
-      "versionCode": 1,
+      "versionCode": 3,
       "permissions": [
         "android.permission.VIBRATE"
       ]
@@ -53,6 +54,11 @@
     "extra": {
       "eas": {
         "projectId": "c8ae6663-dfc4-44ff-80b7-b19b1d767b18"
+      },
+      "storeMetadata": {
+        "subtitle": "Predict the crowd pulse",
+        "primaryCategory": "Games",
+        "ageRating": "13+"
       }
     }
   }
