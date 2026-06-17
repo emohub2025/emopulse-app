@@ -10,6 +10,7 @@ import activeButton from '../../assets/buttons/active.png';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useFeed } from '../../context/FeedContext';
 import { emotionLookup, emotionSlotMap } from '../../utils/emotionList';
+import { ChallengeComment, fetchComments, postComment } from '../../api/challengeComments';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'ChallengeCountdown'>;
 
@@ -201,62 +202,54 @@ export default function ChallengeResultScreen() {
   }, [tick, isWacky, isPoll]);
 
   /* -------------------------------------------------------
-     Comments + animation
+    Comments + animation
   ------------------------------------------------------- */
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(1)).current;
+
   const [commentText, setCommentText] = useState('');
-  const [users, setUsers] = useState<string[]>([]);
-  const [comments, setComments] = useState<string[]>([]);
+  const [comments, setComments] = useState<ChallengeComment[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+
   const commentsRef = useRef(comments);
-  const usersRef = useRef(users);
-  const startedRef = useRef(false);
 
-  function handlePostComment() {
+  async function handlePostComment() {
     if (!commentText.trim()) return;
-    setComments(prev => [...prev, commentText.trim()]);
-    setCommentText('');
-  }
 
-  useEffect(() => {
-    usersRef.current = users;
-  }, [users]);
+    try {
+      await postComment(challengeId, commentText.trim());
+      setCommentText("");
+      const list = await fetchComments(challengeId);
+      setComments(list);
+    } catch (err: any) {
+      console.log("❌ Prediction failed:", err);
+    }
+  }
 
   useEffect(() => {
     commentsRef.current = comments;
   }, [comments]);
 
   useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
+    let mounted = true;
 
-    const test = [
-      'This is wild!',
-      'No way this is happening, how crazy!',
-      'The new Taylor Swift album is Fire 🔥',
-      'Let’s goooo',
-      'Throw the bums out... tired of losing! 😮‍💨',
-    ];
+    async function load() {
+      try {
+        const list = await fetchComments(challengeId);
+        if (mounted) setComments(list);
+      } catch (err) {
+        console.log("Fetch comments error:", err);
+      }
+    }
 
-    const testUsers = [
-      'Joe Cool',
-      'Rebellious Johhny',
-      'Swifty Sally',
-      'Big Mike',
-      'Sam Shalabam',
-    ];
+    load();
+    const interval = setInterval(load, 5000);
 
-    let i = 0;
-
-    const interval = setInterval(() => {
-      setComments(prev => [...prev, test[i % test.length]]);
-      setUsers(prev => [...prev, testUsers[i % test.length]]);
-      i++;
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, [challengeId]);
 
   useEffect(() => {
     const interval = setInterval(() => {
