@@ -9,6 +9,9 @@ import ButtonPanel from '../../components/ButtonPanel';
 import { useFeed } from "../../context/FeedContext";
 import { getFeedList } from "../../api/getFeedList";
 import type { FeedCategory, FeedResponse } from "../../navigation/types";
+import { Platform } from "react-native";
+
+const isIOS = Platform.OS === "ios";
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -75,7 +78,7 @@ export default function CategoryListScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safe} edges={[]}>
+      <SafeAreaView style={styles.safe} edges={isIOS ? [] : ["top"]}>
         <View style={styles.center}>
           <Text style={{ color: 'white' }}>Loading categories…</Text>
         </View>
@@ -100,7 +103,7 @@ export default function CategoryListScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.safe} edges={[]}>
+    <SafeAreaView style={styles.safe}edges={isIOS ? [] : ["top"]}>
       <Text style={styles.topLabel}>Challenge Categories</Text>
       <Text style={styles.subLabel}>Choose a category to view active and expired challenges</Text>
 
@@ -149,7 +152,7 @@ const styles = StyleSheet.create({
   },
   safe: {
     flex: 1,
-    paddingTop: 8,
+    paddingTop: isIOS ? 8 : 40,
     paddingBottom: 0,
     backgroundColor: '#000',
   },
@@ -157,7 +160,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 28,
     fontWeight: '700',
-    marginTop: 6,
+    marginTop: isIOS ? 6 : 25,
     marginBottom: 6,
     textAlign: 'center',
   },

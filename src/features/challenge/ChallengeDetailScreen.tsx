@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, ImageBackground, StyleSheet, ViewStyle, Image, Pressable, Animated, Easing, ScrollView } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -33,36 +33,12 @@ export default function ChallengeDetailScreen({
   route: ChallengeDetailRouteProp;
 }) {
   const navigation = useNavigation<NavProp>();
-  const { formattedTime } = useCycleTimer();
+  const { isExpired, formattedTime } = useCycleTimer();
 
   const { challengeId } = route.params;
   const { feed } = useFeed();
-  if (!feed) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
-        <Text style={{ color: "white" }}>Loading…</Text>
-      </SafeAreaView>
-    );
-  }
 
-  const challenge = feed.categories
-    .flatMap(c => [...c.active, ...c.recent])
-    .find(ch => ch.id === challengeId);
-
-  if (!challenge) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
-        <Text style={{ color: "white", textAlign: "center", marginTop: 40 }}>
-          Challenge not found
-        </Text>
-      </SafeAreaView>
-    );
-  }
-
-  const isResolved = challenge.status !== 'open';
-  const imageSource = getChallengeImageSource(challenge);
-  const isYouTube = challenge.source?.startsWith('YouTube');
-
+  // ⭐ All hooks MUST come before any early return
   const [expanded, setExpanded] = useState(false);
 
   // ⭐ Animation values
@@ -130,17 +106,40 @@ export default function ChallengeDetailScreen({
   };
 
   const playerStyle = expanded ? expandedPlayer : collapsedPlayer;
+  const title = expanded ? "Remove player" : "Challenge Details";
+
+  // ⭐ Now safe to use feed
+  const challenge = feed?.categories
+    .flatMap(c => [
+      ...c.active.map(ch => ({ ...ch, _origin: "active" })),
+      ...c.recent.map(ch => ({ ...ch, _origin: "recent" })),
+    ])
+    .find(ch => ch.id === challengeId);
+
+  const previous = challenge?._origin ?? null;
+  const imageSource = getChallengeImageSource(challenge);
+  const isYouTube = challenge?.source?.startsWith('YouTube');
 
   // Combined snippet/stat/quote
-  const combinedDetails = useMemo(() => {
+  const combinedDetails = (() => {
     const parts: string[] = [];
-    if (challenge.snippet) parts.push(challenge.snippet.trim());
-    if (challenge.stat) parts.push(challenge.stat.trim());
-    if (challenge.quote) parts.push(challenge.quote.trim());
+    if (challenge?.snippet) parts.push(challenge.snippet.trim());
+    if (challenge?.stat) parts.push(challenge.stat.trim());
+    if (challenge?.quote) parts.push(challenge.quote.trim());
     return parts.join('\n\n');
-  }, [challenge]);
+  })();
 
-  //console.log("📦 TEST:", challenge.polling_answers?.slice(0,4));
+  //console.log("📦 TEST:", challenge?.polling_answers?.slice(0,4));
+
+  if (!feed || !challenge) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+        <Text style={{ color: "white", textAlign: "center", marginTop: 40 }}>
+          Challenge not found
+        </Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: 'black' }}>
@@ -153,10 +152,10 @@ export default function ChallengeDetailScreen({
       {/* Collapse trigger */}
       {expanded ? (
         <Pressable onPress={() => setExpanded(false)}>
-          <Text style={styles.topLabel}>Challenge Details</Text>
+          <Text style={styles.topLabel}>{title}</Text>
         </Pressable>
       ) : (
-        <Text style={styles.topLabel}>Challenge Details</Text>
+        <Text style={styles.topLabel}>{title}</Text>
       )}
 
         <SafeAreaView style={styles.contentWrapper} edges={['top', 'bottom']}>
@@ -172,12 +171,12 @@ export default function ChallengeDetailScreen({
                 fontStyle="italic"
                 marginTop={-45}
               >
-                {challenge.topic}
+                {challenge?.topic ?? ""}
               </AutoShrinkBlock>
             )}
 
             {/* YOUTUBE MODE */}
-            {isYouTube ? (
+            {(isYouTube && !previous) ? (
               <View
                 style={{
                   width: '100%',
@@ -231,7 +230,7 @@ export default function ChallengeDetailScreen({
                         height={playerStyle.height}
                         width={playerStyle.width}
                         play={false}
-                        videoId={extractShortsId(challenge.url)}
+                        videoId={extractShortsId(challenge?.url)}
                         initialPlayerParams={{
                           controls: true,
                           modestbranding: true,
@@ -256,14 +255,14 @@ export default function ChallengeDetailScreen({
             {/* DETAILS OR POLL RESULTS (only when collapsed) */}
             {!expanded && (
               <>
-                {challenge.source === 'polling' && challenge.status !== 'open' ? (
+                {challenge?.source === 'polling' && challenge?.status !== 'open' ? (
                   <View style={styles.metaText}>
                     <Text style={styles.polltitle}>Polling Result</Text>
-                      {challenge.main?.poll_results?.slice(0,4).map(
+                      {challenge?.main?.poll_results?.slice(0,4)?.map(
                         (opt: { index: number; pct: number }, i: number) => (
                           <View key={i} style={{ marginBottom: 14, paddingLeft: 20, paddingRight: 20, }}>
                             <Text style={{ color: 'white', fontSize: 18, marginBottom: 4 }}>
-                              {truncate(challenge.polling_answers?.slice(0,4)[opt.index] ?? `Option ${opt.index + 1}`, 25)}
+                              {truncate(challenge?.polling_answers?.slice(0,4)?.[opt.index] ?? `Option ${opt.index + 1}`, 25)}
                               {' — '}
                               {(opt.pct * 100).toFixed(0)}%
                             </Text>
@@ -293,9 +292,9 @@ export default function ChallengeDetailScreen({
                   <View style={styles.metaText}>
                     <Text style={styles.source}>
                       Source:{' '}
-                      {challenge.source?.startsWith('Wacky') || !challenge.source
+                      {challenge?.source?.startsWith('Wacky') || !challenge?.source
                         ? 'Emopulse'
-                        : challenge.source}
+                        : challenge?.source}
                     </Text>
                     <ScrollView style={{ height: 182 }} showsVerticalScrollIndicator={false}>
                       <Text style={styles.meta}>{combinedDetails}</Text>
@@ -306,11 +305,11 @@ export default function ChallengeDetailScreen({
             )}
 
             {/* NEXT BUTTON OR WINNING EMOTION */}
-            {!isResolved ? (
+            {!previous ? (
               <>
                 <Pressable
                   onPress={() =>
-                    navigation.navigate("Challenge", { challengeId: challenge.id })
+                    navigation.navigate("Challenge", { challengeId: challenge?.id })
                   }
                 >
                   <Image
@@ -326,13 +325,13 @@ export default function ChallengeDetailScreen({
               </>
             ) : (
               <Text style={styles.winningEmotion}>
-                {challenge.winning_emotion && (
+                {challenge?.winning_emotion && (
                   <Text style={styles.winningEmotionContainer}>
                     <Text style={styles.winningEmotionLabel}>
                       Winning Emotion:{' '}
                     </Text>
                     <Text style={styles.winningEmotionValue}>
-                      {challenge.winning_emotion}
+                      {challenge?.winning_emotion}
                     </Text>
                   </Text>
                 )}
@@ -447,18 +446,11 @@ const styles = StyleSheet.create({
   },
   timer: {
     marginHorizontal: 40,
-    width: 250,
-    backgroundColor: "rgba(255, 215, 0, 0.16)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 215, 0, 0.75)",
-    borderRadius: 999,
-    paddingVertical: 0,
     color: 'yellow',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
     marginTop: 14,
-    marginBottom: -11,
     alignSelf: 'center',
   },
 });

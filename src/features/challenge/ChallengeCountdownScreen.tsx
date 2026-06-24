@@ -90,11 +90,12 @@ const ProgressBar = ({ label, pct, color, labelColor }: ProgressBarProps) => {
           style={{
             position: 'absolute',
             width: '100%',
-            textAlign: 'center',
+            textAlign: 'left',
             color: labelColor || color,
             fontSize: 18,
             fontWeight: '700',
             paddingVertical: -1,
+            paddingHorizontal: 15,
           }}
         >
           {label} — {Math.round(pct * 100)}%
@@ -107,22 +108,18 @@ const ProgressBar = ({ label, pct, color, labelColor }: ProgressBarProps) => {
 /* -------------------------------------------------------
    ⭐ Main Screen (emotion + polling + comments)
 ------------------------------------------------------- */
-export default function ChallengeResultScreen() {
+export default function ChallengeCountdownScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<any>();
   const from = route.params?.from;
   const { isExpired, formattedTime } = useCycleTimer();
-
   const { challengeId } = route.params;
-  const { feed } = useFeed();
+  const { feed, setSuppressGlobalReset } = useFeed();
 
-  if (!feed) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
-        <Text style={{ color: 'white' }}>Loading…</Text>
-      </SafeAreaView>
-    );
-  }
+  /* -------------------------------------------------------
+     ⭐ ALL HOOKS MUST COME FIRST
+     (before ANY early return, before using feed/challenge)
+  ------------------------------------------------------- */
 
   const [tick, setTick] = useState(0);
   useEffect(() => {
@@ -130,88 +127,22 @@ export default function ChallengeResultScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  const challenge = feed.categories
-    .flatMap(c => [...c.active, ...c.recent])
-    .find(ch => ch.id === challengeId);
-
-  if (!challenge) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <Text style={styles.loadingText}>Missing challenge data</Text>
-      </SafeAreaView>
-    );
-  }
-
-  /* -------------------------------------------------------
-     Live snapshot (enriched)
-  ------------------------------------------------------- */
   const { snapshot } = useLiveSnapshot();
-  const liveChallenge = snapshot.find(
-    (item: EnrichedLiveSnapshotItem) => item.id === challenge.id
-  );
 
-  /* -------------------------------------------------------
-  // Polling data
-  ------------------------------------------------------- */
-  const isPoll = liveChallenge?.isPoll === true;
-  const pollData = isPoll && liveChallenge?.pollResults ? liveChallenge.pollResults : [];
-
-  // ⭐ Ensure 4 poll options always exist
-  const paddedPollData = [...pollData];
-  while (paddedPollData.length < 4) {
-    paddedPollData.push({ index: paddedPollData.length, pct: 0 });
-  }
-  const polling_answers = challenge.polling_answers ?? [];
-  //console.log(challenge);
-  /* -------------------------------------------------------
-     Emotion Data
-  ------------------------------------------------------- */
-  const rawEmotion =
-    !isPoll && liveChallenge
-      ? normalizeEmotions(liveChallenge.main)
-      : {
-          angry: { pct: 0, count: 0 },
-          happy: { pct: 0, count: 0 },
-          sad: { pct: 0, count: 0 },
-          anxious: { pct: 0, count: 0 },
-        };
-
-  const isWacky =
-    challenge.category === 'Wacky' ||
-    (typeof challenge.source === 'string' &&
-      challenge.source.startsWith('WackyPulse:'));
-
-  const [wEmotion, setWEmotion] = useState(rawEmotion);
-
-  useEffect(() => {
-    if (isPoll) return;
-
-    if (!isWacky) {
-      setWEmotion(normalizeTo100(rawEmotion));
-      return;
-    }
-
-    const wobbled = {
-      happy: { ...rawEmotion.happy, pct: wobblePct(rawEmotion.happy.pct) },
-      angry: { ...rawEmotion.angry, pct: wobblePct(rawEmotion.angry.pct) },
-      sad: { ...rawEmotion.sad, pct: wobblePct(rawEmotion.sad.pct) },
-      anxious: { ...rawEmotion.anxious, pct: wobblePct(rawEmotion.anxious.pct) },
-    };
-
-    setWEmotion(normalizeTo100(wobbled));
-  }, [tick, isWacky, isPoll]);
-
-  /* -------------------------------------------------------
-    Comments + animation
-  ------------------------------------------------------- */
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(1)).current;
 
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<ChallengeComment[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-
   const commentsRef = useRef(comments);
+
+  const [wEmotion, setWEmotion] = useState({
+    happy: { pct: 0, count: 0 },
+    angry: { pct: 0, count: 0 },
+    sad: { pct: 0, count: 0 },
+    anxious: { pct: 0, count: 0 },
+  });
 
   async function handlePostComment() {
     if (!commentText.trim()) return;
@@ -222,7 +153,7 @@ export default function ChallengeResultScreen() {
       const list = await fetchComments(challengeId);
       setComments(list);
     } catch (err: any) {
-      console.log("❌ Prediction failed:", err);
+      console.log("❌ Post comment failed:", err);
     }
   }
 
@@ -235,6 +166,7 @@ export default function ChallengeResultScreen() {
 
     async function load() {
       try {
+        if (!challengeId) return; // ⭐ guard
         const list = await fetchComments(challengeId);
         if (mounted) setComments(list);
       } catch (err) {
@@ -279,26 +211,129 @@ export default function ChallengeResultScreen() {
     ]).start();
   }, [currentIndex]);
 
-  /* -------------------------------------------------------
-     Timer + back handling
-  ------------------------------------------------------- */
   useEffect(() => {
-    //console.log("from:", from);
+    // Tell FeedProvider NOT to reset to CategoryList
+    setSuppressGlobalReset(true);
 
+    return () => {
+      // Restore default behavior when leaving this screen
+      setSuppressGlobalReset(false);
+    };
+  }, []);
+    
+  useEffect(() => {
     if (isExpired) {
-    //if (from === 'play' && isExpired) {
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         navigation.navigate('ChallengeResults', {
-          challengeId: challenge.id,
+          challengeId: challengeId,
         });
       }, 2000);
+
+      return () => clearTimeout(timeout);
     }
-  }, [isExpired]);
+  }, [isExpired, navigation, challengeId]);
 
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
     return () => sub.remove();
   }, [from]);
+
+  let liveChallenge = null;
+  let isPoll = false;
+  let pollData = [];
+  let paddedPollData = [];
+  let polling_answers = [];
+  let challenge = null;
+  let rawEmotion = null;
+  let isWacky = false;
+  let wobbled = null;
+
+  /* -------------------------------------------------------
+     ⭐ SAFE TO USE feed NOW
+  ------------------------------------------------------- */
+  challenge = feed?.categories
+    .flatMap(c => [...c.active, ...c.recent])
+    .find(ch => ch.id === challengeId);
+
+  /* -------------------------------------------------------
+     Live snapshot (enriched)
+  ------------------------------------------------------- */
+  liveChallenge = snapshot?.find(
+    (item: EnrichedLiveSnapshotItem) => item.id === challenge?.id
+  );
+
+  /* -------------------------------------------------------
+     Polling data
+  ------------------------------------------------------- */
+  isPoll = liveChallenge?.isPoll === true;
+  pollData = isPoll && liveChallenge?.pollResults ? liveChallenge.pollResults : [];
+
+  // ⭐ Ensure 4 poll options always exist
+  paddedPollData = [...pollData];
+  while (paddedPollData.length < 4) {
+    paddedPollData.push({ index: paddedPollData.length, pct: 0 });
+  }
+
+  polling_answers = challenge?.polling_answers ?? [];
+
+  /* -------------------------------------------------------
+     Emotion Data
+  ------------------------------------------------------- */
+  rawEmotion =
+    !isPoll && liveChallenge
+      ? normalizeEmotions(liveChallenge.main)
+      : {
+          angry: { pct: 0, count: 0 },
+          happy: { pct: 0, count: 0 },
+          sad: { pct: 0, count: 0 },
+          anxious: { pct: 0, count: 0 },
+        };
+
+  isWacky =
+    challenge?.category === 'Wacky' ||
+    (typeof challenge?.source === 'string' &&
+      challenge?.source.startsWith('WackyPulse:'));
+
+  useEffect(() => {
+    if (isPoll) return;
+
+    if (!isWacky) {
+      setWEmotion(normalizeTo100(rawEmotion));
+      return;
+    }
+
+    wobbled = {
+      happy: { ...rawEmotion.happy, pct: wobblePct(rawEmotion.happy.pct) },
+      angry: { ...rawEmotion.angry, pct: wobblePct(rawEmotion.angry.pct) },
+      sad: { ...rawEmotion.sad, pct: wobblePct(rawEmotion.sad.pct) },
+      anxious: { ...rawEmotion.anxious, pct: wobblePct(rawEmotion.anxious.pct) },
+    };
+
+    setWEmotion(normalizeTo100(wobbled));
+  }, [tick, isWacky, isPoll]);
+
+  /* -------------------------------------------------------
+     ⭐ EARLY RETURN #1 — SAFE NOW
+     (feed is allowed to be null here)
+  ------------------------------------------------------- */
+  if (!feed) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
+        <Text style={{ color: 'white' }}>Loading…</Text>
+       </SafeAreaView>
+    );
+  }
+
+  /* -------------------------------------------------------
+     ⭐ EARLY RETURN #2 — SAFE
+  ------------------------------------------------------- */
+  if (!challenge) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Text style={styles.loadingText}>Missing challenge data</Text>
+      </SafeAreaView>
+    );
+  }
 
   /* -------------------------------------------------------
      Render
@@ -318,7 +353,7 @@ export default function ChallengeResultScreen() {
               textAlign="center"
               marginTop={5}
             >
-              {challenge.topic}
+              {challenge?.topic}
             </AutoShrinkBlock>
           </View>
 
@@ -347,7 +382,7 @@ export default function ChallengeResultScreen() {
                   alignSelf: 'center',
                 }}
               >
-                Comments (coming soon)
+                Comments
               </Text>
 
               <View
@@ -371,8 +406,8 @@ export default function ChallengeResultScreen() {
                       fontWeight: '800',
                     }}
                   >
-                    {usersRef.current[currentIndex]
-                      ? `${usersRef.current[currentIndex]}:`
+                    {commentsRef.current[currentIndex]?.username
+                      ? `${commentsRef.current[currentIndex]!.username}:`
                       : ''}
                   </Text>
                   <Text
@@ -383,7 +418,7 @@ export default function ChallengeResultScreen() {
                       fontStyle: 'italic',
                     }}
                   >
-                    {commentsRef.current[currentIndex] || ''}
+                    {commentsRef.current[currentIndex]?.text ?? ''}
                   </Text>
                 </Animated.View>
               </View>
@@ -474,7 +509,7 @@ export default function ChallengeResultScreen() {
                     <ProgressBar
                       key={i}
                       label={truncate(
-                      polling_answers[opt.index] ?? `Option ${opt.index}`, 23)}   // Max char=22
+                      polling_answers[i] ?? `Option ${i + 1}`, 23)}   // Max char=22
                       pct={opt.pct}
                       count={0}
                       color="#4da6ff"
@@ -570,18 +605,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   timer: {
-    marginHorizontal: 40,
-    width: 250,
-    backgroundColor: "rgba(255, 215, 0, 0.16)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 215, 0, 0.75)",
-    borderRadius: 999,
-    paddingVertical: 0,
     color: 'yellow',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 5,
-    marginBottom: 0,
+    marginTop: 2,
     alignSelf: 'center',
   },});

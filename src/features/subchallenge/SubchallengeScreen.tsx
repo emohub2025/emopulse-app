@@ -27,14 +27,16 @@ type SubchallengeNavProp = NativeStackNavigationProp<
 export default function SubchallengeScreen({
   route,
   navigation,
-  }: {
-    route: SubchallengeRouteProp;
-    navigation: SubchallengeNavProp;
-  }) {
+}: {
+  route: SubchallengeRouteProp;
+  navigation: SubchallengeNavProp;
+}) {
 
   const { challengeId, subchallenges } = route.params;
+
+  // ⭐ ALL HOOKS MUST COME FIRST
   const [loading, setLoading] = useState(false);
-  const { formattedTime } = useCycleTimer();
+  const { isExpired, formattedTime } = useCycleTimer();
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const current: SubchallengeList = subchallenges[index];
@@ -43,30 +45,8 @@ export default function SubchallengeScreen({
   const errorOpacity = useRef(new Animated.Value(0)).current;
   const timerOpacity = useRef(new Animated.Value(1)).current;
   const [lastTap, setLastTap] = useState<number | null>(null);
-  
-  const { feed } = useFeed();
-  if (!feed) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
-        <Text style={{ color: "white" }}>Loading…</Text>
-      </SafeAreaView>
-    );
-  }
 
-  const challenge = feed.categories
-    .flatMap(c => [...c.active, ...c.recent])
-    .find(ch => ch.id === challengeId);
-
-  if (!challenge) {
-    console.error("❌ SubchallengeScreen missing challenge or challenge.id:", challenge);
-    return (
-      <SafeAreaView style={styles.safe}>
-        <Text style={styles.loadingText}>Missing challenge data</Text>
-      </SafeAreaView>
-    );
-  }
-
-  const imageSource = getChallengeImageSource(challenge);
+  const { feed, setSuppressGlobalReset } = useFeed();
 
   const handleDoubleTapSubmit = () => {
     const now = Date.now();
@@ -82,12 +62,12 @@ export default function SubchallengeScreen({
   };
 
   const handleSkip = () => {
-    if (index + 1 < subchallenges.length) {
+    if (index + 1 < subchallenges?.length) {
       setIndex(index + 1);
       setSelected(null);
     } else {
       // If this was the last question, go to results
-      navigation.navigate("ChallengeCountdown", { challengeId: challenge.id, from: "play" });
+      navigation.navigate("ChallengeCountdown", { challengeId, from: "play" });
     }
   };
 
@@ -99,7 +79,7 @@ export default function SubchallengeScreen({
     }
 
     // ⭐ WACKY PULSE: skip subchallenge bets entirely
-    if (challenge.category === "Wacky") {
+    if (challenge?.category === "Wacky") {
       handleSkip();
       return;
     }
@@ -108,7 +88,7 @@ export default function SubchallengeScreen({
       setLoading(true);
       setErrorMessage(null);
 
-      const option = current.options.find(o => o.id === selected);
+      const option = current?.options.find(o => o.id === selected);
       if (!option || typeof option.id !== "string" || option.id.length < 10) {
         throw new Error("Invalid option object: missing or invalid UUID");
       }
@@ -128,11 +108,11 @@ export default function SubchallengeScreen({
 
       console.log("Subchallenge prediction submitted:", response);
 
-      if (index + 1 < subchallenges.length) {
+      if (index + 1 < subchallenges?.length) {
         setIndex(index + 1);
         setSelected(null);
       } else {
-        navigation.navigate("ChallengeCountdown", { challengeId: challenge.id, from: "play" });
+        navigation.navigate("ChallengeCountdown", { challengeId, from: "play" });
       }
 
     } catch (err: any) {
@@ -151,10 +131,6 @@ export default function SubchallengeScreen({
       setLoading(false);
     }
   };
-
-  if (!current || !current.options) {
-    return null;
-  }
 
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
@@ -212,6 +188,31 @@ export default function SubchallengeScreen({
       return () => clearTimeout(timer);
     }
   }, [errorMessage]);
+
+  useEffect(() => {
+    // Tell FeedProvider NOT to reset to CategoryList
+    setSuppressGlobalReset(true);
+
+    return () => {
+      // Restore default behavior when leaving this screen
+      setSuppressGlobalReset(false);
+    };
+  }, []);
+
+  // ⭐ SAFE TO USE feed NOW
+  const challenge = feed?.categories
+    .flatMap(c => [...c.active, ...c.recent])
+    .find(ch => ch.id === challengeId);
+
+  if (!feed || !challenge || !current || !current.options) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Text style={styles.loadingText}>Missing challenge data</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const imageSource = getChallengeImageSource(challenge);
 
   return (
     <View style={{ flex: 1, backgroundColor: 'black' }}>
@@ -427,19 +428,11 @@ const styles = StyleSheet.create({
     marginTop: -3,
   },
   timer: {
-    marginHorizontal: 40,
-    width: 250,
-    backgroundColor: "rgba(255, 215, 0, 0.16)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 215, 0, 0.75)",
-    borderRadius: 999,
-    paddingVertical: 0,
     color: 'yellow',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 19,
-    marginBottom: 0,
+    marginTop: 9,
     alignSelf: 'center',
   },
   loadingText: {

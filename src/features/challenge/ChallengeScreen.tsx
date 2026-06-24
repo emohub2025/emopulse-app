@@ -19,42 +19,29 @@ type ChallengeRouteProp = RouteProp<RootStackParamList, 'Challenge'>;
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'Challenge'>;
 
 export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }) {
+  // ⭐ ALL HOOKS MUST COME FIRST
   const [emotion, setEmotion] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation<NavProp>();
-  const { formattedTime } = useCycleTimer();
+  const { isExpired, formattedTime } = useCycleTimer();
   const userId = useCurrentUserId();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const errorOpacity = useRef(new Animated.Value(0)).current;
   const timerOpacity = useRef(new Animated.Value(1)).current;
   const [lastTap, setLastTap] = useState<number | null>(null);
   const bottomStatusText = formattedTime?.toLowerCase?.() === 'expired' ? 'Expired' : formattedTime;
-
   const { challengeId } = route.params;
-  const { feed } = useFeed();
-  if (!feed) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
-        <Text style={{ color: "white" }}>Loading…</Text>
-      </SafeAreaView>
-    );
-  }
+  const { feed } = useFeed();   // hook is fine here — early return must be below all hooks
 
-  const challenge = feed.categories
+  let isYouTube = false;
+  let challenge = null;
+
+  // ⭐ SAFE TO USE feed NOW
+  challenge = feed?.categories
     .flatMap(c => [...c.active, ...c.recent])
     .find(ch => ch.id === challengeId);
 
-  if (!challenge) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
-        <Text style={{ color: "white", textAlign: "center", marginTop: 40 }}>
-          Challenge not found
-        </Text>
-      </SafeAreaView>
-    );
-  }
-
-  const isYouTube = challenge.source?.startsWith('YouTube');
+  isYouTube = challenge?.source?.startsWith('YouTube');
 
   const handleDoubleTapSubmit = () => {
     const now = Date.now();
@@ -165,6 +152,16 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
 
   const isDisabled = !emotion || loading;
 
+  if (!feed || !challenge) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+        <Text style={{ color: "white", textAlign: "center", marginTop: 40 }}>
+          Challenge not found
+        </Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: 'black' }}>
       <ImageBackground
@@ -184,7 +181,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
                 width={"100%"}
                 fontWeight="600"
               >
-                {challenge.topic}
+                {challenge?.topic}
               </AutoShrinkBlock>
             </View>
 
@@ -192,7 +189,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
               <EmotionSelector 
                 selected={emotion} 
                 onSelect={setEmotion} 
-                category={challenge.category}
+                category={challenge?.category}
               />
             </View>
 
@@ -313,23 +310,16 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   timer: {
-    marginHorizontal: 40,
-    width: 250,
-    backgroundColor: "rgba(255, 215, 0, 0.16)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 215, 0, 0.75)",
-    borderRadius: 999,
-    paddingVertical: 0,
     color: 'yellow',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
     marginTop: 30,
-    marginBottom: -11,
     alignSelf: 'center',  },
   errorText: {
     color: '#ff6b6b',
-    fontSize: 14,
+    marginTop: 12,
+    fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
     paddingHorizontal: 16,

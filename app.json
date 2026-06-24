@@ -1,5 +1,9 @@
 {
   "expo": {
+    "platforms": [
+      "android",
+      "ios"
+    ],
     "name": "Emotional Pulse",
     "slug": "emopulse-app",
     "version": "1.0.0",
@@ -7,7 +11,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -21,7 +25,8 @@
           "cameraPermission": "Emotional Pulse uses your camera so you can take a profile avatar photo.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-font"
     ],
     "ios": {
       "supportsTablet": true,

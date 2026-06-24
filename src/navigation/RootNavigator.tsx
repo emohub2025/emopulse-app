@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import * as NavigationBar from "expo-navigation-bar";
 import { Image, View } from "react-native";
 import { RootStackParamList } from "./types";
 
@@ -31,6 +30,12 @@ import SubchallengeScreen from "../features/subchallenge/SubchallengeScreen";
 import PollingChallengeScreen from "../features/subchallenge/PollingChallengeScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+import { Platform } from "react-native";
+
+const isIOS = Platform.OS === "ios";
+
+const logoIOS = require("../assets/logos/logo.png");
+const logoAndroid = require("../assets/logos/logo-back.png");
 
 const LogoHeader = () => (
   <View
@@ -42,8 +47,8 @@ const LogoHeader = () => (
     }}
   >
     <Image
-      source={require("../assets/logos/logo.png")}
-      style={{ width: "100%", height: 52, resizeMode: "stretch" }}
+      source={isIOS ? logoIOS : logoAndroid}
+      style={{ width: isIOS ? "100%" : "110%", height: isIOS ? 52 : 60, marginTop:  isIOS ? 0 : -10, resizeMode: isIOS ? "stretch" : "cover" }}
     />
   </View>
 );
@@ -53,10 +58,6 @@ export default function RootNavigator({
 }: {
   initialRouteName?: keyof RootStackParamList;
 }) {
-  useEffect(() => {
-    NavigationBar.setVisibilityAsync("visible");
-    NavigationBar.setButtonStyleAsync("light");
-  }, []);
 
   return (
     <Stack.Navigator

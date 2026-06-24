@@ -77,11 +77,12 @@ export default function CategoryChallengesScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<RouteProps>();
   const { category } = route.params;
-  const { formattedTime } = useCycleTimer();
+  const { isExpired, formattedTime } = useCycleTimer();
   const isFocused = useIsFocused();
   const { feed } = useFeed();
   const [error] = useState<string | null>(null);
 
+  // ⭐ ALL HOOKS MUST COME FIRST
   useMemo(
     () => (formattedTime?.toLowerCase?.() === 'expired' ? 'Expired Challenges' : formattedTime),
     [formattedTime]
@@ -89,18 +90,6 @@ export default function CategoryChallengesScreen() {
 
   const playedIds = usePlayedChallenges();
   const { snapshot } = useLiveSnapshot();
-
-  if (!feed) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
-        <Text style={{ color: "white" }}>Loading…</Text>
-      </SafeAreaView>
-    );
-  }
-
-  const categoryData = feed.categories.find(c => c.name === category);
-  const active = Array.isArray(categoryData?.active) ? categoryData.active : [];
-  const recent = Array.isArray(categoryData?.recent) ? categoryData.recent : [];
 
   useEffect(() => {
     if (!isFocused) return;
@@ -112,6 +101,11 @@ export default function CategoryChallengesScreen() {
       eventBus.off('cycleExpired', handler);
     };
   }, [isFocused, navigation]);
+
+  // ⭐ SAFE TO USE feed NOW
+  const categoryData = feed ? feed.categories.find(c => c.name === category) : undefined;
+  const active = Array.isArray(categoryData?.active) ? categoryData.active : [];
+  const recent = Array.isArray(categoryData?.recent) ? categoryData.recent : [];
 
   if (error) {
     return (
@@ -194,6 +188,17 @@ export default function CategoryChallengesScreen() {
     listData.push({ type: "header", title: "Previous Challenges" });
     finalRecent.forEach(ch =>
       listData.push({ type: "item", data: ch, section: "previous" })
+    );
+  }
+
+  if (!feed) {
+    navigation.navigate('CategoryList');
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+        <Text style={{ color: "white", textAlign: "center", marginTop: 40 }}>
+          Challenge not found
+        </Text>
+      </SafeAreaView>
     );
   }
 
@@ -433,18 +438,11 @@ const styles = StyleSheet.create({
   },
   timer: {
     marginHorizontal: 40,
-    width: 250,
-    backgroundColor: "rgba(255, 215, 0, 0.16)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 215, 0, 0.75)",
-    borderRadius: 999,
-    paddingVertical: 0,
     color: 'yellow',
     fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 12,
-    marginBottom: -13,
+    marginBottom: -8,
     alignSelf: 'center',
   },
 });

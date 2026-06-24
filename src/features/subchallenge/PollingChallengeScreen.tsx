@@ -34,7 +34,6 @@ type RouteProps = RouteProp<RootStackParamList, "PollingChallenge">;
 /* ---------------------------------------------
    COMPONENT
 ---------------------------------------------- */
-
 export default function PollingChallengeScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<RouteProps>();
@@ -42,6 +41,7 @@ export default function PollingChallengeScreen() {
   const { formattedTime } = useCycleTimer();
   const { feed } = useFeed();
 
+  // ⭐ ALL HOOKS MUST COME FIRST
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -51,15 +51,18 @@ export default function PollingChallengeScreen() {
 
   const { challengeId } = route.params;
 
+  // ⭐ EARLY RETURN — SAFE NOW
   if (!feed) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
-        <Text style={{ color: "white" }}>Loading…</Text>
-      </SafeAreaView>
-    );
+    //console.error("❌ PollingChallengeScreen missing feed");
+    // return (
+    //   <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+    //     <Text style={{ color: "white" }}>Loading…</Text>
+    //   </SafeAreaView>
+    // );
   }
 
-  const challenge: PollingChallenge | undefined = feed.categories
+  // ⭐ SAFE TO USE feed NOW
+  const challenge: PollingChallenge | undefined = feed?.categories
     .flatMap(c => [...c.active, ...c.recent])
     .find(ch => ch.id === challengeId);
 
@@ -74,7 +77,6 @@ export default function PollingChallengeScreen() {
   /* ---------------------------------------------
      HANDLE ANSWER
   ---------------------------------------------- */
-
   const handleAnswer = async () => {
     if (selected === null || loading) return;
     if (!userId) return;
@@ -98,7 +100,8 @@ export default function PollingChallengeScreen() {
       await markChallengePlayed(challengeId);
 
       navigation.navigate("ChallengeCountdown", {
-        challengeId: challenge.id
+        challengeId: challenge.id,
+        from: "play"
       });
     } catch (err: any) {
       console.log("🟥 UI CATCH (Polling):", err);
@@ -120,7 +123,6 @@ export default function PollingChallengeScreen() {
   /* ---------------------------------------------
      RENDER
   ---------------------------------------------- */
-
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <ImageBackground
@@ -222,7 +224,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start"
   },
   bottomBar: {
-    marginTop: 17,
+    marginTop: 19,
     alignItems: "center"
   },
   submitButton: {
@@ -243,6 +245,7 @@ const styles = StyleSheet.create({
   },
   image: {
     marginTop: 80,
+    marginBottom: -2,
     width: "100%",
     height: "30%",
     resizeMode: "contain"
@@ -301,18 +304,12 @@ const styles = StyleSheet.create({
     color: "#ffffff"
   },
   timer: {
-    marginHorizontal: 40,
-    width: 250,
-    backgroundColor: "rgba(255, 215, 0, 0.16)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 215, 0, 0.75)",
-    borderRadius: 999,
     color: 'yellow',
     fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
     marginTop: 12,
-    marginBottom: 40,
+    marginBottom: 47,
     alignSelf: 'center',
   },
 });

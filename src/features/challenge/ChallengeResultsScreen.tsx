@@ -219,6 +219,8 @@ export default function ChallengeResultScreen() {
   const { challenge, challengeId, fromHistory } = route.params || {};
   const effectiveId = challenge?.id ?? challengeId;
   const userId = useCurrentUserId();
+
+  // ⭐ ALL HOOKS MUST COME FIRST
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<ChallengeResult | null>(null);
   const { formattedTime } = useCycleTimer();
@@ -227,15 +229,6 @@ export default function ChallengeResultScreen() {
 
   const bottomStatusText =
     formattedTime?.toLowerCase?.() === 'expired' ? 'Expired Challenges' : formattedTime;
-
-  if (!effectiveId) {
-    console.error("❌ ChallengeResults missing challenge or challenge.id:", challenge);
-    return (
-      <SafeAreaView style={dynamicStyles(!!fromHistory).safe}>
-        <Text style={styles.loadingText}>Missing challenge data</Text>
-      </SafeAreaView>
-    );
-  }
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -246,6 +239,7 @@ export default function ChallengeResultScreen() {
   }, [loading, fadeAnim]);
 
   const fetchResults = async () => {
+    if (!effectiveId) return;              // ⭐ guard here
     if (fetchedRef.current) return;
     fetchedRef.current = true;
 
@@ -262,6 +256,7 @@ export default function ChallengeResultScreen() {
 
   useEffect(() => {
     // Always fetch as soon as we have a valid challenge ID.
+    if (!effectiveId) return;             // ⭐ guard here
     fetchResults();
   }, [effectiveId, userId]);
 
@@ -279,12 +274,20 @@ export default function ChallengeResultScreen() {
     return () => sub.remove();
   }, [fromHistory, navigation]);
 
-
   //console.log("📦 Challenge param:", results?.challenge);
 
-  const isPolling = results?.challenge.source === "polling";
+  const isPolling = results?.challenge?.source === "polling";
   //console.log("❌IS POLLING:", isPolling);
 
+  // ⭐ EARLY RETURN — SAFE NOW (AFTER ALL HOOKS)
+  if (!effectiveId) {
+    console.log("❌ ChallengeResults missing challenge or challenge.id:", challenge);
+    return (
+      <SafeAreaView style={dynamicStyles(!!fromHistory).safe}>
+        <Text style={styles.loadingText}>Missing challenge data</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: 'black' }}>

@@ -30,6 +30,7 @@ interface Props {
 
 export function CycleTimerProvider({ children }: Props) {
   const hasFiredRef = useRef(false);
+  const wasActiveRef = useRef(false); // ⭐ FIXED — must be here, not inside useEffect
 
   const [cycleStartTime, setCycleStartTime] = useState<number | null>(null);
   const [cycleEndTime, setCycleEndTime] = useState<number | null>(null);
@@ -51,6 +52,7 @@ export function CycleTimerProvider({ children }: Props) {
 
     if (start && end && start > 0 && end > 0) {
       hasFiredRef.current = false;
+      wasActiveRef.current = false; // reset active state
       setCycleStartTime(start);
       setCycleEndTime(end);
     }
@@ -60,8 +62,6 @@ export function CycleTimerProvider({ children }: Props) {
   // Countdown interval
   //
   useEffect(() => {
-    hasFiredRef.current = false;
-
     const interval = setInterval(() => {
       if (cycleStartTime == null || cycleEndTime == null) return;
 
@@ -72,9 +72,21 @@ export function CycleTimerProvider({ children }: Props) {
       setTimeRemainingMs(Math.max(0, remaining));
       setElapsedMs(elapsed);
 
-      if (remaining <= 0 && !hasFiredRef.current) {
+      // If cycle is active, mark it
+      if (remaining > 0) {
+        wasActiveRef.current = true;
+        return;
+      }
+
+      // Only emit if:
+      // 1. cycle is expired
+      // 2. cycle was previously active
+      // 3. we haven't emitted yet
+      if (remaining <= 0 && wasActiveRef.current && !hasFiredRef.current) {
+        console.log("🔥 Emitting cycleExpired");
         hasFiredRef.current = true;
-        eventBus.emit('cycleExpired');
+        wasActiveRef.current = false;
+        eventBus.emit("cycleExpired");
       }
     }, 1000);
 
