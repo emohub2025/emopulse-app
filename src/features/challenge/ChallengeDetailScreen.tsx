@@ -116,7 +116,7 @@ export default function ChallengeDetailScreen({
     ])
     .find(ch => ch.id === challengeId);
 
-  const previous = challenge?._origin ?? null;
+  const previous = challenge?._origin === 'recent';
   const imageSource = getChallengeImageSource(challenge);
   const isYouTube = challenge?.source?.startsWith('YouTube');
 
@@ -292,7 +292,7 @@ export default function ChallengeDetailScreen({
                   <View style={styles.metaText}>
                     <Text style={styles.source}>
                       Source:{' '}
-                      {challenge?.source?.startsWith('Wacky') || !challenge?.source
+                      {!challenge?.source
                         ? 'Emopulse'
                         : challenge?.source}
                     </Text>
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   imageWrapper: {
     width: '100%',
     height: 200,
-    marginTop: 0,
+    marginTop: -5,
     marginBottom: 10,
     borderRadius: 8,
     overflow: 'hidden',
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 14,
+    marginTop: 1,
     alignSelf: 'center',
   },
 });

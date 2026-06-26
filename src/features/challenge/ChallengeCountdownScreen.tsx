@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCycleTimer } from '../../components/CycleTimerContext';
 import { useLiveSnapshot, normalizeEmotions, type EnrichedLiveSnapshotItem } from '../../api/getLiveSnapshot';
 import activeButton from '../../assets/buttons/active.png';
+import sendButton from '../../assets/buttons/send.png';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useFeed } from '../../context/FeedContext';
 import { emotionLookup, emotionSlotMap } from '../../utils/emotionList';
@@ -89,7 +90,7 @@ const ProgressBar = ({ label, pct, color, labelColor }: ProgressBarProps) => {
         <Text
           style={{
             position: 'absolute',
-            width: '100%',
+            width: '99%',
             textAlign: 'left',
             color: labelColor || color,
             fontSize: 18,
@@ -357,119 +358,6 @@ export default function ChallengeCountdownScreen() {
             </AutoShrinkBlock>
           </View>
 
-          <View style={{ flex: 1, justifyContent: 'space-between' }}>
-            {/* Comments block */}
-            <View
-              style={{
-                height: 200,
-                justifyContent: 'flex-start',
-                borderWidth: 2,
-                borderRadius: 22,
-                marginLeft: -6,
-                marginRight: -6,
-                marginBottom: 8,
-                borderColor: 'rgba(225, 137, 232, 1.0)',
-                backgroundColor: 'rgba(19, 14, 104, 0.55)',
-                padding: 10,
-              }}
-            >
-              <Text
-                style={{
-                  marginBottom: -5,
-                  color: 'white',
-                  fontWeight: '700',
-                  fontSize: 24,
-                  alignSelf: 'center',
-                }}
-              >
-                Comments
-              </Text>
-
-              <View
-                style={{
-                  height: 70,
-                  marginHorizontal: 4,
-                  marginBottom: 32,
-                  padding: 10,
-                }}
-              >
-                <Animated.View
-                  style={{
-                    opacity: fadeAnim,
-                    transform: [{ translateY: slideAnim }],
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: 'white',
-                      fontSize: 18,
-                      fontWeight: '800',
-                    }}
-                  >
-                    {commentsRef.current[currentIndex]?.username
-                      ? `${commentsRef.current[currentIndex]!.username}:`
-                      : ''}
-                  </Text>
-                  <Text
-                    style={{
-                      color: 'yellow',
-                      fontSize: 23,
-                      fontWeight: '800',
-                      fontStyle: 'italic',
-                    }}
-                  >
-                    {commentsRef.current[currentIndex]?.text ?? ''}
-                  </Text>
-                </Animated.View>
-              </View>
-
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginHorizontal: 4,
-                }}
-              >
-                <TextInput
-                  value={commentText}
-                  onChangeText={setCommentText}
-                  placeholder="Write a comment..."
-                  placeholderTextColor="#aaa"
-                  style={{
-                    flex: 1,
-                    height: 40,
-                    borderWidth: 1,
-                    borderColor: 'rgba(255,255,255)',
-                    color: 'white',
-                    paddingHorizontal: 10,
-                  }}
-                />
-
-                <Pressable
-                  onPress={handlePostComment}
-                  style={{
-                    maxHeight: 40,
-                    marginLeft: 10,
-                    paddingVertical: 10,
-                    paddingHorizontal: 16,
-                    backgroundColor: 'blue',
-                    borderRadius: 6,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: 'white',
-                      fontSize: 18,
-                      marginTop: -2,
-                      fontWeight: '600',
-                    }}
-                  >
-                    Send
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-
             {/* Live Results block */}
             <View
               style={{
@@ -478,7 +366,7 @@ export default function ChallengeCountdownScreen() {
                 justifyContent: 'flex-start',
                 borderWidth: 2,
                 borderRadius: 22,
-                marginTop: 8,
+                marginTop: 3,
                 marginLeft: -6,
                 marginRight: -6,
                 borderColor: '#c43dff',
@@ -552,8 +440,114 @@ export default function ChallengeCountdownScreen() {
               </View>
             </View>
 
+
+          <View style={{ flex: 1, justifyContent: 'space-between', marginTop: 15 }}>
+            {/* Comments block */}
+            <View
+              style={{
+                height: 200,
+                justifyContent: 'flex-start',
+                borderWidth: 2,
+                borderRadius: 22,
+                marginLeft: -6,
+                marginRight: -6,
+                marginBottom: 8,
+                borderColor: 'rgba(225, 137, 232, 1.0)',
+                backgroundColor: 'rgba(19, 14, 104, 0.95)',
+                padding: 10,
+              }}
+            >
+              <Text
+                style={{
+                  marginBottom: -5,
+                  color: 'white',
+                  fontWeight: '700',
+                  fontSize: 24,
+                  alignSelf: 'center',
+                }}
+              >
+                Comments
+              </Text>
+
+              <View
+                style={{
+                  height: 70,
+                  marginHorizontal: 4,
+                  marginBottom: 32,
+                  padding: 10,
+                }}
+              >
+                <Animated.View
+                  style={{
+                    opacity: fadeAnim,
+                    transform: [{ translateY: slideAnim }],
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: 'white',
+                      fontSize: 18,
+                      fontWeight: '800',
+                    }}
+                  >
+                    {commentsRef.current[currentIndex]?.username
+                      ? `${commentsRef.current[currentIndex]!.username}:`
+                      : ''}
+                  </Text>
+                  <Text
+                    style={{
+                      color: 'yellow',
+                      fontSize: 23,
+                      fontWeight: '800',
+                      maxHeight: 55,
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    {commentsRef.current[currentIndex]?.text ?? ''}
+                  </Text>
+                </Animated.View>
+              </View>
+
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  marginLeft: 14,
+                }}
+              >
+                <TextInput
+                  value={commentText}
+                  onChangeText={setCommentText}
+                  placeholder="Write a comment..."
+                  placeholderTextColor="#aaa"
+                  style={{
+                    flex: 1,
+                    height: 40,
+                    borderWidth: 1,
+                    borderColor: 'rgba(255,255,255)',
+                    color: 'white',
+                    paddingHorizontal: 10,
+                  }}
+                />
+
+                <Pressable
+                  onPress={handlePostComment}
+                  style={{
+                    maxWidth: 50,
+                    maxHeight: 40,
+                    marginLeft: 10,
+                    paddingVertical: 10,
+                    paddingHorizontal: 16,
+                    borderRadius: 6,
+                  }}
+                >
+                  <Image source={sendButton} style={styles.sendImage} />
+                </Pressable>
+              </View>
+            </View>
+
             {/* Bottom button + timer */}
-            <View style={{ alignItems: 'center', marginBottom: -10 }}>
+            <View style={{ alignItems: 'center', marginBottom: -10, marginTop: -10 }}>
               <Pressable
                 onPress={() =>
                   navigation.reset({
@@ -594,6 +588,13 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     alignSelf: 'center',
     marginTop: 7,
+  },
+  sendImage: {
+    width: 43,
+    height: 43,
+    resizeMode: 'contain',
+    alignSelf: 'center',
+    marginTop: -11,
   },
   text: {
     marginTop: 18,
