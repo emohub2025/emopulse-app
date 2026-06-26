@@ -7,11 +7,14 @@ import {
   ImageBackground,
   TouchableOpacity,
   ScrollView,
+  Platform,
 } from "react-native";
 import React, { useState } from "react";
 import StarRating from "react-native-star-rating-widget";
 import { useUserStore } from "../../state/useUserStore";
 import { ENGINE_URL } from "../../../config";
+
+const isIOS = Platform.OS === "ios";
 
 // -----------------------------
 // Screen Component
@@ -198,7 +201,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 26,
     fontWeight: "700",
-    marginTop: 95,
+    marginTop: isIOS ? 12 : 95,
     marginBottom: 5,
     textAlign: "center",
   },

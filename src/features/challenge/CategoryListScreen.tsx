@@ -103,7 +103,7 @@ export default function CategoryListScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.safe}edges={isIOS ? [] : ["top"]}>
+    <SafeAreaView style={styles.safe} edges={isIOS ? [] : ["top"]}>
       <Text style={styles.topLabel}>Challenge Categories</Text>
       <Text style={styles.subLabel}>Choose a category to view active and expired challenges</Text>
 

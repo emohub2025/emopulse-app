@@ -8,6 +8,7 @@ import {
   LayoutAnimation,
   ImageBackground,
   Pressable,
+  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -16,6 +17,8 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import ButtonPanel from "../../components/ButtonPanel";
 import { apiGet } from "../../api/engineClient";
 import { useCurrentUserId } from "../../state/useUserSelectors";
+
+const isIOS = Platform.OS === "ios";
 
 type ChallengeItem = {
   challenge_id: string;
@@ -223,14 +226,14 @@ const styles = StyleSheet.create({
 
   background: {
     flex: 1,
-    paddingTop: 55,
+    paddingTop: isIOS ? 10 : 55,
   },
 
   overlay: {
     flex: 1,
     backgroundColor: "rgba(5, 0, 24, 0.28)",
     paddingHorizontal: 16,
-    paddingTop: 42,
+    paddingTop: isIOS ? 12 : 42,
   },
 
   topLabel: {

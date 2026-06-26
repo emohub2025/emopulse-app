@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Image, View } from "react-native";
+import { Image, Platform, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { RootStackParamList } from "./types";
 
 import HomePageScreen from "../features/users/HomePageScreen";
@@ -29,28 +30,35 @@ import TeamsScreen from "../features/teams/TeamsScreen";
 import SubchallengeScreen from "../features/subchallenge/SubchallengeScreen";
 import PollingChallengeScreen from "../features/subchallenge/PollingChallengeScreen";
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
-import { Platform } from "react-native";
-
 const isIOS = Platform.OS === "ios";
+const HEADER_HEIGHT = isIOS ? 78 : 52;
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const logoIOS = require("../assets/logos/logo.png");
 const logoAndroid = require("../assets/logos/logo-back.png");
 
 const LogoHeader = () => (
-  <View
+  <SafeAreaView edges={isIOS ? ["top"] : []} style={{ backgroundColor: "#000" }}>
+    <View
     style={{
       width: "100%",
       alignItems: "center",
       justifyContent: "center",
-      height: 52,
+      height: HEADER_HEIGHT,
     }}
   >
     <Image
       source={isIOS ? logoIOS : logoAndroid}
-      style={{ width: isIOS ? "100%" : "110%", height: isIOS ? 52 : 60, marginTop:  isIOS ? 0 : -10, resizeMode: isIOS ? "stretch" : "cover" }}
+      style={{
+        width: isIOS ? "100%" : "110%",
+        height: isIOS ? 78 : 60,
+        marginTop: isIOS ? 0 : -10,
+        resizeMode: isIOS ? "stretch" : "cover",
+      }}
     />
-  </View>
+    </View>
+  </SafeAreaView>
 );
 
 export default function RootNavigator({
@@ -63,6 +71,7 @@ export default function RootNavigator({
     <Stack.Navigator
       initialRouteName={initialRouteName}
       screenOptions={{
+        header: () => <LogoHeader />,
         headerTransparent: false,
         headerTitleAlign: "center",
         headerShadowVisible: false,

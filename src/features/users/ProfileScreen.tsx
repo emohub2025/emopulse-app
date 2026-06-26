@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Image, Pressable, ImageBackground, StyleSheet, TextInput, ScrollView, Alert } from "react-native";
+import { View, Text, Image, Pressable, ImageBackground, StyleSheet, TextInput, ScrollView, Alert, Platform } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -41,6 +41,8 @@ type ProfileRouteParams = {
 };
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, "Profile">;
+
+const isIOS = Platform.OS === "ios";
 
 export default function ProfileScreen() {
   const route = useRoute();
@@ -532,7 +534,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "800",
     textAlign: "center",
-    marginTop: 96,
+    marginTop: isIOS ? 12 : 96,
     marginBottom: 15,
     backgroundColor: "transparent",
   },

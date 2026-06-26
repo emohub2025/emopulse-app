@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Image, ImageBackground, View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
+import { Image, ImageBackground, Platform, View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -18,6 +18,7 @@ type NavProp = NativeStackNavigationProp<
 >;
 
 type RouteProps = RouteProp<RootStackParamList, 'CategoryChallenges'>;
+const isIOS = Platform.OS === "ios";
 
 // -----------------------------
 // Topic Icons
@@ -209,12 +210,12 @@ export default function CategoryChallengesScreen() {
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-        <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <SafeAreaView style={styles.safe} edges={isIOS ? ['bottom'] : ['top', 'bottom']}>
           <View style={{ 
             flexDirection: "row", 
             alignItems: "center", 
             justifyContent: "center",
-            marginTop: 65 
+            marginTop: isIOS ? 10 : 65
           }}>
             <Image
               source={categoryMeta[category]?.icon}

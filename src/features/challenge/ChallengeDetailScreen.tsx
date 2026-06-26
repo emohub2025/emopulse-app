@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, ImageBackground, StyleSheet, ViewStyle, Image, Pressable, Animated, Easing, ScrollView } from 'react-native';
+import { Platform, View, Text, ImageBackground, StyleSheet, ViewStyle, Image, Pressable, Animated, Easing, ScrollView } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../../navigation/types';
@@ -16,6 +16,7 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 // Route params
 type ChallengeDetailRouteProp = RouteProp<RootStackParamList, 'ChallengeDetail'>;
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'ChallengeDetail'>;
+const isIOS = Platform.OS === "ios";
 
 const truncate = (str: string, n: number) =>
   str.length > n ? str.slice(0, n) + '…' : str;
@@ -158,7 +159,7 @@ export default function ChallengeDetailScreen({
         <Text style={styles.topLabel}>{title}</Text>
       )}
 
-        <SafeAreaView style={styles.contentWrapper} edges={['top', 'bottom']}>
+        <SafeAreaView style={styles.contentWrapper} edges={isIOS ? ['bottom'] : ['top', 'bottom']}>
           <View style={styles.container}>
 
             {/* Topic (hero only) */}
@@ -350,7 +351,7 @@ const styles = StyleSheet.create({
     color: 'yellow',
     fontSize: 26,
     fontWeight: '700',
-    marginTop: 98,
+    marginTop: isIOS ? 12 : 98,
     textAlign: 'center',
   },
   container: {

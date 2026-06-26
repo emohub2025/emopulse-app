@@ -4,7 +4,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, StyleSheet, Image, Animated, ImageBackground, TouchableOpacity } from 'react-native';
+import { Platform, View, Text, StyleSheet, Image, Animated, ImageBackground, TouchableOpacity } from 'react-native';
 import EmotionSelector from '../../components/EmotionSelector';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
@@ -17,6 +17,7 @@ import { markChallengePlayed } from '../../hooks/usePlayedChallenges';
 
 type ChallengeRouteProp = RouteProp<RootStackParamList, 'Challenge'>;
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'Challenge'>;
+const isIOS = Platform.OS === "ios";
 
 export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }) {
   // ⭐ ALL HOOKS MUST COME FIRST
@@ -169,7 +170,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-        <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <SafeAreaView style={styles.safe} edges={isIOS ? ['bottom'] : ['top', 'bottom']}>
           <Text style={styles.topLabel}>What's your reaction?</Text>
           <Text style={styles.subLabel}>Select the best matching emotion.</Text>
 
@@ -249,7 +250,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 28,
     fontWeight: '700',
-    marginTop: 65,
+    marginTop: isIOS ? 12 : 65,
     marginBottom: 5,
     paddingHorizontal: 20,
     textAlign: 'center',

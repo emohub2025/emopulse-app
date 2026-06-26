@@ -11,10 +11,13 @@ import {
   RefreshControl,
   Animated,
   Easing,
+  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import ButtonPanel from "../../components/ButtonPanel";
 import { getLeaderboard, LeaderboardUser } from "../../api/engineClient";
+
+const isIOS = Platform.OS === "ios";
 
 function AnimatedCoins({ value, style }: { value: number; style?: any }) {
   const [displayValue, setDisplayValue] = useState(0);
@@ -337,7 +340,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#050018",
     paddingHorizontal: 16,
-    paddingTop: 92,
+    paddingTop: isIOS ? 14 : 92,
   },
 
   title: {

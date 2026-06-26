@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Image, ImageBackground, StyleSheet, Pressable, BackHandler, TextInput, Animated } from 'react-native';
+import { Platform, View, Text, Image, ImageBackground, StyleSheet, Pressable, BackHandler, TextInput, Animated } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
@@ -14,6 +14,7 @@ import { emotionLookup, emotionSlotMap } from '../../utils/emotionList';
 import { ChallengeComment, fetchComments, postComment } from '../../api/challengeComments';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'ChallengeCountdown'>;
+const isIOS = Platform.OS === "ios";
 
 /* -------------------------------------------------------
    Helpers
@@ -574,7 +575,7 @@ export default function ChallengeCountdownScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    paddingTop: 50,
+    paddingTop: isIOS ? 10 : 50,
     paddingHorizontal: 20,
   },
   loadingText: {

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Image, ScrollView } from "react-native";
+import { Platform, View, Text, StyleSheet, Image, ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRoute } from "@react-navigation/native";
 import ButtonPanel from "../../components/ButtonPanel";
@@ -43,6 +43,8 @@ const featureCards = [
     icon: coinIcon,
   },
 ];
+
+const isIOS = Platform.OS === "ios";
 
 export default function TeamsScreen() {
   const route = useRoute();
@@ -152,7 +154,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#050018",
     paddingHorizontal: 16,
-    paddingTop: 92,
+    paddingTop: isIOS ? 14 : 92,
   },
   scrollContent: {
     paddingBottom: 190,

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Image, ImageBackground, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, Image, ImageBackground, StyleSheet, TouchableOpacity, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import * as Haptics from "expo-haptics";
@@ -12,6 +12,8 @@ import { useCycleTimer } from "../../components/CycleTimerContext";
 import { useCurrentUserId } from "../../state/useUserSelectors";
 import { useFeed } from "../../context/FeedContext";
 import { markChallengePlayed } from '../../hooks/usePlayedChallenges';
+
+const isIOS = Platform.OS === "ios";
 
 /* ---------------------------------------------
    TYPES
@@ -244,7 +246,7 @@ const styles = StyleSheet.create({
     paddingTop: 10
   },
   image: {
-    marginTop: 80,
+    marginTop: isIOS ? 12 : 80,
     marginBottom: -2,
     width: "100%",
     height: "30%",

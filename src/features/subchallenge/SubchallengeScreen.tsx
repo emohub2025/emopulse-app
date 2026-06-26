@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { View, Text, Image, ImageBackground, Pressable, TouchableOpacity, Animated, BackHandler, StyleSheet } from 'react-native';
+import { View, Text, Image, ImageBackground, Pressable, TouchableOpacity, Animated, BackHandler, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -13,6 +13,8 @@ import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSou
 import { postPlaceUserSubBet } from '../../api/postPlaceUserBet';
 import { useCurrentUserId } from "../../state/useUserSelectors";
 import { useFeed } from "../../context/FeedContext";
+
+const isIOS = Platform.OS === "ios";
 
 type SubchallengeRouteProp = RouteProp<
   RootStackParamList,
@@ -314,7 +316,7 @@ export default function SubchallengeScreen({
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    paddingTop: 50,
+    paddingTop: isIOS ? 12 : 50,
     paddingHorizontal: 20,
   },
   container: {
@@ -325,7 +327,7 @@ const styles = StyleSheet.create({
   imageWrapper: {
     width: '100%',
     height: 155,
-    marginTop: 70,
+    marginTop: isIOS ? 12 : 70,
     borderRadius: 14,
     overflow: 'hidden',
     backgroundColor: 'rgba(0,0,0,0.22)',
