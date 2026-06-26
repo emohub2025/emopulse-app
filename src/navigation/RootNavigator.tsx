@@ -66,6 +66,43 @@ const LogoHeader = () => {
   );
 };
 
+const withAppHeader = (Screen: React.ComponentType<any>) => {
+  return function ScreenWithAppHeader(props: any) {
+    return (
+      <View style={{ flex: 1, backgroundColor: "#000" }}>
+        <LogoHeader />
+        <View style={{ flex: 1, backgroundColor: "#000" }}>
+          <Screen {...props} />
+        </View>
+      </View>
+    );
+  };
+};
+
+const HomePageWithHeader = withAppHeader(HomePageScreen);
+const LoginWithHeader = withAppHeader(LoginScreen);
+const ForgotPasswordWithHeader = withAppHeader(ForgotPasswordScreen);
+const SignupWithHeader = withAppHeader(SignupScreen);
+const AccountWithHeader = withAppHeader(AccountScreen);
+const HelpAndSupportWithHeader = withAppHeader(HelpAndSupportScreen);
+const SettingsWithHeader = withAppHeader(SettingsScreen);
+const FeedbackWithHeader = withAppHeader(FeedbackScreen);
+const ProfileWithHeader = withAppHeader(ProfileScreen);
+const AchievementsWithHeader = withAppHeader(AchievementsScreen);
+const PrizesAndRewardsWithHeader = withAppHeader(PrizesAndRewardsScreen);
+const ResultsHistoryWithHeader = withAppHeader(ResultsHistoryScreen);
+const TransactionsWithHeader = withAppHeader(TransactionsScreen);
+const TeamsWithHeader = withAppHeader(TeamsScreen);
+const LeaderboardWithHeader = withAppHeader(LeaderboardScreen);
+const CategoryListWithHeader = withAppHeader(CategoryListScreen);
+const CategoryChallengesWithHeader = withAppHeader(CategoryChallengesScreen);
+const ChallengeDetailWithHeader = withAppHeader(ChallengeDetailScreen);
+const ChallengeWithHeader = withAppHeader(ChallengeScreen);
+const ChallengeCountdownWithHeader = withAppHeader(ChallengeCountdownScreen);
+const ChallengeResultsWithHeader = withAppHeader(ChallengeResultsScreen);
+const SubchallengeWithHeader = withAppHeader(SubchallengeScreen);
+const PollingChallengeWithHeader = withAppHeader(PollingChallengeScreen);
+
 export default function RootNavigator({
   initialRouteName = "HomePage",
 }: {
@@ -76,162 +113,125 @@ export default function RootNavigator({
     <Stack.Navigator
       initialRouteName={initialRouteName}
       screenOptions={{
-        header: () => <LogoHeader />,
-        headerTransparent: false,
-        headerTitleAlign: "center",
-        headerShadowVisible: false,
-        headerStyle: {
-          backgroundColor: "#000",
-        },
-        headerBackground: () => <View style={{ flex: 1, backgroundColor: "#000" }} />,
+        headerShown: false,
         contentStyle: {
           backgroundColor: "#000",
         },
-        headerTintColor: "white",
-        headerBackVisible: false,
-        headerLeft: () => null,
       }}
     >
       <Stack.Screen
         name="HomePage"
-        component={HomePageScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={HomePageWithHeader}
       />
 
       <Stack.Screen
         name="Login"
-        component={LoginScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={LoginWithHeader}
       />
 
       <Stack.Screen
         name="ForgotPassword"
-        component={ForgotPasswordScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={ForgotPasswordWithHeader}
       />
 
       <Stack.Screen
         name="Signup"
-        component={SignupScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={SignupWithHeader}
       />
 
       <Stack.Screen
         name="Account"
-        component={AccountScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={AccountWithHeader}
       />
 
       <Stack.Screen
         name="HelpAndSupport"
-        component={HelpAndSupportScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={HelpAndSupportWithHeader}
       />
 
       <Stack.Screen
         name="Settings"
-        component={SettingsScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={SettingsWithHeader}
       />
 
       <Stack.Screen
         name="Feedback"
-        component={FeedbackScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={FeedbackWithHeader}
       />
 
       <Stack.Screen
         name="Profile"
-        component={ProfileScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={ProfileWithHeader}
       />
 
       <Stack.Screen
         name="Achievements"
-        component={AchievementsScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={AchievementsWithHeader}
       />
 
       <Stack.Screen
         name="PrizesAndRewards"
-        component={PrizesAndRewardsScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={PrizesAndRewardsWithHeader}
       />
 
       <Stack.Screen
         name="ResultsHistory"
-        component={ResultsHistoryScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={ResultsHistoryWithHeader}
       />
 
       <Stack.Screen
         name="Transactions"
-        component={TransactionsScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={TransactionsWithHeader}
       />
 
       <Stack.Screen
         name="Teams"
-        component={TeamsScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={TeamsWithHeader}
       />
 
       <Stack.Screen
         name="Leaderboard"
-        component={LeaderboardScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={LeaderboardWithHeader}
       />
 
       <Stack.Screen
         name="CategoryList"
-        component={CategoryListScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={CategoryListWithHeader}
       />
 
       <Stack.Screen
         name="CategoryChallenges"
-        component={CategoryChallengesScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={CategoryChallengesWithHeader}
       />
 
       <Stack.Screen
         name="ChallengeDetail"
-        component={ChallengeDetailScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={ChallengeDetailWithHeader}
       />
 
       <Stack.Screen
         name="Challenge"
-        component={ChallengeScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={ChallengeWithHeader}
       />
 
       <Stack.Screen
         name="ChallengeCountdown"
-        component={ChallengeCountdownScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={ChallengeCountdownWithHeader}
       />
 
       <Stack.Screen
         name="ChallengeResults"
-        component={ChallengeResultsScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={ChallengeResultsWithHeader}
       />
 
       <Stack.Screen
         name="Subchallenge"
-        component={SubchallengeScreen}
-        options={{
-          headerBackVisible: false,
-          headerLeft: () => null,
-          headerTitle: () => <LogoHeader />,
-        }}
+        component={SubchallengeWithHeader}
       />
 
       <Stack.Screen
         name="PollingChallenge"
-        component={PollingChallengeScreen}
-        options={{ headerTitle: () => <LogoHeader /> }}
+        component={PollingChallengeWithHeader}
       />
     </Stack.Navigator>
   );

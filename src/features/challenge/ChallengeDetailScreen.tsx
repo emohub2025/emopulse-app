@@ -170,7 +170,7 @@ export default function ChallengeDetailScreen({
                 fontWeight="700"
                 textAlign="center"
                 fontStyle="italic"
-                marginTop={-45}
+                marginTop={12}
               >
                 {challenge?.topic ?? ""}
               </AutoShrinkBlock>
