@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Image, Platform, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootStackParamList } from "./types";
 
 import HomePageScreen from "../features/users/HomePageScreen";
@@ -38,28 +38,33 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const logoIOS = require("../assets/logos/logo.png");
 const logoAndroid = require("../assets/logos/logo-back.png");
 
-const LogoHeader = () => (
-  <SafeAreaView edges={isIOS ? ["top"] : []} style={{ backgroundColor: "#000" }}>
+const LogoHeader = () => {
+  const insets = useSafeAreaInsets();
+  const topInset = isIOS ? insets.top : 0;
+
+  return (
     <View
-    style={{
-      width: "100%",
-      alignItems: "center",
-      justifyContent: "center",
-      height: HEADER_HEIGHT,
-    }}
-  >
-    <Image
-      source={isIOS ? logoIOS : logoAndroid}
       style={{
-        width: isIOS ? "100%" : "110%",
-        height: isIOS ? 78 : 60,
-        marginTop: isIOS ? 0 : -10,
-        resizeMode: isIOS ? "stretch" : "cover",
+        width: "100%",
+        height: topInset + HEADER_HEIGHT,
+        paddingTop: topInset,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#000",
       }}
-    />
+    >
+      <Image
+        source={isIOS ? logoIOS : logoAndroid}
+        style={{
+          width: isIOS ? "100%" : "110%",
+          height: isIOS ? 78 : 60,
+          marginTop: isIOS ? 0 : -10,
+          resizeMode: isIOS ? "stretch" : "cover",
+        }}
+      />
     </View>
-  </SafeAreaView>
-);
+  );
+};
 
 export default function RootNavigator({
   initialRouteName = "HomePage",
