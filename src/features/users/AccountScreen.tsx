@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 26,
     fontWeight: "700",
-    marginTop: 95,
+    marginTop: 18,
     textAlign: "center",
     backgroundColor: "black",
   },
