@@ -30,7 +30,7 @@ export default function PrizesRewardsScreen() {
     },
     {
       title: "Mystery Drops",
-      subtitle: "Surprise rewards coming soon",
+      subtitle: "Rotating surprise reward drops",
       icon: <Ionicons name="sparkles-outline" size={34} color="#F97316" />,
     },
   ];
@@ -49,15 +49,16 @@ export default function PrizesRewardsScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.heroCard}>
-            <Text style={styles.badge}>Coming Soon</Text>
-            <Text style={styles.title}>Amazing Rewards Are On The Way</Text>
+            <Text style={styles.badge}>Rewards Center</Text>
+            <Text style={styles.title}>Turn Coins Into Progress</Text>
             <Text style={styles.subtitle}>
-              Stack up your Coins and get ready to exchange them for exciting prizes
-              through our future rewards partners.
+              Stack up Coins through gameplay, streaks, and leaderboard activity.
+              Reward categories show the kinds of perks being shaped around active
+              Emotional Pulse players.
             </Text>
           </View>
 
-          <Text style={styles.sectionTitle}>Potential Prizes</Text>
+          <Text style={styles.sectionTitle}>Reward Categories</Text>
 
           <View style={styles.grid}>
             {prizes.map((prize, index) => (
@@ -73,8 +74,8 @@ export default function PrizesRewardsScreen() {
             <Text style={styles.infoTitle}>How It Will Work</Text>
             <Text style={styles.infoText}>
               Earn Coins by participating in challenges, building streaks, and climbing
-              the leaderboard. When rewards launch, eligible users will be able to use
-              their Coins toward awesome third-party prize options.
+              the leaderboard. Reward options are designed around activity,
+              recognition, and player engagement.
             </Text>
           </View>
 

@@ -41,7 +41,7 @@ export default function AchievementsScreen() {
 
           <View style={styles.heroCard}>
             <View style={styles.heroGlow} />
-            <Text style={styles.badge}>Coming Soon</Text>
+            <Text style={styles.badge}>Progress System</Text>
             <Text style={styles.title}>Badges, Recognition & Status</Text>
             <Text style={styles.subtitle}>
               Complete challenges, build momentum, and unlock achievements that show
@@ -50,10 +50,10 @@ export default function AchievementsScreen() {
           </View>
 
           <View style={styles.previewCard}>
-            <Text style={styles.sectionTitle}>What’s Coming</Text>
+            <Text style={styles.sectionTitle}>Achievement Tracks</Text>
             <Text style={styles.sectionText}>
-              As you complete more challenges, you’ll begin earning badges, gaining
-              recognition, and standing out on the leaderboard.
+              Complete challenges, build streaks, and improve your accuracy to shape
+              your profile and stand out on the leaderboard.
             </Text>
 
             <View style={styles.iconGrid}>
@@ -70,7 +70,7 @@ export default function AchievementsScreen() {
               <Ionicons name="shield-checkmark-outline" size={28} color="#FFD76A" />
               <Text style={styles.smallCardTitle}>Earn Badges</Text>
               <Text style={styles.smallCardText}>
-                Unlock visual badges as you stay active and keep progressing.
+                Unlock visual badges by staying active and completing challenges.
               </Text>
             </View>
 
@@ -78,7 +78,7 @@ export default function AchievementsScreen() {
               <Ionicons name="stats-chart-outline" size={28} color="#38BDF8" />
               <Text style={styles.smallCardTitle}>Rise in Status</Text>
               <Text style={styles.smallCardText}>
-                Your performance will shape your rank and help you stand out.
+                Your performance shapes your rank and helps you stand out.
               </Text>
             </View>
           </View>
@@ -87,14 +87,14 @@ export default function AchievementsScreen() {
             <Ionicons name="podium-outline" size={34} color="#FFD76A" />
             <Text style={styles.leaderboardTitle}>Leaderboard Visibility</Text>
             <Text style={styles.leaderboardText}>
-              Top performers will gain more visibility, stronger status, and a more
+              Top performers gain more visibility, stronger status, and a more
               impressive presence inside the community.
             </Text>
           </View>
 
           <View style={styles.footerCard}>
             <Text style={styles.footerText}>
-              The more challenges you complete, the more your profile will reflect your
+              The more challenges you complete, the more your profile reflects your
               success.
             </Text>
           </View>
