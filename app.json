@@ -31,7 +31,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.emopulse.app",
-      "buildNumber": "1.0.10",
+      "buildNumber": "1.0.11",
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": false
