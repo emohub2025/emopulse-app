@@ -88,7 +88,7 @@ export default function LoginScreen() {
       >
         <View style={styles.overlay} />
 
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={styles.safeArea} edges={[]}>
           <View style={styles.headerBlock}>
             <Text style={styles.eyebrow}>Welcome back</Text>
             <Text style={styles.title}>Log In to Your Account</Text>
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   headerBlock: {
     width: '100%',
-    marginTop: 42,
+    marginTop: 12,
     marginBottom: 26,
     alignItems: 'center',
   },

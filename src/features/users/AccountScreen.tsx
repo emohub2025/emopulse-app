@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 26,
     fontWeight: "700",
-    marginTop: isIOS ? 8 : 18,
+    marginTop: 8,
     textAlign: "center",
     backgroundColor: "black",
   },

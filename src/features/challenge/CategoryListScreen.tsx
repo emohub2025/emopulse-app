@@ -78,7 +78,7 @@ export default function CategoryListScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safe} edges={isIOS ? [] : ["top"]}>
+      <SafeAreaView style={styles.safe} edges={[]}>
         <View style={styles.center}>
           <Text style={{ color: 'white' }}>Loading categories…</Text>
         </View>
@@ -103,7 +103,7 @@ export default function CategoryListScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.safe} edges={isIOS ? [] : ["top"]}>
+    <SafeAreaView style={styles.safe} edges={[]}>
       <Text style={styles.topLabel}>Challenge Categories</Text>
       <Text style={styles.subLabel}>Choose a category to view active and expired challenges</Text>
 
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   },
   safe: {
     flex: 1,
-    paddingTop: isIOS ? 8 : 40,
+    paddingTop: 8,
     paddingBottom: 0,
     backgroundColor: '#000',
   },
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 28,
     fontWeight: '700',
-    marginTop: isIOS ? 6 : 25,
+    marginTop: 6,
     marginBottom: 6,
     textAlign: 'center',
   },

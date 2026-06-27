@@ -285,7 +285,7 @@ export default function ChallengeResultScreen() {
   if (!effectiveId) {
     console.log("❌ ChallengeResults missing challenge or challenge.id:", challenge);
     return (
-      <SafeAreaView style={dynamicStyles(!!fromHistory).safe}>
+      <SafeAreaView style={dynamicStyles(!!fromHistory).safe} edges={['bottom']}>
         <Text style={styles.loadingText}>Missing challenge data</Text>
       </SafeAreaView>
     );
@@ -298,7 +298,7 @@ export default function ChallengeResultScreen() {
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-        <SafeAreaView style={dynamicStyles(!!fromHistory).safe}>
+        <SafeAreaView style={dynamicStyles(!!fromHistory).safe} edges={['bottom']}>
           <View style={styles.resultsShell}>
             <ScrollView
               style={{ maxHeight: fromHistory ? '105%' : '96%' }}
@@ -410,7 +410,7 @@ export default function ChallengeResultScreen() {
 export const dynamicStyles = (fromHistory: boolean) => ({
   safe: {
     flex: 1,
-    paddingTop: isIOS ? 12 : 40,
+    paddingTop: 12,
     paddingBottom: 50,
     paddingHorizontal: 20,
     marginBottom: fromHistory ? -20 : -75,

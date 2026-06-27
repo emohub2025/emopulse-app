@@ -159,7 +159,7 @@ export default function ChallengeDetailScreen({
         <Text style={styles.topLabel}>{title}</Text>
       )}
 
-        <SafeAreaView style={styles.contentWrapper} edges={isIOS ? ['bottom'] : ['top', 'bottom']}>
+        <SafeAreaView style={styles.contentWrapper} edges={['bottom']}>
           <View style={styles.container}>
 
             {/* Topic (hero only) */}
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
     color: 'yellow',
     fontSize: 26,
     fontWeight: '700',
-    marginTop: isIOS ? 12 : 98,
+    marginTop: 12,
     textAlign: 'center',
   },
   container: {

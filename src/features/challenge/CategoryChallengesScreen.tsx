@@ -210,12 +210,12 @@ export default function CategoryChallengesScreen() {
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-        <SafeAreaView style={styles.safe} edges={isIOS ? ['bottom'] : ['top', 'bottom']}>
+        <SafeAreaView style={styles.safe} edges={['bottom']}>
           <View style={{ 
             flexDirection: "row", 
             alignItems: "center", 
             justifyContent: "center",
-            marginTop: isIOS ? 10 : 65
+            marginTop: 10
           }}>
             <Image
               source={categoryMeta[category]?.icon}

@@ -70,7 +70,7 @@ export default function PollingChallengeScreen() {
 
   if (!challenge) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }} edges={[]}>
         <Text style={{ color: "white" }}>Challenge not found</Text>
       </SafeAreaView>
     );
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     paddingTop: 10
   },
   image: {
-    marginTop: isIOS ? 12 : 80,
+    marginTop: 12,
     marginBottom: -2,
     width: "100%",
     height: "30%",

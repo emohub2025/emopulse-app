@@ -362,7 +362,7 @@ export default function ChallengeCountdownScreen() {
           behavior={isIOS ? "padding" : "height"}
           keyboardVerticalOffset={isIOS ? 92 : 0}
         >
-        <SafeAreaView style={styles.safe}>
+        <SafeAreaView style={styles.safe} edges={['bottom']}>
           <ScrollView
             ref={scrollRef}
             contentContainerStyle={styles.scrollContent}
@@ -600,7 +600,7 @@ export default function ChallengeCountdownScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    paddingTop: isIOS ? 10 : 50,
+    paddingTop: 10,
     paddingHorizontal: 20,
   },
   scrollContent: {

@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(5, 0, 24, 0.32)",
     paddingHorizontal: 16,
-    paddingTop: isIOS ? 12 : 80,
+    paddingTop: 12,
   },
 
   topLabel: {

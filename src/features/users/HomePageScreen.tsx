@@ -23,7 +23,7 @@ export default function HomePageScreen() {
 <View style={{ flex: 1, backgroundColor: 'black' }}>
 
   {/* Top spacing or title area */}
-  <SafeAreaView style={styles.topArea}>
+  <SafeAreaView style={styles.topArea} edges={[]}>
     {/* You can add a logo or leave it empty */}
   </SafeAreaView>
 
@@ -35,12 +35,12 @@ export default function HomePageScreen() {
   />
 
   {/* Logo / Title */}
-  <SafeAreaView style={styles.safe}>
+  <SafeAreaView style={styles.safe} edges={[]}>
     <Text style={styles.title}>Join the future of emotional intelligence!</Text>
   </SafeAreaView>
 
   {/* Buttons */}
-  <SafeAreaView style={styles.buttonsArea}>
+  <SafeAreaView style={styles.buttonsArea} edges={[]}>
 
     <Pressable
       style={styles.buttonWrapper}
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     marginBottom: 200,
   },
   topArea: {
-    height: 120,
+    height: 0,
     justifyContent: 'center',
     alignItems: 'center',
   },

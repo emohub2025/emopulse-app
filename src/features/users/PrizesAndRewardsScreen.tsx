@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "700",
     textAlign: "center",
-    marginTop: isIOS ? 12 : 92,
+    marginTop: 12,
     marginBottom: 10,
   },
   heroCard: {

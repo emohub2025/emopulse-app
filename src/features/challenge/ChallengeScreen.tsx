@@ -170,7 +170,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-        <SafeAreaView style={styles.safe} edges={isIOS ? ['bottom'] : ['top', 'bottom']}>
+        <SafeAreaView style={styles.safe} edges={['bottom']}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 28,
     fontWeight: '700',
-    marginTop: isIOS ? 12 : 65,
+    marginTop: 12,
     marginBottom: 5,
     paddingHorizontal: 20,
     textAlign: 'center',
