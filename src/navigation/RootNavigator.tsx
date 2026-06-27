@@ -31,12 +31,12 @@ import SubchallengeScreen from "../features/subchallenge/SubchallengeScreen";
 import PollingChallengeScreen from "../features/subchallenge/PollingChallengeScreen";
 
 const isIOS = Platform.OS === "ios";
-const HEADER_HEIGHT = isIOS ? 78 : 52;
+const HEADER_HEIGHT = 78;
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const logoIOS = require("../assets/logos/logo.png");
-const logoAndroid = require("../assets/logos/logo-back.png");
+const logoAndroid = require("../assets/logos/logo.png");
 
 const LogoHeader = () => {
   const insets = useSafeAreaInsets();
@@ -57,8 +57,8 @@ const LogoHeader = () => {
         source={isIOS ? logoIOS : logoAndroid}
         style={{
           width: isIOS ? "100%" : "110%",
-          height: isIOS ? 78 : 60,
-          marginTop: isIOS ? 0 : -10,
+          height: 78,
+          marginTop: 0,
           resizeMode: isIOS ? "stretch" : "cover",
         }}
       />
