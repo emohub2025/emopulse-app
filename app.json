@@ -47,7 +47,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "usesCleartextTraffic": false,
-      "package": "com.emopulseai.app",
+      "package": "com.emopulseai.com",
       "versionCode": 7,
       "permissions": [
         "android.permission.VIBRATE"
