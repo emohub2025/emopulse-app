@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, ImageBackground, StyleSheet, FlatList, Pressable } from 'react-native';
+import { View, Text, Image, ImageBackground, StyleSheet, FlatList, Pressable } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -12,6 +12,7 @@ import type { FeedCategory, FeedResponse } from "../../navigation/types";
 import { Platform } from "react-native";
 
 const isIOS = Platform.OS === "ios";
+const screenBackground = require('../../assets/images/background.png');
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -78,11 +79,27 @@ export default function CategoryListScreen() {
 
   if (loading) {
     return (
+      <View style={styles.root}>
+        <ImageBackground
+          source={screenBackground}
+          style={styles.background}
+          resizeMode="cover"
+        >
+          {!isIOS && (
+            <Image
+              source={screenBackground}
+              style={styles.androidBackgroundImage}
+              resizeMode="cover"
+            />
+          )}
+
       <SafeAreaView style={styles.safe} edges={[]}>
         <View style={styles.center}>
           <Text style={{ color: 'white' }}>Loading categories…</Text>
         </View>
       </SafeAreaView>
+        </ImageBackground>
+      </View>
     );
   }
 
@@ -105,10 +122,18 @@ export default function CategoryListScreen() {
   return (
     <View style={styles.root}>
       <ImageBackground
-        source={require('../../assets/images/background.png')}
+        source={screenBackground}
         style={styles.background}
         resizeMode="cover"
       >
+        {!isIOS && (
+          <Image
+            source={screenBackground}
+            style={styles.androidBackgroundImage}
+            resizeMode="cover"
+          />
+        )}
+
         <SafeAreaView style={styles.safe} edges={[]}>
           <Text style={styles.topLabel}>Challenge Categories</Text>
           <Text style={styles.subLabel}>Choose a category to view active and expired challenges</Text>
@@ -159,6 +184,11 @@ const styles = StyleSheet.create({
   },
   background: {
     flex: 1,
+  },
+  androidBackgroundImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
   },
   center: {
     flex: 1,
