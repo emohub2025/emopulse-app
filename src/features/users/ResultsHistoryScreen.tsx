@@ -226,14 +226,14 @@ const styles = StyleSheet.create({
 
   background: {
     flex: 1,
-    paddingTop: 10,
+    paddingTop: 0,
   },
 
   overlay: {
     flex: 1,
     backgroundColor: "rgba(5, 0, 24, 0.28)",
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 0,
   },
 
   topLabel: {

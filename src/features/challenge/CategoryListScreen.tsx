@@ -103,48 +103,63 @@ export default function CategoryListScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.safe} edges={[]}>
-      <Text style={styles.topLabel}>Challenge Categories</Text>
-      <Text style={styles.subLabel}>Choose a category to view active and expired challenges</Text>
+    <View style={styles.root}>
+      <ImageBackground
+        source={require('../../assets/images/background.png')}
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <SafeAreaView style={styles.safe} edges={[]}>
+          <Text style={styles.topLabel}>Challenge Categories</Text>
+          <Text style={styles.subLabel}>Choose a category to view active and expired challenges</Text>
 
-      <FlatList
-        data={sortedCategories}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        style={styles.list}
-        columnWrapperStyle={styles.columnWrapper}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <Pressable
-            style={({ pressed }) => [
-              styles.card,
-              pressed && styles.cardPressed,
-            ]}
-            onPress={() =>
-              navigation.navigate('CategoryChallenges', {
-                category: item.name
-              })
-            }
-          >
-            <ImageBackground
-              source={categoryImages[item.name] ?? null}
-              style={styles.cardBackground}
-              resizeMode="stretch"
-            >
-              <View style={styles.cardOverlay} />
-            </ImageBackground>
-          </Pressable>
-        )}
-      />
+          <FlatList
+            data={sortedCategories}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            style={styles.list}
+            columnWrapperStyle={styles.columnWrapper}
+            contentContainerStyle={styles.listContent}
+            renderItem={({ item }) => (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.card,
+                  pressed && styles.cardPressed,
+                ]}
+                onPress={() =>
+                  navigation.navigate('CategoryChallenges', {
+                    category: item.name
+                  })
+                }
+              >
+                <ImageBackground
+                  source={categoryImages[item.name] ?? null}
+                  style={styles.cardBackground}
+                  resizeMode="stretch"
+                >
+                  <View style={styles.cardOverlay} />
+                </ImageBackground>
+              </Pressable>
+            )}
+          />
 
-      <View>
-        <ButtonPanel currentScreen={route.name} />
-      </View>
-    </SafeAreaView>
+          <View>
+            <ButtonPanel currentScreen={route.name} />
+          </View>
+        </SafeAreaView>
+      </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  background: {
+    flex: 1,
+  },
   center: {
     flex: 1,
     justifyContent: 'center',
@@ -152,15 +167,15 @@ const styles = StyleSheet.create({
   },
   safe: {
     flex: 1,
-    paddingTop: 8,
+    paddingTop: 0,
     paddingBottom: 0,
-    backgroundColor: '#000',
+    backgroundColor: 'transparent',
   },
   topLabel: {
     color: 'white',
     fontSize: 28,
     fontWeight: '700',
-    marginTop: 6,
+    marginTop: 0,
     marginBottom: 6,
     textAlign: 'center',
   },

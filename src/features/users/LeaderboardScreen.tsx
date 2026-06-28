@@ -12,6 +12,7 @@ import {
   Animated,
   Easing,
   Platform,
+  ImageBackground,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import ButtonPanel from "../../components/ButtonPanel";
@@ -246,6 +247,11 @@ export default function LeaderboardScreen() {
 
   return (
     <View style={styles.container}>
+      <ImageBackground
+        source={require("../../assets/images/background.png")}
+        style={styles.background}
+        resizeMode="cover"
+      >
       <Text style={styles.title}>Leaderboard</Text>
       <Text style={styles.subtitle}>Stack the coins. Climb the ranks.</Text>
 
@@ -329,6 +335,8 @@ export default function LeaderboardScreen() {
         />
       )}
 
+      </ImageBackground>
+
       <View style={styles.bottomSafeArea} />
       <ButtonPanel currentScreen="Leaderboard" />
     </View>
@@ -339,8 +347,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#050018",
+  },
+
+  background: {
+    flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 14,
   },
 
   title: {

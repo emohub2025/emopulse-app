@@ -408,12 +408,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(5, 0, 24, 0.32)",
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 0,
   },
 
   topLabel: {
     color: "white",
-    marginTop: 15,
+    marginTop: 0,
     fontSize: 28,
     fontWeight: "900",
     textAlign: "center",

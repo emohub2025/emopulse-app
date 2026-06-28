@@ -48,7 +48,7 @@
       "predictiveBackGestureEnabled": false,
       "usesCleartextTraffic": false,
       "package": "com.emopulseai.app",
-      "versionCode": 11,
+      "versionCode": 12,
       "permissions": [
         "android.permission.VIBRATE"
       ]

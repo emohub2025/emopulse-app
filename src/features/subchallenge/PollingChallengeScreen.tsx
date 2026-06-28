@@ -223,6 +223,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 12,
+    paddingTop: 0,
     justifyContent: "flex-start"
   },
   bottomBar: {
@@ -246,7 +247,7 @@ const styles = StyleSheet.create({
     paddingTop: 10
   },
   image: {
-    marginTop: 12,
+    marginTop: 0,
     marginBottom: -2,
     width: "100%",
     height: "30%",

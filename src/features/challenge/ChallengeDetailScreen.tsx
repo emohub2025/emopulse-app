@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
     color: 'yellow',
     fontSize: 26,
     fontWeight: '700',
-    marginTop: 12,
+    marginTop: 0,
     textAlign: 'center',
   },
   container: {

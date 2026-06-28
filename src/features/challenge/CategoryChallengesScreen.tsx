@@ -215,7 +215,7 @@ export default function CategoryChallengesScreen() {
             flexDirection: "row", 
             alignItems: "center", 
             justifyContent: "center",
-            marginTop: 10
+            marginTop: 0
           }}>
             <Image
               source={categoryMeta[category]?.icon}

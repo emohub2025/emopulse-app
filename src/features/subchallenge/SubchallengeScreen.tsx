@@ -322,12 +322,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,
+    paddingTop: 0,
     justifyContent: 'flex-start',
   },
   imageWrapper: {
     width: '100%',
     height: 155,
-    marginTop: 12,
+    marginTop: 0,
     borderRadius: 14,
     overflow: 'hidden',
     backgroundColor: 'rgba(0,0,0,0.22)',

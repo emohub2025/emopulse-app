@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "700",
     textAlign: "center",
-    marginTop: 12,
+    marginTop: 0,
     marginBottom: 15,
     backgroundColor: "transparent",
   },

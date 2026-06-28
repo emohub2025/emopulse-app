@@ -410,7 +410,7 @@ export default function ChallengeResultScreen() {
 export const dynamicStyles = (fromHistory: boolean) => ({
   safe: {
     flex: 1,
-    paddingTop: 12,
+    paddingTop: 0,
     paddingBottom: 50,
     paddingHorizontal: 20,
     marginBottom: fromHistory ? -20 : -75,
@@ -420,9 +420,9 @@ export const dynamicStyles = (fromHistory: boolean) => ({
 const styles = StyleSheet.create({
   resultsShell: {
     backgroundColor: 'transparent',
-    paddingTop: 15,
+    paddingTop: 0,
     borderRadius: 18,
-    marginTop: 20,
+    marginTop: 0,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
