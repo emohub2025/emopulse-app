@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Image, Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootStackParamList } from "./types";
+import { useResponsiveLayout } from "../hooks/useResponsiveLayout";
 
 import HomePageScreen from "../features/users/HomePageScreen";
 import LoginScreen from "../features/users/LoginScreen";
@@ -40,13 +41,15 @@ const logoAndroid = require("../assets/logos/logo.png");
 
 const LogoHeader = () => {
   const insets = useSafeAreaInsets();
+  const { scale, isVeryCompact } = useResponsiveLayout();
   const topInset = isIOS ? insets.top : 0;
+  const headerHeight = scale(isVeryCompact ? 68 : HEADER_HEIGHT, 64, 78);
 
   return (
     <View
       style={{
         width: "100%",
-        height: topInset + HEADER_HEIGHT,
+        height: topInset + headerHeight,
         paddingTop: topInset,
         alignItems: "center",
         justifyContent: "center",
@@ -56,8 +59,8 @@ const LogoHeader = () => {
       <Image
         source={isIOS ? logoIOS : logoAndroid}
         style={{
-          width: isIOS ? "100%" : "110%",
-          height: 78,
+          width: isIOS ? "100%" : "108%",
+          height: headerHeight,
           marginTop: 0,
           resizeMode: isIOS ? "stretch" : "cover",
         }}

@@ -10,6 +10,7 @@ import { useFeed } from "../../context/FeedContext";
 import { getFeedList } from "../../api/getFeedList";
 import type { FeedCategory, FeedResponse } from "../../navigation/types";
 import { Platform } from "react-native";
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 
 const isIOS = Platform.OS === "ios";
 const screenBackground = require('../../assets/images/background.png');
@@ -50,6 +51,13 @@ export default function CategoryListScreen() {
   const { setFeed } = useFeed();   // ⭐ NEW
   const [categories, setCategories] = useState<FeedCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const { width, scale, font, isVeryCompact } = useResponsiveLayout();
+  const horizontalPadding = scale(isVeryCompact ? 14 : 20, 12, 22);
+  const columnGap = scale(isVeryCompact ? 12 : 20, 10, 22);
+  const cardWidth = Math.floor((width - horizontalPadding * 2 - columnGap) / 2);
+  const cardHeight = Math.round(cardWidth * 0.94);
+  const titleFontSize = font(28, 22, 28);
+  const subtitleFontSize = font(18, 14, 18);
 
   useFocusEffect(
     useCallback(() => {
@@ -135,20 +143,21 @@ export default function CategoryListScreen() {
         )}
 
         <SafeAreaView style={styles.safe} edges={[]}>
-          <Text style={styles.topLabel}>Challenge Categories</Text>
-          <Text style={styles.subLabel}>Choose a category to view active and expired challenges</Text>
+          <Text style={[styles.topLabel, { fontSize: titleFontSize }]}>Challenge Categories</Text>
+          <Text style={[styles.subLabel, { fontSize: subtitleFontSize }]}>Choose a category to view active and expired challenges</Text>
 
           <FlatList
             data={sortedCategories}
             keyExtractor={(item) => item.id}
             numColumns={2}
             style={styles.list}
-            columnWrapperStyle={styles.columnWrapper}
+            columnWrapperStyle={[styles.columnWrapper, { paddingHorizontal: horizontalPadding }]}
             contentContainerStyle={styles.listContent}
             renderItem={({ item }) => (
               <Pressable
                 style={({ pressed }) => [
                   styles.card,
+                  { width: cardWidth, height: cardHeight },
                   pressed && styles.cardPressed,
                 ]}
                 onPress={() =>
@@ -223,7 +232,6 @@ const styles = StyleSheet.create({
   },
   columnWrapper: {
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
   },
   listContent: {
     paddingLeft: 5,
@@ -232,8 +240,6 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   card: {
-    height: 150,
-    width: 160,
     marginBottom: 14,
     overflow: 'hidden',
     backgroundColor: '#16042f',

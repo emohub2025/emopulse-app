@@ -14,6 +14,7 @@ import { getSubchallengeList } from '../../api/subchallenges';
 import { useCurrentUserId } from "../../state/useUserSelectors";
 import { useFeed } from "../../context/FeedContext";
 import { markChallengePlayed } from '../../hooks/usePlayedChallenges';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 
 type ChallengeRouteProp = RouteProp<RootStackParamList, 'Challenge'>;
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'Challenge'>;
@@ -33,6 +34,13 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   const bottomStatusText = formattedTime?.toLowerCase?.() === 'expired' ? 'Expired' : formattedTime;
   const { challengeId } = route.params;
   const { feed } = useFeed();   // hook is fine here — early return must be below all hooks
+
+  const { scale, font, isVeryCompact } = useResponsiveLayout();
+  const submitWidth = scale(isVeryCompact ? 230 : 265, 220, 265);
+  const submitHeight = scale(isVeryCompact ? 47 : 54, 44, 54);
+  const titleFontSize = font(28, 22, 28);
+  const subtitleFontSize = font(18, 15, 18);
+  const costFontSize = font(20, 16, 20);
 
   let isYouTube = false;
   let challenge = null;
@@ -175,8 +183,8 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            <Text style={styles.topLabel}>What's your reaction?</Text>
-            <Text style={styles.subLabel}>Select the best matching emotion.</Text>
+            <Text style={[styles.topLabel, { fontSize: titleFontSize }]}>What's your reaction?</Text>
+            <Text style={[styles.subLabel, { fontSize: subtitleFontSize }]}>Select the best matching emotion.</Text>
 
             <View style={styles.content}>
               <View style={styles.mainCard}>
@@ -199,18 +207,19 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
               </View>
 
               <View style={styles.submitArea}>
-                <Text style={styles.costText}>Cost: 1 Coin</Text>
+                <Text style={[styles.costText, { fontSize: costFontSize }]}>Cost: 1 Coin</Text>
                 <TouchableOpacity
                   onPress={handleSubmit}
                   disabled={isDisabled}
                   style={[
                     styles.submitWrapper,
+                    { width: submitWidth, height: submitHeight },
                     isDisabled && { opacity: 0.6 },
                   ]}
                 >
                   <Image
                     source={require('../../assets/buttons/submit.png')}
-                    style={styles.submitButton}
+                    style={[styles.submitButton, { width: submitWidth, height: submitHeight }]}
                   />
                 </TouchableOpacity>
               </View>
@@ -296,8 +305,6 @@ const styles = StyleSheet.create({
   },
   submitWrapper: {
     alignSelf: 'center',
-    width: 265,
-    height: 54,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 6,
@@ -305,8 +312,6 @@ const styles = StyleSheet.create({
   submitButton: {
     marginTop: -3,
     marginBottom: -2,
-    width: 265,
-    height: 54,
     resizeMode: 'contain',
   },
   costText: {

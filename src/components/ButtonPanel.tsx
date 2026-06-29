@@ -1,8 +1,10 @@
 import { View, StyleSheet, Pressable, Image, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
+import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
 
 import homeIcon from '../assets/buttons/panel-home.png';
 import accountIcon from '../assets/buttons/panel-account.png';
@@ -17,9 +19,24 @@ type ButtonPanelProps = {
 export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
+  const insets = useSafeAreaInsets();
+  const { scale, font, isCompact, isVeryCompact } = useResponsiveLayout();
+  const panelHeight = scale(isVeryCompact ? 54 : 60, 52, 66);
+  const iconSize = scale(isVeryCompact ? 25 : 30, 24, 32);
+  const labelSize = font(isCompact ? 10 : 11, 9, 11);
+  const bottomOffset = Math.max(insets.bottom, scale(10, 8, 18));
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          bottom: bottomOffset,
+          height: panelHeight,
+          paddingHorizontal: scale(12, 10, 16),
+        },
+      ]}
+    >
       <LinearGradient
         colors={['#A020F0', '#D8B4FF', '#A020F0']}
         start={{ x: 0, y: 0 }}
@@ -34,8 +51,8 @@ export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
             onPress={() => navigation.navigate('CategoryList')}
             style={styles.item}
           >
-            <Image source={homeIcon} style={styles.icon} />
-            <Text style={styles.label}>Home</Text>
+            <Image source={homeIcon} style={[styles.icon, { width: iconSize, height: iconSize }]} />
+            <Text style={[styles.label, { fontSize: labelSize }]} numberOfLines={1} adjustsFontSizeToFit>Home</Text>
           </Pressable>
         )}
 
@@ -45,8 +62,8 @@ export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
             onPress={() => navigation.navigate('ResultsHistory')}
             style={styles.item}
           >
-            <Image source={historyIcon} style={styles.icon} />
-            <Text style={styles.label}>History</Text>
+            <Image source={historyIcon} style={[styles.icon, { width: iconSize, height: iconSize }]} />
+            <Text style={[styles.label, { fontSize: labelSize }]} numberOfLines={1} adjustsFontSizeToFit>History</Text>
           </Pressable>
         )}
 
@@ -56,8 +73,8 @@ export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
             onPress={() => navigation.navigate('Teams')}
             style={styles.item}
           >
-            <Image source={teamsIcon} style={styles.icon} />
-            <Text style={styles.label}>Teams</Text>
+            <Image source={teamsIcon} style={[styles.icon, { width: iconSize, height: iconSize }]} />
+            <Text style={[styles.label, { fontSize: labelSize }]} numberOfLines={1} adjustsFontSizeToFit>Teams</Text>
           </Pressable>
         )}
 
@@ -67,8 +84,8 @@ export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
             onPress={() => navigation.navigate('Leaderboard')}
             style={styles.item}
           >
-            <Image source={leaderboardIcon} style={styles.icon} />
-            <Text style={styles.label}>Leaderboard</Text>
+            <Image source={leaderboardIcon} style={[styles.icon, { width: iconSize, height: iconSize }]} />
+            <Text style={[styles.label, { fontSize: labelSize }]} numberOfLines={1} adjustsFontSizeToFit>Leaderboard</Text>
           </Pressable>
         )}
 
@@ -78,8 +95,8 @@ export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
             onPress={() => navigation.navigate('Account')}
             style={styles.item}
           >
-            <Image source={accountIcon} style={styles.icon} />
-            <Text style={styles.label}>Account</Text>
+            <Image source={accountIcon} style={[styles.icon, { width: iconSize, height: iconSize }]} />
+            <Text style={[styles.label, { fontSize: labelSize }]} numberOfLines={1} adjustsFontSizeToFit>Account</Text>
           </Pressable>
         )}
       </View>
@@ -97,11 +114,8 @@ export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 40,
     left: 0,
     right: 0,
-    height: 60,
-    paddingHorizontal: 16,
     backgroundColor: '#111',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
@@ -136,11 +150,11 @@ const styles = StyleSheet.create({
 
   item: {
     alignItems: 'center',
+    flex: 1,
+    minWidth: 0,
   },
 
   icon: {
-    width: 30,
-    height: 30,
     resizeMode: 'contain',
   },
 
