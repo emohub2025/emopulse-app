@@ -90,13 +90,13 @@ const ProgressBar = ({ label, pct, color, labelColor }: ProgressBarProps) => {
         <Text
           style={{
             position: 'absolute',
-            width: '99%',
+            width: '100%',
             textAlign: 'left',
             color: labelColor || color,
             fontSize: 18,
             fontWeight: '700',
             paddingVertical: -1,
-            paddingHorizontal: 15,
+            paddingLeft: 10,
           }}
         >
           {label} — {Math.round(pct * 100)}%

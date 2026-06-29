@@ -260,9 +260,9 @@ export default function ChallengeDetailScreen({
                     <Text style={styles.polltitle}>Polling Result</Text>
                       {challenge?.main?.poll_results?.slice(0,4)?.map(
                         (opt: { index: number; pct: number }, i: number) => (
-                          <View key={i} style={{ marginBottom: 14, paddingLeft: 20, paddingRight: 20, }}>
+                          <View key={i} style={{ marginBottom: 14, paddingLeft: 10, paddingRight: 10, }}>
                             <Text style={{ color: 'white', fontSize: 18, marginBottom: 4 }}>
-                              {truncate(challenge?.polling_answers?.slice(0,4)?.[opt.index] ?? `Option ${opt.index + 1}`, 25)}
+                              {truncate(challenge?.polling_answers?.slice(0,4)?.[opt.index] ?? `Option ${opt.index + 1}`, 28)}
                               {' — '}
                               {(opt.pct * 100).toFixed(0)}%
                             </Text>
