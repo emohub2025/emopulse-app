@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, SectionList, StyleSheet, LayoutAnimation, ImageBackground, Pressable } from "react-native";
+import { View, Text, Image, SectionList, StyleSheet, LayoutAnimation, ImageBackground, Pressable, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRoute } from "@react-navigation/native";
 import ButtonPanel from "../../components/ButtonPanel";
@@ -9,6 +9,8 @@ import payoutSubIcon from "../../assets/images/payout-sub.png";
 import betIcon from "../../assets/images/bet.png";
 import betSubIcon from "../../assets/images/bet-sub.png";
 import { useCurrentUserId } from "../../state/useUserSelectors";
+
+const isIOS = Platform.OS === "ios";
 
 type Transaction = {
   id: string;
@@ -406,12 +408,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(5, 0, 24, 0.32)",
     paddingHorizontal: 16,
-    paddingTop: 80,
+    paddingTop: 0,
   },
 
   topLabel: {
     color: "white",
-    marginTop: 15,
+    marginTop: 0,
     fontSize: 28,
     fontWeight: "900",
     textAlign: "center",

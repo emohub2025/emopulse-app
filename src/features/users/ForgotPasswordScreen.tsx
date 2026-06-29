@@ -60,7 +60,7 @@ export default function ForgotPasswordScreen() {
       >
         <View style={styles.overlay} />
 
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={styles.safeArea} edges={[]}>
           <View style={styles.headerBlock}>
             <Text style={styles.eyebrow}>Account help</Text>
             <Text style={styles.title}>Reset Your Password</Text>
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   },
   headerBlock: {
     width: "100%",
-    marginTop: 42,
+    marginTop: 12,
     marginBottom: 26,
     alignItems: "center",
   },

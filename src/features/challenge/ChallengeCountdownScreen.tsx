@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Image, ImageBackground, StyleSheet, Pressable, BackHandler, TextInput, Animated } from 'react-native';
+import { Platform, View, Text, Image, ImageBackground, StyleSheet, Pressable, BackHandler, TextInput, Animated, KeyboardAvoidingView, ScrollView, Keyboard } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
@@ -14,6 +14,7 @@ import { emotionLookup, emotionSlotMap } from '../../utils/emotionList';
 import { ChallengeComment, fetchComments, postComment } from '../../api/challengeComments';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'ChallengeCountdown'>;
+const isIOS = Platform.OS === "ios";
 
 /* -------------------------------------------------------
    Helpers
@@ -137,6 +138,7 @@ export default function ChallengeCountdownScreen() {
   const [comments, setComments] = useState<ChallengeComment[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const commentsRef = useRef(comments);
+  const scrollRef = useRef<ScrollView>(null);
 
   const [wEmotion, setWEmotion] = useState({
     happy: { pct: 0, count: 0 },
@@ -153,9 +155,19 @@ export default function ChallengeCountdownScreen() {
       setCommentText("");
       const list = await fetchComments(challengeId);
       setComments(list);
+      Keyboard.dismiss();
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollTo({ y: 0, animated: true });
+      });
     } catch (err: any) {
       console.log("❌ Post comment failed:", err);
     }
+  }
+
+  function handleCommentFocus() {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    });
   }
 
   useEffect(() => {
@@ -223,7 +235,7 @@ export default function ChallengeCountdownScreen() {
   }, []);
     
   useEffect(() => {
-    if (isExpired) {
+    if (isExpired && from !== "play") {
       const timeout = setTimeout(() => {
         navigation.navigate('ChallengeResults', {
           challengeId: challengeId,
@@ -232,7 +244,7 @@ export default function ChallengeCountdownScreen() {
 
       return () => clearTimeout(timeout);
     }
-  }, [isExpired, navigation, challengeId]);
+  }, [isExpired, from, navigation, challengeId]);
 
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
@@ -345,7 +357,18 @@ export default function ChallengeCountdownScreen() {
         source={require('../../assets/images/background.png')}
         style={{ flex: 1, marginBottom: 42 }}
       >
-        <SafeAreaView style={styles.safe}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={isIOS ? "padding" : "height"}
+          keyboardVerticalOffset={isIOS ? 92 : 0}
+        >
+        <SafeAreaView style={styles.safe} edges={['bottom']}>
+          <ScrollView
+            ref={scrollRef}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
           <View style={styles.text}>
             <AutoShrinkBlock
               height={120}
@@ -518,6 +541,7 @@ export default function ChallengeCountdownScreen() {
                 <TextInput
                   value={commentText}
                   onChangeText={setCommentText}
+                  onFocus={handleCommentFocus}
                   placeholder="Write a comment..."
                   placeholderTextColor="#aaa"
                   style={{
@@ -562,7 +586,9 @@ export default function ChallengeCountdownScreen() {
               <Text style={styles.timer}>{formattedTime}</Text>
             </View>
           </View>
+          </ScrollView>
         </SafeAreaView>
+        </KeyboardAvoidingView>
       </ImageBackground>
     </View>
   );
@@ -574,8 +600,12 @@ export default function ChallengeCountdownScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingHorizontal: 20,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: isIOS ? 120 : 90,
   },
   loadingText: {
     color: 'white',

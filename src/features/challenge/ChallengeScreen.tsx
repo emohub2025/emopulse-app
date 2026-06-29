@@ -4,7 +4,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, StyleSheet, Image, Animated, ImageBackground, TouchableOpacity } from 'react-native';
+import { Platform, View, Text, StyleSheet, Image, Animated, ImageBackground, TouchableOpacity, ScrollView } from 'react-native';
 import EmotionSelector from '../../components/EmotionSelector';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
@@ -17,6 +17,7 @@ import { markChallengePlayed } from '../../hooks/usePlayedChallenges';
 
 type ChallengeRouteProp = RouteProp<RootStackParamList, 'Challenge'>;
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'Challenge'>;
+const isIOS = Platform.OS === "ios";
 
 export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }) {
   // ⭐ ALL HOOKS MUST COME FIRST
@@ -169,71 +170,76 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-        <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-          <Text style={styles.topLabel}>What's your reaction?</Text>
-          <Text style={styles.subLabel}>Select the best matching emotion.</Text>
+        <SafeAreaView style={styles.safe} edges={['bottom']}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={styles.topLabel}>What's your reaction?</Text>
+            <Text style={styles.subLabel}>Select the best matching emotion.</Text>
 
-          <View style={styles.content}>
-            <View style={styles.mainCard}>
+            <View style={styles.content}>
+              <View style={styles.mainCard}>
 
-              <AutoShrinkBlock
-                height={110}
-                width={"100%"}
-                fontWeight="600"
-              >
-                {challenge?.topic}
-              </AutoShrinkBlock>
-            </View>
+                <AutoShrinkBlock
+                  height={110}
+                  width={"100%"}
+                  fontWeight="600"
+                >
+                  {challenge?.topic}
+                </AutoShrinkBlock>
+              </View>
 
-            <View style={styles.selectorWrap}>
-              <EmotionSelector 
-                selected={emotion} 
-                onSelect={setEmotion} 
-                category={challenge?.category}
-              />
-            </View>
-
-            <View style={styles.submitArea}>
-              <Text style={styles.costText}>Cost: 1 Coin</Text>
-              <TouchableOpacity
-                onPress={handleSubmit}
-                disabled={isDisabled}
-                style={[
-                  styles.submitWrapper,
-                  isDisabled && { opacity: 0.6 },
-                ]}
-              >
-                <Image
-                  source={require('../../assets/buttons/submit.png')}
-                  style={styles.submitButton}
+              <View style={styles.selectorWrap}>
+                <EmotionSelector
+                  selected={emotion}
+                  onSelect={setEmotion}
+                  category={challenge?.category}
                 />
-              </TouchableOpacity>
+              </View>
+
+              <View style={styles.submitArea}>
+                <Text style={styles.costText}>Cost: 1 Coin</Text>
+                <TouchableOpacity
+                  onPress={handleSubmit}
+                  disabled={isDisabled}
+                  style={[
+                    styles.submitWrapper,
+                    isDisabled && { opacity: 0.6 },
+                  ]}
+                >
+                  <Image
+                    source={require('../../assets/buttons/submit.png')}
+                    style={styles.submitButton}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
 
-          <View style={{ height: 44, justifyContent: "center", alignItems: "center" }}>
-            <Animated.View
-              style={{
-                position: "absolute",
-                opacity: errorOpacity,
-                width: "100%",
-                alignItems: "center",
-              }}
-            >
-              <Text style={styles.errorText}>{errorMessage}</Text>
-            </Animated.View>
+            <View style={{ height: 44, justifyContent: "center", alignItems: "center" }}>
+              <Animated.View
+                style={{
+                  position: "absolute",
+                  opacity: errorOpacity,
+                  width: "100%",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </Animated.View>
 
-            <Animated.View
-              style={{
-                position: "absolute",
-                opacity: timerOpacity,
-                width: "100%",
-                alignItems: "center",
-              }}
-            >
-              <Text style={styles.timer}>{bottomStatusText}</Text>
-            </Animated.View>
-          </View>
+              <Animated.View
+                style={{
+                  position: "absolute",
+                  opacity: timerOpacity,
+                  width: "100%",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={styles.timer}>{bottomStatusText}</Text>
+              </Animated.View>
+            </View>
+          </ScrollView>
         </SafeAreaView>
       </ImageBackground>
     </View>
@@ -245,11 +251,14 @@ const styles = StyleSheet.create({
     flex: 1,
     marginBottom: -37,
   },
+  scrollContent: {
+    paddingBottom: 90,
+  },
   topLabel: {
     color: 'white',
     fontSize: 28,
     fontWeight: '700',
-    marginTop: 65,
+    marginTop: 0,
     marginBottom: 5,
     paddingHorizontal: 20,
     textAlign: 'center',
@@ -264,7 +273,6 @@ const styles = StyleSheet.create({
     marginBottom: 13,
   },
   content: {
-    flex: 1,
     justifyContent: 'space-between',
   },
   mainCard: {

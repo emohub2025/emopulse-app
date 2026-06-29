@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Image, ScrollView } from "react-native";
+import { Platform, View, Text, StyleSheet, Image, ScrollView, ImageBackground } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRoute } from "@react-navigation/native";
 import ButtonPanel from "../../components/ButtonPanel";
@@ -44,37 +44,44 @@ const featureCards = [
   },
 ];
 
+const isIOS = Platform.OS === "ios";
+
 export default function TeamsScreen() {
   const route = useRoute();
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+      <ImageBackground
+        source={require("../../assets/images/background.png")}
+        style={styles.background}
+        resizeMode="cover"
       >
-        <Text style={styles.title}>Teams</Text>
-        <Text style={styles.subtitle}>Create your squad. Challenge your crew.</Text>
-
-        <LinearGradient
-          colors={["#00C853", "#00E676"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.heroCard}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
         >
-          <View style={styles.heroIconWrap}>
-            <Image source={teamIcon} style={styles.heroIcon} />
-          </View>
+          <Text style={styles.title}>Teams</Text>
+          <Text style={styles.subtitle}>Create your squad. Challenge your crew.</Text>
 
-          <View style={styles.heroCopy}>
-            <Text style={styles.heroLabel}>Arriving Soon</Text>
-            <Text style={styles.heroTitle}>Team Play Is Almost Here</Text>
-            <Text style={styles.heroText}>
-              Users will be able to create their own teams and play against
-              teammates in Emotional Pulse challenges.
-            </Text>
-          </View>
-        </LinearGradient>
+          <LinearGradient
+            colors={["#00C853", "#00E676"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroCard}
+          >
+            <View style={styles.heroIconWrap}>
+              <Image source={teamIcon} style={styles.heroIcon} />
+            </View>
+
+            <View style={styles.heroCopy}>
+              <Text style={styles.heroLabel}>Arriving Soon</Text>
+              <Text style={styles.heroTitle}>Team Play Is Almost Here</Text>
+              <Text style={styles.heroText}>
+                Users will be able to create their own teams and play against
+                teammates in Emotional Pulse challenges.
+              </Text>
+            </View>
+          </LinearGradient>
 
         <View style={styles.statsBar}>
           <View style={styles.statPill}>
@@ -139,7 +146,8 @@ export default function TeamsScreen() {
             </View>
           ))}
         </View>
-      </ScrollView>
+        </ScrollView>
+      </ImageBackground>
 
       <View style={styles.bottomSafeArea} />
       <ButtonPanel currentScreen={route.name} />
@@ -151,8 +159,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#050018",
+  },
+  background: {
+    flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 92,
   },
   scrollContent: {
     paddingBottom: 190,

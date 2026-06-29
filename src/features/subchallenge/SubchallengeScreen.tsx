@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { View, Text, Image, ImageBackground, Pressable, TouchableOpacity, Animated, BackHandler, StyleSheet } from 'react-native';
+import { View, Text, Image, ImageBackground, Pressable, TouchableOpacity, Animated, BackHandler, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -13,6 +13,8 @@ import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSou
 import { postPlaceUserSubBet } from '../../api/postPlaceUserBet';
 import { useCurrentUserId } from "../../state/useUserSelectors";
 import { useFeed } from "../../context/FeedContext";
+
+const isIOS = Platform.OS === "ios";
 
 type SubchallengeRouteProp = RouteProp<
   RootStackParamList,
@@ -206,7 +208,7 @@ export default function SubchallengeScreen({
 
   if (!feed || !challenge || !current || !current.options) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={styles.safe} edges={['bottom']}>
         <Text style={styles.loadingText}>Missing challenge data</Text>
       </SafeAreaView>
     );
@@ -314,18 +316,19 @@ export default function SubchallengeScreen({
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    paddingTop: 50,
+    paddingTop: 12,
     paddingHorizontal: 20,
   },
   container: {
     flex: 1,
     padding: 24,
+    paddingTop: 0,
     justifyContent: 'flex-start',
   },
   imageWrapper: {
     width: '100%',
     height: 155,
-    marginTop: 70,
+    marginTop: 0,
     borderRadius: 14,
     overflow: 'hidden',
     backgroundColor: 'rgba(0,0,0,0.22)',

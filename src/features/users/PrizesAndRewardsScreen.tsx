@@ -1,5 +1,7 @@
-import { View, Text, StyleSheet, ImageBackground, ScrollView } from "react-native";
+import { Platform, View, Text, StyleSheet, ImageBackground, ScrollView } from "react-native";
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
+
+const isIOS = Platform.OS === "ios";
 
 export default function PrizesRewardsScreen() {
   const prizes = [
@@ -109,7 +111,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "700",
     textAlign: "center",
-    marginTop: 92,
+    marginTop: 0,
     marginBottom: 10,
   },
   heroCard: {

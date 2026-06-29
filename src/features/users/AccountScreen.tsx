@@ -8,7 +8,7 @@ import FeedbackIcon from "../../assets/buttons/feedback-icon.png";
 import { useUserStore } from "../../state/useUserStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import { View, Text, ImageBackground, StyleSheet, Image, Pressable, Animated, Alert } from "react-native";
+import { Platform, View, Text, ImageBackground, StyleSheet, Image, Pressable, Animated, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
@@ -20,6 +20,7 @@ import coinIcon from "../../assets/images/coin.png";
 import { AVATAR_URL, normalizeAvatarUrl } from "../../../config";
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, "Account">;
+const isIOS = Platform.OS === "ios";
 
 export default function AccountScreen() {
   const [user, setUser] = useState<MobileUser | null>(null);
@@ -359,7 +360,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 26,
     fontWeight: "700",
-    marginTop: 18,
+    marginTop: 8,
     textAlign: "center",
     backgroundColor: "black",
   },

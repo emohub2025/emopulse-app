@@ -1,9 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { View, Text, StyleSheet, ImageBackground, ScrollView } from "react-native";
+import { Platform, View, Text, StyleSheet, ImageBackground, ScrollView } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import React from "react";
 import ButtonPanel from "../../components/ButtonPanel";
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
+
+const isIOS = Platform.OS === "ios";
 
 export default function AchievementsScreen() {
   const route = useRoute();
@@ -126,7 +128,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "700",
     textAlign: "center",
-    marginTop: 95,
+    marginTop: 0,
     marginBottom: 15,
     backgroundColor: "transparent",
   },

@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ImageBackground, ScrollView, TouchableOpacity, Linking } from "react-native";
+import { Platform, View, Text, StyleSheet, ImageBackground, ScrollView, TouchableOpacity, Linking } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import ButtonPanel from "../../components/ButtonPanel";
+
+const isIOS = Platform.OS === "ios";
 
 type FAQItemProps = {
   question: string;
@@ -202,7 +204,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 26,
     fontWeight: "700",
-    marginTop: 95,
+    marginTop: 0,
     marginBottom: 15,
     textAlign: "center",
   },

@@ -93,7 +93,7 @@ export default function SignupScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: 'black' }}>
-      <SafeAreaView style={styles.topArea}>
+      <SafeAreaView style={styles.topArea} edges={[]}>
         <Text style={styles.title}>Create Your Account</Text>
 
         <TextInput
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   },
   topArea: {
     flex: 1,
-    marginTop: 80,
+    marginTop: 12,
     alignItems: 'center',
   },
   input: {

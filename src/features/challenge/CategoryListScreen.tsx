@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, ImageBackground, StyleSheet, FlatList, Pressable } from 'react-native';
+import { View, Text, Image, ImageBackground, StyleSheet, FlatList, Pressable } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -12,6 +12,7 @@ import type { FeedCategory, FeedResponse } from "../../navigation/types";
 import { Platform } from "react-native";
 
 const isIOS = Platform.OS === "ios";
+const screenBackground = require('../../assets/images/background.png');
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -78,11 +79,27 @@ export default function CategoryListScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safe} edges={isIOS ? [] : ["top"]}>
+      <View style={styles.root}>
+        <ImageBackground
+          source={screenBackground}
+          style={styles.background}
+          resizeMode="cover"
+        >
+          {!isIOS && (
+            <Image
+              source={screenBackground}
+              style={styles.androidBackgroundImage}
+              resizeMode="cover"
+            />
+          )}
+
+      <SafeAreaView style={styles.safe} edges={[]}>
         <View style={styles.center}>
           <Text style={{ color: 'white' }}>Loading categories…</Text>
         </View>
       </SafeAreaView>
+        </ImageBackground>
+      </View>
     );
   }
 
@@ -103,48 +120,76 @@ export default function CategoryListScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.safe}edges={isIOS ? [] : ["top"]}>
-      <Text style={styles.topLabel}>Challenge Categories</Text>
-      <Text style={styles.subLabel}>Choose a category to view active and expired challenges</Text>
-
-      <FlatList
-        data={sortedCategories}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        style={styles.list}
-        columnWrapperStyle={styles.columnWrapper}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <Pressable
-            style={({ pressed }) => [
-              styles.card,
-              pressed && styles.cardPressed,
-            ]}
-            onPress={() =>
-              navigation.navigate('CategoryChallenges', {
-                category: item.name
-              })
-            }
-          >
-            <ImageBackground
-              source={categoryImages[item.name] ?? null}
-              style={styles.cardBackground}
-              resizeMode="stretch"
-            >
-              <View style={styles.cardOverlay} />
-            </ImageBackground>
-          </Pressable>
+    <View style={styles.root}>
+      <ImageBackground
+        source={screenBackground}
+        style={styles.background}
+        resizeMode="cover"
+      >
+        {!isIOS && (
+          <Image
+            source={screenBackground}
+            style={styles.androidBackgroundImage}
+            resizeMode="cover"
+          />
         )}
-      />
 
-      <View>
-        <ButtonPanel currentScreen={route.name} />
-      </View>
-    </SafeAreaView>
+        <SafeAreaView style={styles.safe} edges={[]}>
+          <Text style={styles.topLabel}>Challenge Categories</Text>
+          <Text style={styles.subLabel}>Choose a category to view active and expired challenges</Text>
+
+          <FlatList
+            data={sortedCategories}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            style={styles.list}
+            columnWrapperStyle={styles.columnWrapper}
+            contentContainerStyle={styles.listContent}
+            renderItem={({ item }) => (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.card,
+                  pressed && styles.cardPressed,
+                ]}
+                onPress={() =>
+                  navigation.navigate('CategoryChallenges', {
+                    category: item.name
+                  })
+                }
+              >
+                <ImageBackground
+                  source={categoryImages[item.name] ?? null}
+                  style={styles.cardBackground}
+                  resizeMode="stretch"
+                >
+                  <View style={styles.cardOverlay} />
+                </ImageBackground>
+              </Pressable>
+            )}
+          />
+
+          <View>
+            <ButtonPanel currentScreen={route.name} />
+          </View>
+        </SafeAreaView>
+      </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  background: {
+    flex: 1,
+  },
+  androidBackgroundImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+  },
   center: {
     flex: 1,
     justifyContent: 'center',
@@ -152,15 +197,15 @@ const styles = StyleSheet.create({
   },
   safe: {
     flex: 1,
-    paddingTop: isIOS ? 8 : 40,
+    paddingTop: 0,
     paddingBottom: 0,
-    backgroundColor: '#000',
+    backgroundColor: 'transparent',
   },
   topLabel: {
     color: 'white',
     fontSize: 28,
     fontWeight: '700',
-    marginTop: isIOS ? 6 : 25,
+    marginTop: 0,
     marginBottom: 6,
     textAlign: 'center',
   },

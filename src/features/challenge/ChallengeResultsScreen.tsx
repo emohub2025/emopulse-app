@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Image, ImageBackground, StyleSheet, Animated, ScrollView, BackHandler } from 'react-native';
+import { View, Text, Image, ImageBackground, StyleSheet, Animated, ScrollView, BackHandler, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
@@ -11,6 +11,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useCurrentUserId } from "../../state/useUserSelectors";
 import { emotionLookup, getEmotionLabel } from '../../utils/emotionList';
+
+const isIOS = Platform.OS === "ios";
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -283,7 +285,7 @@ export default function ChallengeResultScreen() {
   if (!effectiveId) {
     console.log("❌ ChallengeResults missing challenge or challenge.id:", challenge);
     return (
-      <SafeAreaView style={dynamicStyles(!!fromHistory).safe}>
+      <SafeAreaView style={dynamicStyles(!!fromHistory).safe} edges={['bottom']}>
         <Text style={styles.loadingText}>Missing challenge data</Text>
       </SafeAreaView>
     );
@@ -296,7 +298,7 @@ export default function ChallengeResultScreen() {
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-        <SafeAreaView style={dynamicStyles(!!fromHistory).safe}>
+        <SafeAreaView style={dynamicStyles(!!fromHistory).safe} edges={['bottom']}>
           <View style={styles.resultsShell}>
             <ScrollView
               style={{ maxHeight: fromHistory ? '105%' : '96%' }}
@@ -408,7 +410,7 @@ export default function ChallengeResultScreen() {
 export const dynamicStyles = (fromHistory: boolean) => ({
   safe: {
     flex: 1,
-    paddingTop: 40,
+    paddingTop: 0,
     paddingBottom: 50,
     paddingHorizontal: 20,
     marginBottom: fromHistory ? -20 : -75,
@@ -418,9 +420,9 @@ export const dynamicStyles = (fromHistory: boolean) => ({
 const styles = StyleSheet.create({
   resultsShell: {
     backgroundColor: 'transparent',
-    paddingTop: 15,
+    paddingTop: 0,
     borderRadius: 18,
-    marginTop: 20,
+    marginTop: 0,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
