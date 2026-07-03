@@ -250,23 +250,65 @@ return (
 
           {/* Meta box */}
           {!expanded && (
-            <View style={styles.metaText}>
-              <ScrollView
-                style={{ maxHeight: 240, height: 240 }}
-                 nestedScrollEnabled={true}
-                showsVerticalScrollIndicator={false}
-              >
-                    <Text style={styles.source}>
-                      Source:{' '}
-                      {!challenge?.source
-                        ? 'Emopulse'
-                        : challenge?.source}
-                    </Text>
-                <Text style={styles.meta}>{combinedDetails}</Text>
-              </ScrollView>
-            </View>
-          )}
+            <>
+              {challenge?.source === 'polling' && challenge?.status !== 'open' ? (
+                <View style={styles.metaText}>
+                  <Text style={styles.polltitle}>Polling Result</Text>
+                  {challenge?.main?.poll_results?.slice(0,4)?.map(
+                    (opt: { index: number; pct: number }, i: number) => (
+                      <View key={i} style={{ marginBottom: 14, paddingLeft: 10, paddingRight: 10, }}>
+                        <View style={{ flexDirection: "row", marginBottom: 4 }}>
+                          <Text
+                            style={{ color: 'white', fontSize: 18, width: 50 }}
+                          >
+                            {(opt.pct * 100).toFixed(0)}%
+                          </Text>
 
+                          <Text
+                            style={{ color: 'white', fontSize: 18, flex: 1, marginLeft: 8 }}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                          >
+                            {challenge?.polling_answers?.[opt.index]}
+                          </Text>
+                        </View>
+
+                        <View
+                          style={{
+                            height: 10,
+                            backgroundColor: '#333',
+                            borderRadius: 5,
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <View
+                            style={{
+                              width: `${Math.max(opt.pct * 100, 1)}%`,
+                              height: '100%',
+                              backgroundColor: '#4da6ff',
+                            }}
+                          />
+                        </View>
+                      </View>
+                    )
+                  )}
+
+                </View>
+                    ) : (
+                <View style={styles.metaText}>
+                  <Text style={styles.source}>
+                    Source:{' '}
+                    {!challenge?.source
+                      ? 'Emopulse'
+                      : challenge?.source}
+                  </Text>
+                    <ScrollView style={{ height: 182 }} showsVerticalScrollIndicator={false}>
+                      <Text style={styles.meta}>{combinedDetails}</Text>
+                    </ScrollView>
+                  </View>
+                )}
+            </>
+          )}
         </View>
       </ScrollView>
 
