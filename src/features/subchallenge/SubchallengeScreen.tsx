@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { View, Text, Image, ImageBackground, Pressable, TouchableOpacity, Animated, BackHandler, StyleSheet, Platform } from 'react-native';
+import { View, Text, Image, ImageBackground, Pressable, TouchableOpacity, Animated, BackHandler, StyleSheet, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -13,6 +13,7 @@ import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSou
 import { postPlaceUserSubBet } from '../../api/postPlaceUserBet';
 import { useCurrentUserId } from "../../state/useUserSelectors";
 import { useFeed } from "../../context/FeedContext";
+import { Dimensions } from "react-native";
 
 const isIOS = Platform.OS === "ios";
 
@@ -47,8 +48,9 @@ export default function SubchallengeScreen({
   const errorOpacity = useRef(new Animated.Value(0)).current;
   const timerOpacity = useRef(new Animated.Value(1)).current;
   const [lastTap, setLastTap] = useState<number | null>(null);
-
   const { feed, setSuppressGlobalReset } = useFeed();
+  const SCREEN_HEIGHT = Dimensions.get("window").height - 160;   // 68 should be height of logo
+  const [bottomBarHeight, setBottomBarHeight] = useState(0);
 
   const handleDoubleTapSubmit = () => {
     const now = Date.now();
@@ -223,48 +225,89 @@ export default function SubchallengeScreen({
         style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-        <View style={styles.container}>
-          <View style={styles.imageWrapper}>
-            {imageSource && (
-              <Image source={imageSource} style={styles.image} />
-            )}
-          </View>
+        <ScrollView
+          style={{
+            maxHeight: SCREEN_HEIGHT - bottomBarHeight,
+          }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 0 }}
+        >
+          <View style={styles.container}>
+            <View style={styles.imageWrapper}>
+              {imageSource && (
+                <Image source={imageSource} style={styles.image} />
+              )}
+            </View>
 
-          <View style={styles.questionCard}>
-            <AutoShrinkBlock height={100} width={"100%"} textAlign="center" fontStyle="italic" marginBottom={0}>
-              {String(current.question_text ?? "")}
-            </AutoShrinkBlock>
-          </View>
+            <View style={styles.questionCard}>
+              <AutoShrinkBlock height={100} width={"100%"} fontStyle="italic">
+                {String(current.question_text ?? "")}
+              </AutoShrinkBlock>
+            </View>
 
-          <View style={styles.optionsContainer}>
-            {current.options.map((opt, idx) => {
-              const isSelected = selected === opt.id;
-              const optionText =
-                typeof opt.metadata?.text === "string" ? opt.metadata.text : "";
+            <View style={styles.optionsContainer}>
+              {current.options.map((opt, idx) => {
+                const isSelected = selected === opt.id;
+                const optionText =
+                  typeof opt.metadata?.text === "string" ? opt.metadata.text : "";
 
-              return (
-                <TouchableOpacity
-                  key={opt.id}
-                  onPress={() => setSelected(opt.id)}
-                  activeOpacity={0.9}
-                  style={[
-                    styles.optionWrapper,
-                    isSelected && styles.optionSelected
-                  ]}
-                >
-                  <View style={[styles.optionLetterBubble, isSelected && styles.optionLetterBubbleSelected]}>
-                    <Text style={styles.optionLetterText}>
-                      {String.fromCharCode(65 + idx)}
+                return (
+                  <TouchableOpacity
+                    key={opt.id}
+                    onPress={() => setSelected(opt.id)}
+                    activeOpacity={0.9}
+                    style={[
+                      styles.optionWrapper,
+                      isSelected && styles.optionSelected
+                    ]}
+                  >
+                    <View style={[styles.optionLetterBubble, isSelected && styles.optionLetterBubbleSelected]}>
+                      <Text style={styles.optionLetterText}>
+                        {String.fromCharCode(65 + idx)}
+                      </Text>
+                    </View>
+
+                    <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+                      {optionText}
                     </Text>
-                  </View>
-
-                  <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
-                    {optionText}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
+        </ScrollView>
+
+
+
+        <View 
+          style={styles.bottomBar}
+          onLayout={e => setBottomBarHeight(e.nativeEvent.layout.height)}
+        >
+          <Animated.View
+            style={{
+              position: "absolute",
+              opacity: errorOpacity,
+              width: "100%",
+              alignItems: "center",
+            }}
+          >
+            <Text style={styles.errorText}>
+              {typeof errorMessage === "string" ? errorMessage : ""}
+            </Text>
+          </Animated.View>
+
+          <Animated.View
+            style={{
+              position: "absolute",
+              opacity: timerOpacity,
+              width: "100%",
+              alignItems: "center",
+            }}
+          >
+            <Text style={styles.timer}>
+              {typeof formattedTime === "string" ? formattedTime : ""}
+            </Text>
+          </Animated.View>
 
           <View style={styles.buttonRow}>
             <Pressable style={styles.skipWrapper} onPress={handleSkip}>
@@ -280,34 +323,9 @@ export default function SubchallengeScreen({
             </Pressable>
           </View>
 
-          <View style={{ height: 40, justifyContent: "center", alignItems: "center" }}>
-            <Animated.View
-              style={{
-                position: "absolute",
-                opacity: errorOpacity,
-                width: "100%",
-                alignItems: "center",
-              }}
-            >
-              <Text style={styles.errorText}>
-                {typeof errorMessage === "string" ? errorMessage : ""}
-              </Text>
-            </Animated.View>
-
-            <Animated.View
-              style={{
-                position: "absolute",
-                opacity: timerOpacity,
-                width: "100%",
-                alignItems: "center",
-              }}
-            >
-              <Text style={styles.timer}>
-                {typeof formattedTime === "string" ? formattedTime : ""}
-              </Text>
-            </Animated.View>
-          </View>
         </View>
+
+
       </ImageBackground>
     </View>
   );
@@ -325,13 +343,23 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     justifyContent: 'flex-start',
   },
+  bottomBar: {
+    position: 'absolute',
+    bottom: 35,
+    left: 0,
+    right: 0,
+    //paddingBottom: isIOS ? 34 : 20, // safe area lift
+    alignItems: 'center',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
   imageWrapper: {
     width: '100%',
-    height: 155,
-    marginTop: 0,
+    height: 165,
+    marginTop: 15,
     borderRadius: 14,
     overflow: 'hidden',
-    backgroundColor: 'rgba(0,0,0,0.22)',
+    backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.10)',
   },
@@ -348,7 +376,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: 'rgba(255,255,255,0.6)',
     paddingHorizontal: 10,
-    paddingTop: 10,
+    paddingTop: 0,
   },
   optionsContainer: {
     gap: 0,
@@ -412,7 +440,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 40,
+    marginTop: 0,
     gap: 18,
   },
   skipWrapper: {
@@ -435,7 +463,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 9,
+    marginTop: 50,
     alignSelf: 'center',
   },
   loadingText: {

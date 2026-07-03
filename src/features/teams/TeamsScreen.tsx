@@ -169,13 +169,13 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "white",
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "900",
     textAlign: "center",
   },
   subtitle: {
     color: "rgba(255,255,255,0.78)",
-    fontSize: 18,
+    fontSize: 16,
     textAlign: "center",
     marginBottom: 16,
   },
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     color: "#F3E8FF",
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: "800",
   },
   matchupCard: {
@@ -331,13 +331,13 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   featureCard: {
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
     backgroundColor: "rgba(255,255,255,0.07)",
     borderRadius: 20,
     padding: 14,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.14)",
+    borderColor: "rgba(255,255,255,0.54)",
   },
   featureIconWrap: {
     width: 54,
@@ -349,8 +349,8 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   featureIcon: {
-    width: 36,
-    height: 36,
+    width: 70,
+    height: 70,
     resizeMode: "contain",
   },
   featureTitle: {
@@ -362,7 +362,8 @@ const styles = StyleSheet.create({
   featureText: {
     flex: 1,
     color: "rgba(255,255,255,0.72)",
-    fontSize: 12,
+    marginTop: 10,
+    fontSize: 16,
     fontWeight: "700",
     lineHeight: 17,
   },

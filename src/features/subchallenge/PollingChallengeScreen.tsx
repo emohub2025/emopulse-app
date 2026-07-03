@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Image, ImageBackground, StyleSheet, TouchableOpacity, Platform } from "react-native";
+import { View, Text, Image, ImageBackground, StyleSheet, TouchableOpacity, Platform, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import * as Haptics from "expo-haptics";
@@ -12,6 +12,7 @@ import { useCycleTimer } from "../../components/CycleTimerContext";
 import { useCurrentUserId } from "../../state/useUserSelectors";
 import { useFeed } from "../../context/FeedContext";
 import { markChallengePlayed } from '../../hooks/usePlayedChallenges';
+import { Dimensions } from "react-native";
 
 const isIOS = Platform.OS === "ios";
 
@@ -42,6 +43,9 @@ export default function PollingChallengeScreen() {
   const userId = useCurrentUserId();
   const { formattedTime } = useCycleTimer();
   const { feed } = useFeed();
+  const SCREEN_HEIGHT = Dimensions.get("window").height - 80;   // 80 should be height of logo
+  const [bottomBarHeight, setBottomBarHeight] = useState(0);
+  //console.log("PollingScreen SCREEN_HEIGHT:", SCREEN_HEIGHT);
 
   // ⭐ ALL HOOKS MUST COME FIRST
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -129,88 +133,102 @@ export default function PollingChallengeScreen() {
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <ImageBackground
         source={require("../../assets/images/background.png")}
-        style={{ flex: 1, marginBottom: -45 }}
+        style={{ flex: 1, marginBottom: 42 }}
         resizeMode="cover"
       >
-        <View style={styles.container}>
-            <Image
-              source={{
-                uri: `${challenge.image_url}?v=${challenge.category}`
-              }}
-              style={styles.image}
-            />
-
-          <View style={styles.questionCard}>
-            <AutoShrinkBlock
-              maxFontSize={26}
-              minFontSize={15}
-              height={55}
-              width={"100%"}
-              minHeight={55}
-              marginTop={-8}
-              marginBottom={5}
-              textAlign="center"
-              fontWeight="500"
-            >
-              {challenge.topic}
-            </AutoShrinkBlock>
-          </View>
-
-          {/* ⭐ Correct wrapper restored */}
-          <View style={styles.optionsContainer}>
-            {challenge.polling_answers.slice(0, 4).map((text, idx) => {
-              const isSelected = selected === idx;
-
-              return (
-                <TouchableOpacity
-                  key={idx}
-                  onPress={() => setSelected(idx)}
-                  activeOpacity={0.9}
-                  style={[
-                    styles.optionWrapper,
-                    isSelected && styles.optionSelected
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.optionLetterBubble,
-                      isSelected && styles.optionLetterBubbleSelected
-                    ]}
-                  >
-                    <Text style={styles.optionLetterText}>
-                      {String.fromCharCode(65 + idx)}
-                    </Text>
-                  </View>
-
-                  <Text
-                    style={[
-                      styles.optionText,
-                      isSelected && styles.optionTextSelected
-                    ]}
-                  >
-                    {text}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          <View style={styles.bottomBar}>
-            <TouchableOpacity
-              onPress={handleAnswer}
-              disabled={submitting}
-              style={submitting ? { opacity: 0.7 } : undefined}
-            >
+        <ScrollView
+          style={{
+            maxHeight: SCREEN_HEIGHT - bottomBarHeight,
+          }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 210 }}
+        >
+          <View style={styles.container}>
               <Image
-                source={require("../../assets/buttons/submit.png")}
-                style={styles.submitButton}
+                source={{
+                  uri: `${challenge.image_url}?v=${challenge.category}`
+                }}
+                style={styles.image}
               />
-            </TouchableOpacity>
+
+            <View style={styles.questionCard}>
+              <AutoShrinkBlock
+                maxFontSize={26}
+                minFontSize={17}
+                height={90}
+                width={"100%"}
+                minHeight={55}
+                marginTop={-12}
+                marginBottom={12}
+                textAlign="center"
+                fontWeight="500"
+              >
+                {challenge.topic}
+              </AutoShrinkBlock>
+            </View>
+
+            {/* ⭐ Correct wrapper restored */}
+            <View style={styles.optionsContainer}>
+              {challenge.polling_answers.slice(0, 4).map((text, idx) => {
+                const isSelected = selected === idx;
+
+                return (
+                  <TouchableOpacity
+                    key={idx}
+                    onPress={() => setSelected(idx)}
+                    activeOpacity={0.9}
+                    style={[
+                      styles.optionWrapper,
+                      isSelected && styles.optionSelected
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.optionLetterBubble,
+                        isSelected && styles.optionLetterBubbleSelected
+                      ]}
+                    >
+                      <Text style={styles.optionLetterText}>
+                        {String.fromCharCode(65 + idx)}
+                      </Text>
+                    </View>
+
+                    <Text
+                      style={[
+                        styles.optionText,
+                        isSelected && styles.optionTextSelected
+                      ]}
+                    >
+                      {text}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
           </View>
+        </ScrollView>
+
+        <View 
+          style={styles.bottomBar}
+          onLayout={e => setBottomBarHeight(e.nativeEvent.layout.height)}
+        >
+          <TouchableOpacity
+            onPress={handleAnswer}
+            disabled={submitting}
+            style={submitting ? { opacity: 0.7 } : undefined}
+          >
+            <Image
+              source={require("../../assets/buttons/submit.png")}
+              style={styles.submitButton}
+            />
+          </TouchableOpacity>
+          <Text style={styles.timer}>{formattedTime}</Text>
         </View>
       </ImageBackground>
 
-      <Text style={styles.timer}>{formattedTime}</Text>
+      {/* <Text style={styles.costText}>Cost: 1 Coin</Text> */}
+      {/* <Text style={styles.timer}>{formattedTime}</Text> */}
     </View>
   );
 }
@@ -227,13 +245,18 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start"
   },
   bottomBar: {
-    marginTop: 19,
-    alignItems: "center"
+    position: 'absolute',
+    bottom: -34,
+    left: 0,
+    right: 0,
+    //paddingBottom: isIOS ? 34 : 20, // safe area lift
+    alignItems: 'center',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
   submitButton: {
-    width: 250,
-    height: 60,
-    marginBottom: -10,
+    width: 280,
+    height: 47,
     resizeMode: "contain"
   },
   questionCard: {
@@ -247,10 +270,11 @@ const styles = StyleSheet.create({
     paddingTop: 10
   },
   image: {
-    marginTop: 0,
-    marginBottom: -2,
+    backgroundColor: "transparent",
+    marginTop: 10,
+    marginBottom: 5,
     width: "100%",
-    height: "30%",
+    height: "46%",
     resizeMode: "contain"
   },
   optionsContainer: {
@@ -306,13 +330,21 @@ const styles = StyleSheet.create({
   optionTextSelected: {
     color: "#ffffff"
   },
+  costText: {
+    color: 'gold',
+    fontSize: 18,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginTop: -5,
+    marginBottom: 0,
+  },
   timer: {
     color: 'yellow',
     fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 12,
-    marginBottom: 47,
+    marginTop: 2,
+    marginBottom: 37,
     alignSelf: 'center',
   },
 });

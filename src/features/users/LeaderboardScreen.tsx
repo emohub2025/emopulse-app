@@ -356,14 +356,14 @@ const styles = StyleSheet.create({
 
   title: {
     color: "white",
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "900",
     textAlign: "center",
   },
 
   subtitle: {
     color: 'rgba(255,255,255,0.78)',
-    fontSize: 18,
+    fontSize: 16,
     textAlign: "center",
     marginBottom: 16,
   },

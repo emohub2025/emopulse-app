@@ -182,7 +182,7 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   title: {
     color: 'white',
-    height: 80,
+    height: 60,
     fontSize: 26,
     fontWeight: '500',
   },
@@ -267,6 +267,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   background: {
-    height: 110,
+    height: 60,
   },
 });

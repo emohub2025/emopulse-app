@@ -241,6 +241,7 @@ const styles = StyleSheet.create({
   },
   card: {
     marginBottom: 14,
+    marginRight: 0,
     overflow: 'hidden',
     backgroundColor: '#16042f',
   },

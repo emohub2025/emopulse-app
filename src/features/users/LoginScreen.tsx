@@ -330,8 +330,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonImage: {
-    width: 320,
-    height: 58,
+    width: 265,
+    height: 45,
     resizeMode: 'stretch',
   },
   googleWrapper: {

@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     color: "#A78BFA",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "700",
     marginBottom: 8,
   },
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     color: "rgba(255,255,255,0.78)",
-    fontSize: 15,
+    fontSize: 16,
     textAlign: "center",
     lineHeight: 22,
     marginTop: 10,
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "800",
     textAlign: "center",
   },
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   },
   backActionText: {
     color: "rgba(255,255,255,0.82)",
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: "700",
   },
   bottomSpacer: {

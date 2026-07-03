@@ -1,4 +1,4 @@
-import { View, Image, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { View, Image, TouchableOpacity, StyleSheet, Text, Platform, PixelRatio } from 'react-native';
 import { emotionImages } from './EmotionImage';
 import { emotionLookup, emotionSlotMap } from '../utils/emotionList';
 import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
@@ -14,13 +14,37 @@ const emotionKeys = ['happy', 'anxious', 'angry', 'sad'];
 export default function EmotionSelector({ selected, onSelect, category }: Props) {
   const images = emotionImages[category];
   const { width, scale, font, isVeryCompact } = useResponsiveLayout();
+
+  // Base tile size (iOS uses this unchanged)
+  const baseTile = isVeryCompact ? 150 : 180;
+
+  // Android DP grid shrinks visuals → boost size slightly
+  const androidBoost = Platform.OS === 'android' ? 1.05 : 1;
+
+  // System zoom increases DP scale → compensate
+  const dpScale = PixelRatio.getFontScale(); // increases with system zoom
+  const zoomBoost = Platform.OS === 'android' ? (dpScale > 1 ? dpScale * 0.12 : 1) : 1;
+
+  // Final platform-aware tile size
+  const boostedTile = baseTile * androidBoost * zoomBoost;
+
+  // Width constraint (unchanged)
+const widthConstraint = (width - scale(54, 36, 62)) / (Platform.OS === 'android' ? 1.3 : 2);
+
+  // Final tile size (iOS unchanged, Android boosted)
   const tileSize = Math.floor(
     Math.min(
-      scale(isVeryCompact ? 150 : 180, 132, 182),
-      (width - scale(54, 36, 62)) / 2
+      scale(boostedTile, 132, 220),
+      widthConstraint
     )
   );
-  const labelSize = font(isVeryCompact ? 20 : 24, 16, 24);
+
+  // Label size (iOS unchanged, Android boosted slightly)
+  const labelSize = font(
+    (isVeryCompact ? 20 : 24) * (Platform.OS === 'android' ? 1.08 : 1),
+    16,
+    24
+  );
 
   return (
     <View style={styles.container}>
@@ -64,7 +88,7 @@ const styles = StyleSheet.create({
   container: {
     marginVertical: 0,
     alignItems: 'center',
-    justifyContent: 'center', 
+    justifyContent: 'center',
   },
   row: {
     flexDirection: 'row',
@@ -83,7 +107,7 @@ const styles = StyleSheet.create({
   },
   iconLabel: {
     position: 'absolute',
-    top: -4,               // adjust to move text up/down
+    top: -4,
     alignSelf: 'center',
     color: 'white',
     fontWeight: '800',

@@ -12,6 +12,7 @@ import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useFeed } from '../../context/FeedContext';
 import { emotionLookup, emotionSlotMap } from '../../utils/emotionList';
 import { ChallengeComment, fetchComments, postComment } from '../../api/challengeComments';
+import { Dimensions } from "react-native";
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'ChallengeCountdown'>;
 const isIOS = Platform.OS === "ios";
@@ -64,13 +65,13 @@ const ProgressBar = ({ label, pct, color, labelColor }: ProgressBarProps) => {
   const barWidth = Math.max(pct * 100, 1);
 
   return (
-    <View style={{ marginVertical: 10 }}>
+    <View style={{ marginVertical: 13 }}>
       <View style={{ position: 'relative', height: 20, justifyContent: 'center' }}>
         
         {/* Background bar */}
         <View
           style={{
-            height: 25,
+            height: 30,
             borderRadius: 15,
             backgroundColor: 'rgba(255,255,255,0.2)',
             overflow: 'hidden',
@@ -117,6 +118,8 @@ export default function ChallengeCountdownScreen() {
   const { isExpired, formattedTime } = useCycleTimer();
   const { challengeId } = route.params;
   const { feed, setSuppressGlobalReset } = useFeed();
+  const SCREEN_HEIGHT = Dimensions.get("window").height - 250;   // 68 should be height of logo
+  const [bottomBarHeight, setBottomBarHeight] = useState(0);
 
   /* -------------------------------------------------------
      ⭐ ALL HOOKS MUST COME FIRST
@@ -355,43 +358,45 @@ export default function ChallengeCountdownScreen() {
     <View style={{ flex: 1, backgroundColor: 'black' }}>
       <ImageBackground
         source={require('../../assets/images/background.png')}
-        style={{ flex: 1, marginBottom: 42 }}
+        style={{ flex: 1 }}
       >
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={isIOS ? "padding" : "height"}
-          keyboardVerticalOffset={isIOS ? 92 : 0}
-        >
-        <SafeAreaView style={styles.safe} edges={['bottom']}>
-          <ScrollView
-            ref={scrollRef}
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
           <View style={styles.text}>
             <AutoShrinkBlock
-              height={120}
+              height={110}
               width={'100%'}
               fontWeight="700"
               textAlign="center"
-              marginTop={5}
             >
               {challenge?.topic}
             </AutoShrinkBlock>
           </View>
 
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={isIOS ? "padding" : "padding"}
+          keyboardVerticalOffset={isIOS ? 92 : 30}
+        >
+        <SafeAreaView style={styles.safe} edges={['bottom']}>
+          <ScrollView
+            ref={scrollRef}
+            contentContainerStyle={{
+              ...styles.scrollContent,
+              minHeight: 222,
+            }}
+            keyboardShouldPersistTaps="handled"
+            style={{ flex: 1, maxHeight: SCREEN_HEIGHT - bottomBarHeight }}
+            showsVerticalScrollIndicator={false}
+          >
+
             {/* Live Results block */}
             <View
               style={{
-                maxHeight: 230,
-                minHeight: 230,
+                maxHeight: 250,
+                minHeight: 250,
                 justifyContent: 'flex-start',
                 borderWidth: 2,
                 borderRadius: 22,
                 marginTop: 3,
-                marginLeft: -6,
-                marginRight: -6,
                 borderColor: '#c43dff',
                 backgroundColor: 'rgba(19, 14, 104, 0.65)',
                 shadowColor: '#c43dff',
@@ -413,7 +418,7 @@ export default function ChallengeCountdownScreen() {
                 Live Results
               </Text>
 
-              <View style={{ paddingHorizontal: 24, marginTop: 20 }}>
+              <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
                 {isPoll ? (
                   /* ⭐ POLLING RESULTS — always 4 bars */
                   paddedPollData.map((opt, i) => (
@@ -472,8 +477,6 @@ export default function ChallengeCountdownScreen() {
                 justifyContent: 'flex-start',
                 borderWidth: 2,
                 borderRadius: 22,
-                marginLeft: -6,
-                marginRight: -6,
                 marginBottom: 8,
                 borderColor: 'rgba(225, 137, 232, 1.0)',
                 backgroundColor: 'rgba(19, 14, 104, 0.95)',
@@ -571,7 +574,7 @@ export default function ChallengeCountdownScreen() {
             </View>
 
             {/* Bottom button + timer */}
-            <View style={{ alignItems: 'center', marginBottom: -10, marginTop: -10 }}>
+            {/* <View style={{ alignItems: 'center', marginBottom: -10, marginTop: -10 }}>
               <Pressable
                 onPress={() =>
                   navigation.reset({
@@ -584,11 +587,33 @@ export default function ChallengeCountdownScreen() {
               </Pressable>
 
               <Text style={styles.timer}>{formattedTime}</Text>
-            </View>
+            </View> */}
           </View>
+          
           </ScrollView>
+
+
         </SafeAreaView>
         </KeyboardAvoidingView>
+      
+        <View 
+          style={styles.bottomBar}
+          onLayout={e => setBottomBarHeight(e.nativeEvent.layout.height)}
+        >
+          <Pressable
+            onPress={() =>
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'CategoryList' }],
+              })
+            }
+          >
+            <Image source={activeButton} style={styles.buttonImage} />
+          </Pressable>
+
+          <Text style={styles.timer}>{formattedTime}</Text>
+        </View>
+        
       </ImageBackground>
     </View>
   );
@@ -600,8 +625,18 @@ export default function ChallengeCountdownScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    paddingTop: 10,
     paddingHorizontal: 20,
+    marginTop: -5,
+  },
+  bottomBar: {
+    position: 'absolute',
+    bottom: 45,
+    left: 0,
+    right: 0,
+    //paddingBottom: isIOS ? 34 : 20, // safe area lift
+    alignItems: 'center',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
   scrollContent: {
     flexGrow: 1,
@@ -613,11 +648,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   buttonImage: {
-    width: 250,
-    height: 60,
+    width: 300,
+    height: 80,
     resizeMode: 'contain',
     alignSelf: 'center',
-    marginTop: 7,
   },
   sendImage: {
     width: 43,
@@ -634,12 +668,13 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: 'rgba(255,255,255,0.58)',
     paddingHorizontal: 10,
+    marginHorizontal: 20,
   },
   timer: {
     color: 'yellow',
     fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 2,
+    marginTop: -15,
     alignSelf: 'center',
   },});

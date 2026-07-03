@@ -10,6 +10,7 @@ type Props = {
   style?: any;
   marginTop?: number;
   marginBottom?: number;
+  marginHorizontal?: number;
   minFontSize?: number;
   maxFontSize?: number;
   textAlign?: "left" | "center" | "right" | "justify";
@@ -27,6 +28,7 @@ export default function AutoShrinkBlock({
   style,
   marginTop,
   marginBottom,
+  marginHorizontal,
   minFontSize = 15,
   maxFontSize = 24,
   textAlign = "center",
@@ -62,7 +64,7 @@ export default function AutoShrinkBlock({
   }, [content, maxFontSize]);
 
   return (
-    <View style={[{ marginTop, marginBottom }, style]}>
+    <View style={[{ marginTop, marginBottom, marginHorizontal }, style]}>
 
       {/* Invisible measurement text */}
       <Text
@@ -121,7 +123,7 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
     paddingHorizontal: 15,
     color: "#fff",
-    textAlignVertical: "top",
+    textAlignVertical: "center",
   },
   measure: {
     position: "absolute",

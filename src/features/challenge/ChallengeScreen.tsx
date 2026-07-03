@@ -40,7 +40,6 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   const submitHeight = scale(isVeryCompact ? 47 : 54, 44, 54);
   const titleFontSize = font(28, 22, 28);
   const subtitleFontSize = font(18, 15, 18);
-  const costFontSize = font(20, 16, 20);
 
   let isYouTube = false;
   let challenge = null;
@@ -172,7 +171,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: 'black' }}>
+    <View style={{ flex: 1 }}>
       <ImageBackground
         source={require('../../assets/images/background.png')}
         style={{ flex: 1, marginBottom: 42 }}
@@ -206,8 +205,8 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
                 />
               </View>
 
-              <View style={styles.submitArea}>
-                <Text style={[styles.costText, { fontSize: costFontSize }]}>Cost: 1 Coin</Text>
+              {/* <View style={styles.submitArea}>
+                <Text style={[styles.costText]}>Cost: 1 Coin</Text>
                 <TouchableOpacity
                   onPress={handleSubmit}
                   disabled={isDisabled}
@@ -219,28 +218,50 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
                 >
                   <Image
                     source={require('../../assets/buttons/submit.png')}
-                    style={[styles.submitButton, { width: submitWidth, height: submitHeight }]}
+                    style={[styles.submitButton]}
                   />
                 </TouchableOpacity>
-              </View>
+              </View> */}
             </View>
 
-            <View style={{ height: 44, justifyContent: "center", alignItems: "center" }}>
+            {/* <View style={{ justifyContent: "center", alignItems: "center" }}>
               <Animated.View
                 style={{
                   position: "absolute",
-                  opacity: errorOpacity,
+                  opacity: 100,
                   width: "100%",
                   alignItems: "center",
                 }}
               >
                 <Text style={styles.errorText}>{errorMessage}</Text>
               </Animated.View>
-
+            </View> */}
+          </ScrollView>
+        </SafeAreaView>
+        
+        {/* ⭐ Bottom bar stays fixed */}
+        <View style={styles.bottomBar}>
+          <Text style={[styles.costText]}>Cost: 1 Coin</Text>
+          <TouchableOpacity
+            onPress={handleSubmit}
+            disabled={isDisabled}
+            style={[
+              styles.submitWrapper,
+              { width: submitWidth, height: submitHeight },
+              isDisabled && { opacity: 0.6 },
+            ]}
+          >
+            <Image
+              source={require('../../assets/buttons/submit.png')}
+              style={[styles.submitButton]}
+            />
+          </TouchableOpacity>
+          {!errorMessage && (
+            <View style={{ justifyContent: "center", alignItems: "center" }}>
               <Animated.View
                 style={{
                   position: "absolute",
-                  opacity: timerOpacity,
+                  opacity: 100,
                   width: "100%",
                   alignItems: "center",
                 }}
@@ -248,17 +269,43 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
                 <Text style={styles.timer}>{bottomStatusText}</Text>
               </Animated.View>
             </View>
-          </ScrollView>
-        </SafeAreaView>
+          )}
+          {errorMessage && (
+            <View style={{ justifyContent: "center", alignItems: "center" }}>
+              <Animated.View
+                style={{
+                  position: "absolute",
+                  opacity: 100,
+                  width: "100%",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </Animated.View>
+            </View>
+          )}
+        </View>
+
       </ImageBackground>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  bottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingBottom: isIOS ? 34 : 20, // safe area lift
+    paddingTop: 6,
+    alignItems: 'center',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
   safe: {
     flex: 1,
-    marginBottom: -37,
+    marginBottom: -137,
   },
   scrollContent: {
     paddingBottom: 90,
@@ -307,35 +354,37 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 16,
   },
   submitButton: {
-    marginTop: -3,
-    marginBottom: -2,
+    marginTop: 5,
+    marginBottom: 0,
+    width: 280,
+    height: 47,
     resizeMode: 'contain',
   },
   costText: {
     color: 'gold',
-    fontSize: 20,
-    fontWeight: '800',
+    fontSize: 18,
+    fontWeight: '900',
     textAlign: 'center',
-    marginTop: -11,
-    marginBottom: 0,
+    marginTop: 2,
+    marginBottom: 3,
   },
   timer: {
     color: 'yellow',
     fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 30,
+    marginTop: 0,
     alignSelf: 'center',  },
   errorText: {
     color: '#ff6b6b',
-    marginTop: 12,
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '700',
     textAlign: 'center',
     paddingHorizontal: 16,
+    marginTop: 4,
   },
   modalBackdrop: {
     flex: 1,

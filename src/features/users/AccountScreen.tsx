@@ -8,7 +8,7 @@ import FeedbackIcon from "../../assets/buttons/feedback-icon.png";
 import { useUserStore } from "../../state/useUserStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import { Platform, View, Text, ImageBackground, StyleSheet, Image, Pressable, Animated, Alert } from "react-native";
+import { Platform, View, Text, ImageBackground, StyleSheet, Image, Pressable, Animated, Alert, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
@@ -29,7 +29,6 @@ export default function AccountScreen() {
   const [lastTap, setLastTap] = useState<number | null>(null);
   const [showLogoutHint, setShowLogoutHint] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
-
   const navigation = useNavigation<NavProp>();
   const storedUser = useUserStore((state) => state.user);
   const setStoredUser = useUserStore((state) => state.setUser);
@@ -250,9 +249,8 @@ export default function AccountScreen() {
           <View style={{ marginBottom: 15, marginHorizontal: 12 }}>
             <OptionRow
               icon={coinIcon}
-              label="   Coin Balance"
-              subLabel={`   ${user.coin_balance} Coins`}
-              height={65}
+              label="Coin Balance"
+              subLabel={`${user.coin_balance} Coins`}
               borderTopWidth={2}
               borderBottomWidth={2}
               iconWidth={70}
@@ -267,7 +265,9 @@ export default function AccountScreen() {
               sideMargin={30}
             />
           </View>
+        </View>
 
+        <ScrollView style={{ flex: 1, marginBottom: 0 }}>
           <OptionRow
             icon={profileDetailsIcon}
             label="Profile Details"
@@ -277,7 +277,6 @@ export default function AccountScreen() {
               navigation.navigate("Profile", { user });
             }}
           />
-
           <OptionRow
             icon={ChallengeResultsIcon}
             label="Challenge Results"
@@ -287,7 +286,6 @@ export default function AccountScreen() {
               navigation.navigate("ResultsHistory");
             }}
           />
-
           <OptionRow
             icon={PrizesIcon}
             label="Prizes & Rewards"
@@ -297,7 +295,6 @@ export default function AccountScreen() {
               navigation.navigate("PrizesAndRewards");
             }}
           />
-
           <OptionRow
             icon={TransactionIcon}
             label="Transaction History"
@@ -307,7 +304,6 @@ export default function AccountScreen() {
               navigation.navigate("Transactions");
             }}
           />
-
           <OptionRow
             icon={AchievemtnsIcon}
             label="Achievements"
@@ -317,7 +313,6 @@ export default function AccountScreen() {
               navigation.navigate("Achievements");
             }}
           />
-
           <OptionRow
             icon={HelpIcon}
             label="Help & Support"
@@ -327,7 +322,6 @@ export default function AccountScreen() {
               navigation.navigate("HelpAndSupport");
             }}
           />
-
           <OptionRow
             icon={FeedbackIcon}
             label="Feedback"
@@ -337,7 +331,7 @@ export default function AccountScreen() {
               navigation.navigate("Feedback");
             }}
           />
-        </View>
+        </ScrollView>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
       </ImageBackground>
@@ -346,6 +340,16 @@ export default function AccountScreen() {
 }
 
 const styles = StyleSheet.create({
+  bottomBar: {
+    position: 'absolute',
+    bottom: -34,
+    left: 0,
+    right: 0,
+    //paddingBottom: isIOS ? 34 : 20, // safe area lift
+    alignItems: 'center',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
   center: {
     flex: 1,
     backgroundColor: "black",
@@ -367,8 +371,8 @@ const styles = StyleSheet.create({
   profileRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginLeft: 15,
-    marginRight: 15,
+    marginLeft: 10,
+    marginRight: 10,
     marginTop: 15,
     paddingHorizontal: 20,
   },
@@ -404,6 +408,7 @@ const styles = StyleSheet.create({
     color: "#cccccc",
     fontSize: 16,
     marginTop: 4,
+    marginRight: -15,
   },
   logoutHint: {
     color: "#ffdddd",
