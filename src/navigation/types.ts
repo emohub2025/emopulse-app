@@ -128,6 +128,8 @@ export type RootStackParamList = {
   Subchallenge: {
     challengeId: string;
     subchallenges: SubchallengeList[];
+    showBack?: boolean;
+    localBackHandler?: () => void;
   };
 
   PollingChallenge: {

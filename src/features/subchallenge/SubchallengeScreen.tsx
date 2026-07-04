@@ -69,6 +69,7 @@ export default function SubchallengeScreen({
     if (index + 1 < subchallenges?.length) {
       setIndex(index + 1);
       setSelected(null);
+      navigation.setParams({ showBack: true });
     } else {
       // If this was the last question, go to results
       navigation.navigate("ChallengeCountdown", { challengeId, from: "play" });
@@ -136,18 +137,29 @@ export default function SubchallengeScreen({
     }
   };
 
+  const handleLocalBack = () => {
+    if (index === 0) {
+      return; // do nothing
+    }
+
+    setIndex(prev => prev - 1);
+    setSelected(null);
+  };
+
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-      if (index === 0) {
-        return true;
-      }
-
-      setIndex(prev => prev - 1);
-      setSelected(null);
-      return true;
+      handleLocalBack();
+      return true; // prevent default navigation
     });
 
     return () => sub.remove();
+  }, [index]);
+  
+  useEffect(() => {
+    navigation.setParams({
+      showBack: index > 0,
+      localBackHandler: handleLocalBack,
+    });
   }, [index]);
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Image, Platform, View } from "react-native";
+import { Image, Platform, View, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootStackParamList } from "./types";
 import { useResponsiveLayout } from "../hooks/useResponsiveLayout";
@@ -36,9 +36,6 @@ const HEADER_HEIGHT = 78;
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-const logoIOS = require("../assets/logos/logo.png");
-const logoAndroid = require("../assets/logos/logo.png");
-
 const LogoHeader = () => {
   const insets = useSafeAreaInsets();
   const { scale, isVeryCompact } = useResponsiveLayout();
@@ -57,7 +54,7 @@ const LogoHeader = () => {
       }}
     >
       <Image
-        source={isIOS ? logoIOS : logoAndroid}
+        source={require("../assets/logos/logo.png")}
         style={{
           width: isIOS ? "100%" : "108%",
           height: headerHeight,
@@ -71,9 +68,48 @@ const LogoHeader = () => {
 
 const withAppHeader = (Screen: React.ComponentType<any>) => {
   return function ScreenWithAppHeader(props: any) {
+    const navigation = props.navigation;
+    const insets = useSafeAreaInsets();
+    const routeName = props.route.name;
+    const localBackHandler = props.route.params?.localBackHandler;
+
+    const hideBack =
+      Platform.OS === "android" &&
+      navigation.canGoBack() &&
+      (
+        (routeName === "Subchallenge" && props.route.params?.showBack === false) ||
+        routeName === "HomePage" || routeName === "ChallengeCountdown" || routeName === "CategoryList"
+      );
+
     return (
       <View style={{ flex: 1, backgroundColor: "#000" }}>
         <LogoHeader />
+
+        {/* ⭐ Software Back Button for iOS */}
+        {Platform.OS === "ios" && navigation.canGoBack() && !hideBack && (
+          <TouchableOpacity
+            onPress={() => {
+              if (localBackHandler) {
+                localBackHandler();
+              } else {
+                navigation.goBack();
+              }
+            }}
+            style={{
+              position: "absolute",
+              top: insets.top + 12,
+              left: 12 - 20,
+              padding: 10,
+              zIndex: 999,
+            }}
+          >
+            <Image
+              source={require("../assets/logos/back.png")}
+              style={{ width: 44, height: 44 }}
+            />
+          </TouchableOpacity>
+        )}
+
         <View style={{ flex: 1, backgroundColor: "#000" }}>
           <Screen {...props} />
         </View>
