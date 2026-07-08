@@ -8,10 +8,11 @@ import {
   Pressable,
   Image,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import loginButton from '../../assets/buttons/login.png';
-import googleButton from '../../assets/buttons/google.png';
+// import googleButton from '../../assets/buttons/google.png';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList, LoginResponse } from '../../navigation/types';
@@ -86,103 +87,101 @@ export default function LoginScreen() {
         style={styles.background}
         resizeMode="cover"
       >
-        <View style={styles.overlay} />
+          <ScrollView style={{ flex: 1, paddingHorizontal: 20 }}>
+            <View style={styles.headerBlock}>
+              <Text style={styles.eyebrow}>Welcome back</Text>
+              <Text style={styles.title}>Log In to Your Account</Text>
+              <Text style={styles.subtitle}>
+                Jump back into Emotional Pulse and keep the momentum going.
+              </Text>
+            </View>
 
-        <SafeAreaView style={styles.safeArea} edges={[]}>
-          <View style={styles.headerBlock}>
-            <Text style={styles.eyebrow}>Welcome back</Text>
-            <Text style={styles.title}>Log In to Your Account</Text>
-            <Text style={styles.subtitle}>
-              Jump back into Emotional Pulse and keep the momentum going.
-            </Text>
-          </View>
-
-          <View style={styles.formCard}>
-            <TextInput
-              style={styles.input}
-              placeholder="Avatar Name / Email"
-              placeholderTextColor="#8A88B5"
-              value={identifier}
-              onChangeText={setIdentifier}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-
-            <View style={styles.passwordRow}>
+            <View style={styles.formCard}>
               <TextInput
-                style={styles.inputPw}
-                placeholder="Password"
+                style={styles.input}
+                placeholder="Avatar Name / Email"
                 placeholderTextColor="#8A88B5"
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
+                value={identifier}
+                onChangeText={setIdentifier}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
 
-              <Pressable
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeButton}
-                hitSlop={10}
-              >
-                <Image
-                  source={showPassword ? eyeOpen : eyeClosed}
-                  style={styles.eyeIcon}
+              <View style={styles.passwordRow}>
+                <TextInput
+                  style={styles.inputPw}
+                  placeholder="Password"
+                  placeholderTextColor="#8A88B5"
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
                 />
+
+                <Pressable
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeButton}
+                  hitSlop={10}
+                >
+                  <Image
+                    source={showPassword ? eyeOpen : eyeClosed}
+                    style={styles.eyeIcon}
+                  />
+                </Pressable>
+              </View>
+
+              <Pressable
+                onPress={() => navigation.navigate("ForgotPassword")}
+                style={styles.forgotPasswordAction}
+              >
+                <Text style={styles.forgotPasswordText}>Forgot password?</Text>
               </Pressable>
+
+              {error !== "" && (
+                <View style={styles.errorBox}>
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              )}
+
+              <Pressable
+                onPress={handleLogin}
+                disabled={loading}
+                style={[styles.buttonWrapper, loading && styles.disabledButton]}
+              >
+                <View style={styles.buttonContent}>
+                  {loading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Image source={loginButton} style={styles.buttonImage} />
+                  )}
+                </View>
+              </Pressable>
+
+              {/* <Pressable
+                onPress={handleLogin}
+                disabled={loading}
+                style={[styles.googleWrapper, loading && styles.disabledButton]}
+              >
+                <View style={styles.buttonContent}>
+                  {loading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Image source={googleButton} style={styles.buttonImage} />
+                  )}
+                </View>
+              </Pressable> */}
+
+              <View style={styles.loginRow}>
+                <Text style={styles.bottomLabel}>Don't have an account?</Text>
+                <Pressable onPress={() => navigation.navigate("Signup")}>
+                  <Text style={styles.loginLink}>Sign Up</Text>
+                </Pressable>
+              </View>
             </View>
 
-            <Pressable
-              onPress={() => navigation.navigate("ForgotPassword")}
-              style={styles.forgotPasswordAction}
-            >
-              <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-            </Pressable>
-
-            {error !== "" && (
-              <View style={styles.errorBox}>
-                <Text style={styles.errorText}>{error}</Text>
-              </View>
-            )}
-
-            <Pressable
-              onPress={handleLogin}
-              disabled={loading}
-              style={[styles.buttonWrapper, loading && styles.disabledButton]}
-            >
-              <View style={styles.buttonContent}>
-                {loading ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Image source={loginButton} style={styles.buttonImage} />
-                )}
-              </View>
-            </Pressable>
-
-            {/* <Pressable
-              onPress={handleLogin}
-              disabled={loading}
-              style={[styles.googleWrapper, loading && styles.disabledButton]}
-            >
-              <View style={styles.buttonContent}>
-                {loading ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Image source={googleButton} style={styles.buttonImage} />
-                )}
-              </View>
-            </Pressable> */}
-
-            <View style={styles.loginRow}>
-              <Text style={styles.bottomLabel}>Don't have an account?</Text>
-              <Pressable onPress={() => navigation.navigate("Signup")}>
-                <Text style={styles.loginLink}>Sign Up</Text>
-              </Pressable>
-            </View>
-          </View>
-
-          <View style={styles.bottomSpacer} />
-        </SafeAreaView>
+            <View style={styles.bottomSpacer} />
+          </ScrollView>
       </ImageBackground>
     </View>
   );
@@ -195,15 +194,6 @@ const styles = StyleSheet.create({
   },
   background: {
     flex: 1,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(6, 8, 20, 0.42)',
-  },
-  safeArea: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 24,
   },
   headerBlock: {
     width: '100%',
@@ -334,15 +324,15 @@ const styles = StyleSheet.create({
     height: 45,
     resizeMode: 'stretch',
   },
-  googleWrapper: {
-    alignItems: 'center',
-    marginTop: 18,
-    marginBottom: 6,
-  },
+  // googleWrapper: {
+  //   alignItems: 'center',
+  //   marginTop: 18,
+  //   marginBottom: 6,
+  // },
   loginRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 18,
+    marginTop: 8,
   },
   bottomLabel: {
     color: 'white',

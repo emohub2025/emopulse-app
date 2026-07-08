@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, ImageBackground, StyleSheet, Pressable, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, ImageBackground, StyleSheet, Pressable, Image, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import signupButton from '../../assets/buttons/signup.png';
 import { useNavigation } from '@react-navigation/native';
@@ -93,106 +93,123 @@ export default function SignupScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: 'black' }}>
-      <SafeAreaView style={styles.topArea} edges={[]}>
-        <Text style={styles.title}>Create Your Account</Text>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Avatar Name"
-          placeholderTextColor="#8A88B5"
-          value={name}
-          onChangeText={setName}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#8A88B5"
-          value={email}
-          onChangeText={setEmail}
-        />
-
-        <View style={styles.passwordRow}>
-          <TextInput
-            style={[styles.inputPw, { flex: 1 }]}
-            placeholder="Password"
-            placeholderTextColor="#8A88B5"
-            secureTextEntry={!showPassword}
-            value={password}
-            onChangeText={setPassword}
-          />
-          <Pressable onPress={() => setShowPassword(!showPassword)}>
-            <Image
-              source={showPassword ? eyeOpen : eyeClosed}
-              style={styles.eyeIcon}
-            />
-          </Pressable>
-        </View>
-
-        <View style={styles.passwordRow}>
-          <TextInput
-            style={[styles.inputPw, { flex: 1 }]}
-            placeholder="Confirm Password"
-            placeholderTextColor="#8A88B5"
-            secureTextEntry={!showPassword}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-          />
-        </View>
-
-        {/* Fixed error placeholder */}
-        <View style={{ height: 24, marginBottom: 10 }}>
-          {error !== "" && (
-            <Text style={styles.errorText}>{error}</Text>
-          )}
-        </View>
-
-        <Pressable
-          onPress={handleSignup}
-          disabled={loading}
-          style={[styles.buttonWrapper, loading && { opacity: 0.5 }]}
-        >
-          <View style={styles.buttonContent}>
-            {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Image source={signupButton} style={styles.buttonImage} />
-            )}
-          </View>
-        </Pressable>
-
-        <View style={styles.loginRow}>
-          <Text style={styles.bottomLabel}>Already have an account? </Text>
-
-          <Pressable onPress={() => navigation.navigate("Login")}>
-            <Text style={styles.loginLink}>Log In</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-
       <ImageBackground
         source={require('../../assets/images/background.png')}
         style={styles.background}
-        resizeMode="cover"
-      />
+        resizeMode="cover">
+
+          <ScrollView style={{ flex: 1, paddingHorizontal: 20 }}>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={styles.title}>Create Your Account</Text>
+            </View>
+            <View style={styles.userinfo}>
+              <TextInput
+                style={styles.input}
+                placeholder="Avatar Name"
+                placeholderTextColor="#8A88B5"
+                value={name}
+                onChangeText={setName}
+              />
+
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor="#8A88B5"
+                value={email}
+                onChangeText={setEmail}
+              />
+
+              <View style={styles.passwordRow}>
+                <TextInput
+                  style={[styles.inputPw, { flex: 1 }]}
+                  placeholder="Password"
+                  placeholderTextColor="#8A88B5"
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <Pressable onPress={() => setShowPassword(!showPassword)}>
+                  <Image
+                    source={showPassword ? eyeOpen : eyeClosed}
+                    style={styles.eyeIcon}
+                  />
+                </Pressable>
+              </View>
+
+              <View style={styles.passwordRow}>
+                <TextInput
+                  style={[styles.inputPw, { flex: 1 }]}
+                  placeholder="Confirm Password"
+                  placeholderTextColor="#8A88B5"
+                  secureTextEntry={!showPassword}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                />
+              </View>
+
+              {/* Fixed error placeholder */}
+              <View style={{ height: 24, marginBottom: 10 }}>
+                {error !== "" && (
+                  <Text style={styles.errorText}>{error}</Text>
+                )}
+              </View>
+
+              <Pressable
+                onPress={handleSignup}
+                disabled={loading}
+                style={[styles.buttonWrapper, loading && { opacity: 0.5 }]}
+              >
+                <View style={styles.buttonContent}>
+                  {loading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Image source={signupButton} style={styles.buttonImage} />
+                  )}
+                </View>
+              </Pressable>
+
+              <View style={styles.loginRow}>
+                <Text style={styles.bottomLabel}>Already have an account? </Text>
+
+                <Pressable onPress={() => navigation.navigate("Login")}>
+                  <Text style={styles.loginLink}>Log In</Text>
+                </Pressable>
+              </View>
+            </View>
+          </ScrollView>
+      </ImageBackground>
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   title: {
+    marginTop: 20,
     color: 'white',
     height: 60,
-    fontSize: 26,
+    fontSize: 30,
     fontWeight: '500',
-  },
-  topArea: {
-    flex: 1,
-    marginTop: 12,
     alignItems: 'center',
   },
+  userinfo: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: 'rgba(13, 18, 44, 0.82)',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(167, 139, 250, 0.22)',
+    paddingHorizontal: 18,
+    paddingTop: 20,
+    paddingBottom: 22,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 10,
+  },
   input: {
-    width: 320,
+    width: '100%',
     height: 58,
     backgroundColor: '#11173A',
     borderRadius: 8,
@@ -204,10 +221,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   inputPw: {
-    width: 320,
+    width: '100%',
     height: 54,
     backgroundColor: '#11173A',
-    paddingHorizontal: 15,
+    paddingHorizontal: 10,
     color: 'white',
     fontSize: 18,
   },
@@ -219,7 +236,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   passwordRow: {
-    width: 320,
+    width: '100%',
     height: 58,
     flexDirection: 'row',
     alignItems: 'center',
@@ -227,8 +244,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 2,
     borderColor: '#4A4779',
-    paddingHorizontal: 15,
+    paddingHorizontal: 5,
     marginBottom: 20,
+    marginRight: 20,
   },
   errorText: {
     color: '#FF6B6B',
@@ -237,7 +255,6 @@ const styles = StyleSheet.create({
   },
   buttonWrapper: {
     alignItems: 'center',
-    marginTop: 33,
     marginBottom: 3,
   },
   buttonContent: {
@@ -267,6 +284,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   background: {
-    height: 60,
+    flex: 1,
   },
 });

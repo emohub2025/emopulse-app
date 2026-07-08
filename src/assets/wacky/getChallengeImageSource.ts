@@ -8,7 +8,7 @@ export const WACKY_IMAGES: Record<string, any> = {
   AliensVisitEarth: require("./aliens-visit-earth.png"),
   FloridaBecomesIndependent: require("./florida-becomes-independent.png"),
   CavemanBecomesPotus: require("./caveman-becomes-potus.png"),
-  AfterlifeOfLivingSystems: require("./afterlife-of-living-systems.png"),
+  ParallelUniverseHeadlines: require("./parallel-universe-headlines.png"),
 };
 
 export function getChallengeImageSource(challenge: Challenge | null | undefined) {

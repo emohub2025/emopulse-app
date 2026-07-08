@@ -58,8 +58,6 @@ export default function ForgotPasswordScreen() {
         style={styles.background}
         resizeMode="cover"
       >
-        <View style={styles.overlay} />
-
         <SafeAreaView style={styles.safeArea} edges={[]}>
           <View style={styles.headerBlock}>
             <Text style={styles.eyebrow}>Account help</Text>
@@ -127,10 +125,6 @@ const styles = StyleSheet.create({
   },
   background: {
     flex: 1,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(6, 8, 20, 0.42)",
   },
   safeArea: {
     flex: 1,
@@ -242,8 +236,8 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   backActionText: {
-    color: "rgba(255,255,255,0.82)",
-    fontSize: 18,
+    color: "#A78BFA",
+    fontSize: 16,
     fontWeight: "700",
   },
   bottomSpacer: {

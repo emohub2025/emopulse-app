@@ -33,17 +33,18 @@ export function normalizeEmotions(main: LiveMain) {
    Normalize polling
 -------------------------------------------------- */
 export function normalizePoll(main: LiveMain) {
-  const results = main.poll_results ?? [];
+  const raw = main.poll_results ?? [];
 
-  // If backend returns nothing yet, default to option 0 = 100%
-  if (results.length === 0) {
-    return [{ index: 0, pct: 1 }];
-  }
+  // Always produce exactly 4 entries, sorted by index
+  const poll = [0, 1, 2, 3].map(i => {
+    const found = raw.find(r => r.index === i);
+    return {
+      index: i,
+      pct: found ? found.pct : 0
+    };
+  });
 
-  return results.map(r => ({
-    index: r.index,
-    pct: r.pct ?? 0,
-  }));
+  return poll;
 }
 
 /* --------------------------------------------------
