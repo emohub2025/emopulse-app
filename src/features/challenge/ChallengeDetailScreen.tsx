@@ -286,6 +286,8 @@ return (
                               width: `${Math.max(opt.pct * 100, 1)}%`,
                               height: '100%',
                               backgroundColor: '#4da6ff',
+                              borderTopRightRadius: 5,
+                              borderBottomRightRadius: 5,
                             }}
                           />
                         </View>

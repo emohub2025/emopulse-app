@@ -182,8 +182,8 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            <Text style={[styles.topLabel, { fontSize: titleFontSize }]}>What's your reaction?</Text>
-            <Text style={[styles.subLabel, { fontSize: subtitleFontSize }]}>Select the best matching emotion.</Text>
+            <Text style={[styles.topLabel, { fontSize: 26 }]} numberOfLines={1}>What's your reaction?</Text>
+            <Text style={[styles.subLabel, { fontSize: 16 }]} numberOfLines={1}>Select the best matching emotion.</Text>
 
             <View style={styles.content}>
               <View style={styles.mainCard}>
@@ -204,38 +204,8 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
                   category={challenge?.category}
                 />
               </View>
-
-              {/* <View style={styles.submitArea}>
-                <Text style={[styles.costText]}>Cost: 1 Coin</Text>
-                <TouchableOpacity
-                  onPress={handleSubmit}
-                  disabled={isDisabled}
-                  style={[
-                    styles.submitWrapper,
-                    { width: submitWidth, height: submitHeight },
-                    isDisabled && { opacity: 0.6 },
-                  ]}
-                >
-                  <Image
-                    source={require('../../assets/buttons/submit.png')}
-                    style={[styles.submitButton]}
-                  />
-                </TouchableOpacity>
-              </View> */}
             </View>
 
-            {/* <View style={{ justifyContent: "center", alignItems: "center" }}>
-              <Animated.View
-                style={{
-                  position: "absolute",
-                  opacity: 100,
-                  width: "100%",
-                  alignItems: "center",
-                }}
-              >
-                <Text style={styles.errorText}>{errorMessage}</Text>
-              </Animated.View>
-            </View> */}
           </ScrollView>
         </SafeAreaView>
         
@@ -311,7 +281,7 @@ const styles = StyleSheet.create({
     paddingBottom: 90,
   },
   topLabel: {
-    color: 'white',
+    color: 'yellow',
     fontSize: 28,
     fontWeight: '700',
     marginTop: 0,
@@ -322,7 +292,6 @@ const styles = StyleSheet.create({
   },
   subLabel: {
     color: 'rgba(255,255,255,0.8)',
-    fontSize: 18,
     fontWeight: '500',
     textAlign: 'center',
     paddingHorizontal: 28,
