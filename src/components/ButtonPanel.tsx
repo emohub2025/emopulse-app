@@ -56,6 +56,17 @@ export default function ButtonPanel({ currentScreen }: ButtonPanelProps) {
           </Pressable>
         )}
 
+        {/* Polls */}
+        {route.name === 'CategoryList' && (
+          <Pressable
+            onPress={() => navigation.navigate('PollingList')}
+            style={styles.item}
+          >
+            <Image source={historyIcon} style={[styles.icon, { width: iconSize, height: iconSize }]} />
+            <Text style={[styles.label, { fontSize: labelSize }]} numberOfLines={1} adjustsFontSizeToFit>Polling</Text>
+          </Pressable>
+        )}
+
         {/* History */}
         {route.name !== 'ResultsHistory' && (
           <Pressable

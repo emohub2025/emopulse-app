@@ -29,7 +29,8 @@ import ChallengeResultsScreen from "../features/challenge/ChallengeResultsScreen
 
 import TeamsScreen from "../features/teams/TeamsScreen";
 import SubchallengeScreen from "../features/subchallenge/SubchallengeScreen";
-import PollingChallengeScreen from "../features/subchallenge/PollingChallengeScreen";
+import PollingChallengeScreen from "../features/Polling/PollingChallengeScreen";
+import PollingListScreen from "../features/Polling/PollingListScreen";
 
 const isIOS = Platform.OS === "ios";
 const HEADER_HEIGHT = 78;
@@ -78,7 +79,7 @@ const withAppHeader = (Screen: React.ComponentType<any>) => {
       navigation.canGoBack() &&
       (
         (routeName === "Subchallenge" && props.route.params?.showBack === false) ||
-        routeName === "HomePage" || routeName === "ChallengeCountdown" || routeName === "CategoryList"
+        routeName === "HomePage" || routeName === "ChallengeCountdown" || routeName === "CategoryList" || routeName === "PollingList"
       );
 
     return (
@@ -141,6 +142,7 @@ const ChallengeCountdownWithHeader = withAppHeader(ChallengeCountdownScreen);
 const ChallengeResultsWithHeader = withAppHeader(ChallengeResultsScreen);
 const SubchallengeWithHeader = withAppHeader(SubchallengeScreen);
 const PollingChallengeWithHeader = withAppHeader(PollingChallengeScreen);
+const PollingListWithHeader = withAppHeader(PollingListScreen);
 
 export default function RootNavigator({
   initialRouteName = "HomePage",
@@ -266,6 +268,11 @@ export default function RootNavigator({
       <Stack.Screen
         name="Subchallenge"
         component={SubchallengeWithHeader}
+      />
+
+      <Stack.Screen
+        name="PollingList"
+        component={PollingListWithHeader}
       />
 
       <Stack.Screen

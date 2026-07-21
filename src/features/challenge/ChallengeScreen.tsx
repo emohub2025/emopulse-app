@@ -8,7 +8,7 @@ import { Platform, View, Text, StyleSheet, Image, Animated, ImageBackground, Tou
 import EmotionSelector from '../../components/EmotionSelector';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
-import { useCycleTimer } from '../../components/CycleTimerContext';
+import { useRssTimer } from "../../components/TimerProviderEmotion";
 import { postPlaceUserBet } from '../../api/postPlaceUserBet';
 import { getSubchallengeList } from '../../api/subchallenges';
 import { useCurrentUserId } from "../../state/useUserSelectors";
@@ -25,7 +25,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   const [emotion, setEmotion] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation<NavProp>();
-  const { isExpired, formattedTime } = useCycleTimer();
+  const { applyCycleFromFeed, formattedTime } = useRssTimer();
   const userId = useCurrentUserId();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const errorOpacity = useRef(new Animated.Value(0)).current;
@@ -93,7 +93,6 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
       // }
 
       const listResults = await getSubchallengeList(challenge.id);
-      console.log("results:", listResults?.length);
 
       // ⭐ If no subchallenges → go straight to countdown
       if (!listResults || listResults.length === 0) {
@@ -120,6 +119,12 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (feed?.cycle) {
+      applyCycleFromFeed(feed.cycle);
+    }
+  }, [feed, applyCycleFromFeed]);
 
   useEffect(() => {
     if (errorMessage) {

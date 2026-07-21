@@ -7,7 +7,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import playButton from '../../assets/buttons/play.png';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
-import { useCycleTimer } from '../../components/CycleTimerContext';
+import { useRssTimer } from "../../components/TimerProviderEmotion";
 import { useFeed } from "../../context/FeedContext";
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
 import { Dimensions } from "react-native";
@@ -16,9 +16,6 @@ const isIOS = Platform.OS === 'ios';
 
 type ChallengeDetailRouteProp = RouteProp<RootStackParamList, 'ChallengeDetail'>;
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'ChallengeDetail'>;
-
-const truncate = (str: string, n: number) =>
-  str.length > n ? str.slice(0, n) + '…' : str;
 
 // Shorts-only extractor
 function extractShortsId(url: string | undefined) {
@@ -33,7 +30,7 @@ type Props = {
 
 export default function ChallengeDetailScreen({ route }: Props) {
   const navigation = useNavigation<NavProp>();
-  const { formattedTime } = useCycleTimer();
+  const { applyCycleFromFeed, formattedTime } = useRssTimer();
   const { challengeId } = route.params;
   const { feed } = useFeed();
   const SCREEN_HEIGHT = Dimensions.get("window").height - 141;   // 68 should be height of logo
@@ -46,6 +43,12 @@ export default function ChallengeDetailScreen({ route }: Props) {
   // ⭐ Animation values
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (feed?.cycle) {
+      applyCycleFromFeed(feed.cycle);
+    }
+  }, [feed, applyCycleFromFeed]);
 
   // ⭐ Animate on expand/collapse
   useEffect(() => {
@@ -307,7 +310,8 @@ return (
                     <ScrollView style={{ height: 182 }} showsVerticalScrollIndicator={false}>
                       <Text style={styles.meta}>{combinedDetails}</Text>
                     </ScrollView>
-                  </View>
+                </View>
+                  
                 )}
             </>
           )}
@@ -338,9 +342,18 @@ return (
             <Text style={styles.timer}>{formattedTime}</Text>
           </>
         ) : (
-          <Text style={styles.winningEmotion}>
-            {/* ... */}
-          </Text>
+              <Text style={styles.winningEmotion}>
+                {challenge.winning_emotion && (
+                  <Text style={styles.winningEmotionContainer}>
+                    <Text style={styles.winningEmotionLabel}>
+                      Winning Emotion:{' '}
+                    </Text>
+                    <Text style={styles.winningEmotionValue}>
+                      {challenge.winning_emotion}
+                    </Text>
+                  </Text>
+                )}
+              </Text>
         )}
       </View>
 

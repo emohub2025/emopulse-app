@@ -27,8 +27,8 @@ export const FeedProvider: React.FC<FeedProviderProps> = ({ children }) => {
   const [suppressGlobalReset, setSuppressGlobalReset] = useState(false);
 
   useEffect(() => {
-    const handler = () => {
-      console.log("Cycle expired → clearing feed");
+    const handler = (payload: { type: "rss" | "poll" }) => {
+      console.log(`Cycle expired → type=${payload.type} → clearing feed`);
 
       // 1. Reset navigation stack (unless suppressed)
       if (!suppressGlobalReset && navigationRef.isReady()) {
@@ -39,23 +39,26 @@ export const FeedProvider: React.FC<FeedProviderProps> = ({ children }) => {
         });
       }
 
-      // 2. Clear feed
       setFeed(null);
     };
 
-    eventBus.on("cycleExpired", handler);
+    // Listen to BOTH timers
+    eventBus.on("rssCycleExpired", handler);
+    eventBus.on("pollCycleExpired", handler);
+
     return () => {
-      eventBus.off("cycleExpired", handler); // returns void now
+      eventBus.off("rssCycleExpired", handler);
+      eventBus.off("pollCycleExpired", handler);
     };
   }, [suppressGlobalReset]);
 
   return (
-    <FeedContext.Provider 
-      value={{ 
-        feed, 
+    <FeedContext.Provider
+      value={{
+        feed,
         setFeed,
         suppressGlobalReset,
-        setSuppressGlobalReset 
+        setSuppressGlobalReset,
       }}
     >
       {children}

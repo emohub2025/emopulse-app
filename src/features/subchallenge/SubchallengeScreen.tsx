@@ -6,7 +6,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList, SubchallengeList } from '../../navigation/types';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import * as Haptics from 'expo-haptics';
-import { useCycleTimer } from '../../components/CycleTimerContext';
+import { useRssTimer } from "../../components/TimerProviderEmotion";
 import answerButton from '../../assets/buttons/answer.png';
 import skipButton from '../../assets/buttons/skip.png';
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
@@ -39,7 +39,7 @@ export default function SubchallengeScreen({
 
   // ⭐ ALL HOOKS MUST COME FIRST
   const [loading, setLoading] = useState(false);
-  const { isExpired, formattedTime } = useCycleTimer();
+  const { applyCycleFromFeed, formattedTime } = useRssTimer();
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const current: SubchallengeList = subchallenges[index];
@@ -145,6 +145,12 @@ export default function SubchallengeScreen({
     setIndex(prev => prev - 1);
     setSelected(null);
   };
+
+  useEffect(() => {
+    if (feed?.cycle) {
+      applyCycleFromFeed(feed.cycle);
+    }
+  }, [feed, applyCycleFromFeed]);
 
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {

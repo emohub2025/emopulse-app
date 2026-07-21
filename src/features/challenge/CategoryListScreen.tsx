@@ -4,7 +4,6 @@ import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
-import { useCycleTimer } from '../../components/CycleTimerContext';
 import ButtonPanel from '../../components/ButtonPanel';
 import { useFeed } from "../../context/FeedContext";
 import { getFeedList } from "../../api/getFeedList";
@@ -47,7 +46,6 @@ const categoryImages: Record<string, any> = {
 export default function CategoryListScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute();
-  const { applyCycleFromFeed } = useCycleTimer();
   const { setFeed } = useFeed();   // ⭐ NEW
   const [categories, setCategories] = useState<FeedCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,14 +64,11 @@ export default function CategoryListScreen() {
 
       async function load() {
         try {
-          const feed: FeedResponse = await getFeedList();
+          const feed: FeedResponse = await getFeedList("rss");
 
           if (isActive) {
-            applyCycleFromFeed(feed.cycle);
-
-            setCategories(feed.categories);
-
-            setFeed(feed);   // ⭐ NEW — store feed globally
+            setCategories(feed.categories); // ⭐ Store categories locally
+            setFeed(feed);   // ⭐ Store feed globally
           }
         } finally {
           if (isActive) setLoading(false);
@@ -82,7 +77,7 @@ export default function CategoryListScreen() {
 
       load();
       return () => { isActive = false };
-    }, [applyCycleFromFeed])
+    }, [setFeed])
   );
 
   if (loading) {
@@ -116,6 +111,7 @@ export default function CategoryListScreen() {
     name: c.name.trim()
   }));
 
+  // ⭐ Category ordering
   const sortedCategories = [...normalizedCategories].sort((a, b) => {
     const indexA = CATEGORY_ORDER.indexOf(a.name);
     const indexB = CATEGORY_ORDER.indexOf(b.name);
@@ -160,12 +156,15 @@ export default function CategoryListScreen() {
                   { width: cardWidth, height: cardHeight },
                   pressed && styles.cardPressed,
                 ]}
-                onPress={() =>
-                  navigation.navigate('CategoryChallenges', {
-                    category: item.name
-                  })
-                }
-              >
+                onPress={() => {
+                  if (item.name === "Polls") {
+                    navigation.navigate("PollingList");
+                  } else {
+                    navigation.navigate("CategoryChallenges", {
+                      category: item.name
+                    });
+                  }
+                }}              >
                 <ImageBackground
                   source={categoryImages[item.name] ?? null}
                   style={styles.cardBackground}

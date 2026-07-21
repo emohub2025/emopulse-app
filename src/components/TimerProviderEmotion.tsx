@@ -2,19 +2,17 @@ import React, { createContext, useContext, useEffect, useState, useMemo, useRef,
 import eventBus from './EventBus';
 import type { CycleInfo } from "../navigation/types";
 
-export type CycleTimerContextType = {
+export type RssTimerContextType = {
   cycleStartTime: number | null;
   cycleEndTime: number | null;
   timeRemainingMs: number;
   elapsedMs: number;
   formattedTime: string | null;
   isExpired: boolean;
-
-  // Screens call this after fetching feed
   applyCycleFromFeed: (cycle: CycleInfo) => void;
 };
 
-const CycleTimerContext = createContext<CycleTimerContextType>({
+const RssTimerContext = createContext<RssTimerContextType>({
   cycleStartTime: null,
   cycleEndTime: null,
   timeRemainingMs: 0,
@@ -28,39 +26,33 @@ interface Props {
   children: React.ReactNode;
 }
 
-export function CycleTimerProvider({ children }: Props) {
+export function RssTimerProvider({ children }: Props) {
   const hasFiredRef = useRef(false);
-  const wasActiveRef = useRef(false); // ⭐ FIXED — must be here, not inside useEffect
+  const wasActiveRef = useRef(false);
 
   const [cycleStartTime, setCycleStartTime] = useState<number | null>(null);
   const [cycleEndTime, setCycleEndTime] = useState<number | null>(null);
   const [timeRemainingMs, setTimeRemainingMs] = useState(0);
   const [elapsedMs, setElapsedMs] = useState(0);
 
-  //
-  // Apply cycle metadata from feed
-  //
   const applyCycleFromFeed = useCallback((cycle: CycleInfo) => {
-    const rawStart = cycle.startTime;
-    const rawEnd = cycle.endTime;
+    //console.log("🔥 RssTimer: applyCycleFromFeed received:", cycle);
 
-    let start: number | null = null;
-    let end: number | null = null;
+    const start = cycle.startTime ? Number(cycle.startTime) : null;
+    const end = cycle.endTime ? Number(cycle.endTime) : null;
 
-    if (typeof rawStart === 'number') start = rawStart;
-    if (typeof rawEnd === 'number') end = rawEnd;
+    //console.log("🔥 parsed start =", start, "parsed end =", end);
 
     if (start && end && start > 0 && end > 0) {
       hasFiredRef.current = false;
-      wasActiveRef.current = false; // reset active state
+      wasActiveRef.current = false;
       setCycleStartTime(start);
       setCycleEndTime(end);
+    } else {
+      console.log("❌ RssTimer: INVALID cycle, timer will show expired");
     }
   }, []);
 
-  //
-  // Countdown interval
-  //
   useEffect(() => {
     const interval = setInterval(() => {
       if (cycleStartTime == null || cycleEndTime == null) return;
@@ -72,40 +64,32 @@ export function CycleTimerProvider({ children }: Props) {
       setTimeRemainingMs(Math.max(0, remaining));
       setElapsedMs(elapsed);
 
-      // If cycle is active, mark it
       if (remaining > 0) {
         wasActiveRef.current = true;
         return;
       }
 
-      // Only emit if:
-      // 1. cycle is expired
-      // 2. cycle was previously active
-      // 3. we haven't emitted yet
       if (remaining <= 0 && wasActiveRef.current && !hasFiredRef.current) {
-        console.log("🔥 Emitting cycleExpired");
+        console.log("🔥 [RSS] Emitting cycleExpired");
         hasFiredRef.current = true;
         wasActiveRef.current = false;
-        eventBus.emit("cycleExpired");
+        eventBus.emit("rssCycleExpired", { type: "rss" });
       }
     }, 1000);
 
     return () => clearInterval(interval);
   }, [cycleStartTime, cycleEndTime]);
 
-  //
-  // Derived values
-  //
   const isExpired = timeRemainingMs <= 0;
 
   const formattedTime = useMemo(() => {
     if (cycleStartTime == null || cycleEndTime == null) {
-      return 'Expired';
+      return '';
     }
 
     const totalSeconds = Math.max(0, Math.floor(timeRemainingMs / 1000));
-    if (isNaN(totalSeconds)) return 'Expired';
-    if (totalSeconds === 0) return 'Expired';
+    if (isNaN(totalSeconds)) return '';
+    if (totalSeconds === 0) return '';
 
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
@@ -118,7 +102,7 @@ export function CycleTimerProvider({ children }: Props) {
   }, [timeRemainingMs, cycleStartTime, cycleEndTime]);
 
   return (
-    <CycleTimerContext.Provider
+    <RssTimerContext.Provider
       value={{
         cycleStartTime,
         cycleEndTime,
@@ -130,10 +114,10 @@ export function CycleTimerProvider({ children }: Props) {
       }}
     >
       {children}
-    </CycleTimerContext.Provider>
+    </RssTimerContext.Provider>
   );
 }
 
-export function useCycleTimer() {
-  return useContext(CycleTimerContext);
+export function useRssTimer() {
+  return useContext(RssTimerContext);
 }

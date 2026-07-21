@@ -2,30 +2,31 @@ import type { FeedResponse, FeedCategory, Challenge } from '../navigation/types'
 import { apiGet } from "./engineClient";
 import { decodeHtmlEntities } from "../utils/decodeHtmlEntities";
 
-export async function getFeedList() {
-  const response = await apiGet<FeedResponse>(`/feed`);
+export async function getFeedList(source: "all" | "rss" | "polling" | "sponsor" = "all") {
+  const url = source === "all"
+    ? `/feed`
+    : `/feed?source=${source}`;
 
-  // ⭐ Clean + attach category to each challenge
+  const response = await apiGet<FeedResponse>(url);
+
   const cleanedCategories: FeedCategory[] = response.categories.map(cat => ({
     ...cat,
     active: cat.active.map(ch => ({
       ...cleanChallenge(ch),
-      category: cat.name   // ⭐ attach category here
+      category: cat.name
     })),
     recent: cat.recent.map(ch => ({
       ...cleanChallenge(ch),
-      category: cat.name   // ⭐ attach category here
+      category: cat.name
     }))
   }));
 
-  const cleanedResponse: FeedResponse = {
+  //console.log("📦 FULL FEED JSON:", JSON.stringify({ ...response, categories: cleanedCategories }, null, 2));
+
+  return {
     ...response,
     categories: cleanedCategories,
   };
-
-  //console.log("📦 FULL FEED JSON:", JSON.stringify(cleanedResponse, null, 2));
-
-  return cleanedResponse;
 }
 
 function cleanChallenge(ch: Challenge): Challenge {

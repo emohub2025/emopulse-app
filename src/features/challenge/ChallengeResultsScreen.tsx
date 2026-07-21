@@ -6,13 +6,10 @@ import type { RootStackParamList } from '../../navigation/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ButtonPanel from '../../components/ButtonPanel';
 import { ChallengeResult, getChallengeResults } from '../../api/getChallengeResults';
-import { useCycleTimer } from '../../components/CycleTimerContext';
 import { LinearGradient } from "expo-linear-gradient";
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useCurrentUserId } from "../../state/useUserSelectors";
-import { emotionLookup, getEmotionLabel } from '../../utils/emotionList';
-
-const isIOS = Platform.OS === "ios";
+import { getEmotionLabel } from '../../utils/emotionList';
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -225,12 +222,8 @@ export default function ChallengeResultScreen() {
   // ⭐ ALL HOOKS MUST COME FIRST
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<ChallengeResult | null>(null);
-  const { formattedTime } = useCycleTimer();
   const fetchedRef = useRef(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  const bottomStatusText =
-    formattedTime?.toLowerCase?.() === 'expired' ? 'Expired Challenges' : formattedTime;
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -386,10 +379,6 @@ export default function ChallengeResultScreen() {
               )}
             </ScrollView>
           </View>
-
-          {!loading && !fromHistory && (
-            <Text style={styles.timer}>{bottomStatusText}</Text>
-          )}
 
           <Animated.View
             pointerEvents={loading ? 'auto' : 'none'}

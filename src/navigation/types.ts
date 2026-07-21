@@ -95,6 +95,7 @@ export type RootStackParamList = {
   PrizesRewards: undefined;
   Teams: undefined;
   Leaderboard: undefined;
+  PollingList: undefined;
 
   Profile: {
     user: MobileUser;
@@ -286,12 +287,15 @@ export interface LiveSnapshotItem {
   id: string;
   status: "open" | "closed" | "resolved";
   topic: string;
-  categories: string[];
+  category: string;              // single category from backend
   quote: string | null;
   stat: string | null;
   snippet: string | null;
   image_url: string | null;
   url: string | null;
+  source: string;                // e.g. "polling", "wacky", etc.
+  polling_answers: string[];     // from backend
+  isPoll: boolean;               // from backend
   main: LiveMain;
   subchallenges: Record<string, any>;
 }

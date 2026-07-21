@@ -53,7 +53,7 @@ export function normalizePoll(main: LiveMain) {
 export type EnrichedLiveSnapshotItem = LiveSnapshotItem & {
   isPoll: boolean;
   pollResults?: { index: number; pct: number }[];
-  polling_answers?: string[];   // ⭐ ADD THIS
+  polling_answers?: string[];
   leadingOption?: number;
   leadingEmotion?: string;
   leadingPct: number;
@@ -83,7 +83,7 @@ export function useLiveSnapshot(pollIntervalMs: number = 2000) {
 
         if (mounted) {
           const enriched: EnrichedLiveSnapshotItem[] = response.snapshot.map(ch => {
-            const isPoll = !!ch.main.poll_results;
+            const isPoll = ch.isPoll;
 
             if (isPoll) {
               const poll = normalizePoll(ch.main);

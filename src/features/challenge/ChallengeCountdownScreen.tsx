@@ -4,9 +4,11 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useCycleTimer } from '../../components/CycleTimerContext';
+import { usePollTimer } from '../../components/TimerProviderPolls';
+import { useRssTimer } from '../../components/TimerProviderEmotion';
 import { useLiveSnapshot, normalizeEmotions, type EnrichedLiveSnapshotItem } from '../../api/getLiveSnapshot';
 import activeButton from '../../assets/buttons/active.png';
+import activePollButton from '../../assets/buttons/active-polls.png';
 import sendButton from '../../assets/buttons/send.png';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useFeed } from '../../context/FeedContext';
@@ -16,6 +18,18 @@ import { Dimensions } from "react-native";
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'ChallengeCountdown'>;
 const isIOS = Platform.OS === "ios";
+
+function useChallengeTimer(liveChallenge : EnrichedLiveSnapshotItem | undefined) {
+  const isPoll = liveChallenge?.isPoll === true;
+  const timer = isPoll ? usePollTimer() : useRssTimer();
+  //console.log("📦 isPoll:", isPoll);
+  //console.log("📦 liveChallenge:", liveChallenge);
+
+  return {
+    ...timer,
+    isPoll,   // ⭐ expose the correct value
+  };
+}
 
 /* -------------------------------------------------------
    Helpers
@@ -72,7 +86,7 @@ const ProgressBar = ({ label, pct, color, labelColor }: ProgressBarProps) => {
         <View
           style={{
             height: 30,
-            borderRadius: 15,
+            borderRadius: 12,
             backgroundColor: 'rgba(255,255,255,0.2)',
             overflow: 'hidden',
           }}
@@ -82,7 +96,7 @@ const ProgressBar = ({ label, pct, color, labelColor }: ProgressBarProps) => {
             style={{
               width: `${barWidth}%`,
               height: '100%',
-              borderRadius: 15,
+              borderRadius: 12,
               backgroundColor: color,
             }}
           />
@@ -115,7 +129,7 @@ export default function ChallengeCountdownScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<any>();
   const from = route.params?.from;
-  const { isExpired, formattedTime } = useCycleTimer();
+  //console.log("📦 from:", from);
   const { challengeId } = route.params;
   const { feed, setSuppressGlobalReset } = useFeed();
   const SCREEN_HEIGHT = Dimensions.get("window").height - 250;   // 68 should be height of logo
@@ -133,6 +147,7 @@ export default function ChallengeCountdownScreen() {
   }, []);
 
   const { snapshot } = useLiveSnapshot();
+  //console.log("snapshot:", snapshot);
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(1)).current;
@@ -236,30 +251,18 @@ export default function ChallengeCountdownScreen() {
       setSuppressGlobalReset(false);
     };
   }, []);
-    
-  useEffect(() => {
-    if (isExpired && from !== "play") {
-      const timeout = setTimeout(() => {
-        navigation.navigate('ChallengeResults', {
-          challengeId: challengeId,
-        });
-      }, 2000);
 
-      return () => clearTimeout(timeout);
+  useEffect(() => {
+    if (from !== "play") {
+      const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
+      return () => sub.remove();
     }
-  }, [isExpired, from, navigation, challengeId]);
-
-  useEffect(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
-    return () => sub.remove();
   }, [from]);
 
-  let liveChallenge = null;
   let isPoll = false;
   let pollData = [];
   let paddedPollData = [];
   let polling_answers = [];
-  let challenge = null;
   let rawEmotion = null;
   let isWacky = false;
   let wobbled = null;
@@ -267,16 +270,18 @@ export default function ChallengeCountdownScreen() {
   /* -------------------------------------------------------
      ⭐ SAFE TO USE feed NOW
   ------------------------------------------------------- */
-  challenge = feed?.categories
+  const challenge = feed?.categories
     .flatMap(c => [...c.active, ...c.recent])
     .find(ch => ch.id === challengeId);
 
   /* -------------------------------------------------------
      Live snapshot (enriched)
   ------------------------------------------------------- */
-  liveChallenge = snapshot?.find(
+  const liveChallenge = snapshot?.find(
     (item: EnrichedLiveSnapshotItem) => item.id === challenge?.id
   );
+
+  const { formattedTime } = useChallengeTimer(liveChallenge);
 
   /* -------------------------------------------------------
      Polling data
@@ -488,11 +493,11 @@ export default function ChallengeCountdownScreen() {
                   marginBottom: -5,
                   color: 'white',
                   fontWeight: '700',
-                  fontSize: 24,
+                  fontSize: 20,
                   alignSelf: 'center',
                 }}
               >
-                Comments
+                What people are saying...
               </Text>
 
               <View
@@ -572,22 +577,6 @@ export default function ChallengeCountdownScreen() {
                 </Pressable>
               </View>
             </View>
-
-            {/* Bottom button + timer */}
-            {/* <View style={{ alignItems: 'center', marginBottom: -10, marginTop: -10 }}>
-              <Pressable
-                onPress={() =>
-                  navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'CategoryList' }],
-                  })
-                }
-              >
-                <Image source={activeButton} style={styles.buttonImage} />
-              </Pressable>
-
-              <Text style={styles.timer}>{formattedTime}</Text>
-            </View> */}
           </View>
           
           </ScrollView>
@@ -596,6 +585,7 @@ export default function ChallengeCountdownScreen() {
         </SafeAreaView>
         </KeyboardAvoidingView>
       
+        {/* Bottom button + timer */}
         <View 
           style={styles.bottomBar}
           onLayout={e => setBottomBarHeight(e.nativeEvent.layout.height)}
@@ -604,11 +594,11 @@ export default function ChallengeCountdownScreen() {
             onPress={() =>
               navigation.reset({
                 index: 0,
-                routes: [{ name: 'CategoryList' }],
+                routes: [{ name: isPoll ? 'PollingList' : 'CategoryList' }],
               })
             }
           >
-            <Image source={activeButton} style={styles.buttonImage} />
+            <Image source={isPoll ? activePollButton : activeButton} style={styles.buttonImage} />
           </Pressable>
 
           <Text style={styles.timer}>{formattedTime}</Text>
@@ -664,7 +654,7 @@ const styles = StyleSheet.create({
     marginTop: 18,
     marginBottom: 15,
     borderRadius: 18,
-    backgroundColor: 'rgba(18, 10, 42, 0.33)',
+    backgroundColor: 'rgba(47, 23, 116, 0.78)',
     borderWidth: 0.5,
     borderColor: 'rgba(255,255,255,0.58)',
     paddingHorizontal: 10,

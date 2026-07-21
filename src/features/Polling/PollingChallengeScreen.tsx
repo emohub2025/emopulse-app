@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, Image, ImageBackground, StyleSheet, TouchableOpacity, Platform, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -8,7 +8,7 @@ import type { RouteProp } from "@react-navigation/native";
 import type { RootStackParamList } from "../../navigation/types";
 import { postPlaceUserPollingBet } from "../../api/postPlaceUserBet";
 import AutoShrinkBlock from "../../components/AutoShrinkBlock";
-import { useCycleTimer } from "../../components/CycleTimerContext";
+import { usePollTimer } from "../../components/TimerProviderPolls";
 import { useCurrentUserId } from "../../state/useUserSelectors";
 import { useFeed } from "../../context/FeedContext";
 import { markChallengePlayed } from '../../hooks/usePlayedChallenges';
@@ -41,7 +41,7 @@ export default function PollingChallengeScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<RouteProps>();
   const userId = useCurrentUserId();
-  const { formattedTime } = useCycleTimer();
+  const { applyCycleFromFeed, formattedTime } = usePollTimer();
   const { feed } = useFeed();
   const SCREEN_HEIGHT = Dimensions.get("window").height - 80;   // 80 should be height of logo
   const [bottomBarHeight, setBottomBarHeight] = useState(0);
@@ -59,12 +59,12 @@ export default function PollingChallengeScreen() {
 
   // ⭐ EARLY RETURN — SAFE NOW
   if (!feed) {
-    //console.error("❌ PollingChallengeScreen missing feed");
-    // return (
-    //   <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
-    //     <Text style={{ color: "white" }}>Loading…</Text>
-    //   </SafeAreaView>
-    // );
+    console.error("❌ PollingChallengeScreen missing feed");
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+        <Text style={{ color: "white" }}>Loading…</Text>
+      </SafeAreaView>
+    );
   }
 
   // ⭐ SAFE TO USE feed NOW
@@ -79,6 +79,12 @@ export default function PollingChallengeScreen() {
       </SafeAreaView>
     );
   }
+
+  useEffect(() => {
+    if (feed?.cycle) {
+      applyCycleFromFeed(feed.cycle);
+    }
+  }, [feed, applyCycleFromFeed]);
 
   /* ---------------------------------------------
      HANDLE ANSWER
@@ -107,7 +113,7 @@ export default function PollingChallengeScreen() {
 
       navigation.navigate("ChallengeCountdown", {
         challengeId: challenge.id,
-        from: "play"
+        from: "live"
       });
     } catch (err: any) {
       console.log("🟥 UI CATCH (Polling):", err);
@@ -133,7 +139,7 @@ export default function PollingChallengeScreen() {
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <ImageBackground
         source={require("../../assets/images/background.png")}
-        style={{ flex: 1, marginBottom: 42 }}
+        style={{ flex: 1 }}
         resizeMode="cover"
       >
         <ScrollView
@@ -141,7 +147,7 @@ export default function PollingChallengeScreen() {
             maxHeight: SCREEN_HEIGHT - bottomBarHeight,
           }}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 210 }}
+          contentContainerStyle={{ paddingBottom: 195 }}
         >
           <View style={styles.container}>
               <Image
@@ -158,8 +164,8 @@ export default function PollingChallengeScreen() {
                 height={90}
                 width={"100%"}
                 minHeight={55}
-                marginTop={-12}
-                marginBottom={12}
+                marginTop={-10}
+                marginBottom={5}
                 textAlign="center"
                 fontWeight="500"
               >
@@ -213,22 +219,23 @@ export default function PollingChallengeScreen() {
           style={styles.bottomBar}
           onLayout={e => setBottomBarHeight(e.nativeEvent.layout.height)}
         >
-          <TouchableOpacity
-            onPress={handleAnswer}
-            disabled={submitting}
-            style={submitting ? { opacity: 0.7 } : undefined}
-          >
-            <Image
-              source={require("../../assets/buttons/submit.png")}
-              style={styles.submitButton}
-            />
-          </TouchableOpacity>
-          <Text style={styles.timer}>{formattedTime}</Text>
+          <View>
+            <Text style={styles.costText}>Cost: 1 Coin</Text>
+            <TouchableOpacity
+              onPress={handleAnswer}
+              disabled={submitting}
+              style={[submitting ? { opacity: 0.7 } : undefined]}
+            >
+              <Image
+                source={require("../../assets/buttons/submit.png")}
+                style={styles.submitButton}
+              />
+            </TouchableOpacity>
+            <Text style={styles.timer}>{formattedTime}</Text>
+          </View>
         </View>
       </ImageBackground>
 
-      {/* <Text style={styles.costText}>Cost: 1 Coin</Text> */}
-      {/* <Text style={styles.timer}>{formattedTime}</Text> */}
     </View>
   );
 }
@@ -246,35 +253,36 @@ const styles = StyleSheet.create({
   },
   bottomBar: {
     position: 'absolute',
-    bottom: -34,
+    bottom: 45,
     left: 0,
     right: 0,
-    //paddingBottom: isIOS ? 34 : 20, // safe area lift
+    paddingBottom: isIOS ? 34 : -20, // safe area lift
     alignItems: 'center',
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
   },
   submitButton: {
+    marginTop: 3,
     width: 280,
     height: 47,
     resizeMode: "contain"
   },
   questionCard: {
-    marginTop: 8,
-    marginBottom: 10,
+    marginTop: 6,
+    marginBottom: 8,
     borderRadius: 18,
-    backgroundColor: "rgba(18, 10, 42, 0.78)",
+    backgroundColor: "rgba(47, 23, 116, 0.78)",
     borderWidth: 0.5,
     borderColor: "rgba(255,255,255,0.6)",
     paddingHorizontal: 10,
-    paddingTop: 10
+    paddingTop: 5,
   },
   image: {
     backgroundColor: "transparent",
     marginTop: 10,
     marginBottom: 5,
     width: "100%",
-    height: "46%",
+    height: "47%",
     resizeMode: "contain"
   },
   optionsContainer: {
@@ -335,7 +343,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     textAlign: 'center',
-    marginTop: -5,
+    marginTop: 0,
     marginBottom: 0,
   },
   timer: {
@@ -343,8 +351,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 2,
-    marginBottom: 37,
+    marginTop: 0,
+    marginBottom: 0,
     alignSelf: 'center',
   },
 });

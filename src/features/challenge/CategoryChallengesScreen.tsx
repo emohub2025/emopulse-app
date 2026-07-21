@@ -5,12 +5,13 @@ import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../../navigation/types';
-import { useCycleTimer } from '../../components/CycleTimerContext';
+import { RssTimerProvider, useRssTimer } from '../../components/TimerProviderEmotion';
 import { useFeed } from "../../context/FeedContext";
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
 import eventBus from '../../components/EventBus';
 import { usePlayedChallenges } from '../../hooks/usePlayedChallenges';
 import { useLiveSnapshot } from "../../api/getLiveSnapshot";
+import { getFeedList } from '../../api/getFeedList';
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -75,10 +76,18 @@ function sortPollingLast(list: any) {
 }
 
 export default function CategoryChallengesScreen() {
+  return (
+    <RssTimerProvider>
+      <CategoryChallengesScreenInner />
+    </RssTimerProvider>
+  );
+}
+
+function CategoryChallengesScreenInner() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<RouteProps>();
   const { category } = route.params;
-  const { isExpired, formattedTime } = useCycleTimer();
+ const { applyCycleFromFeed, formattedTime } = useRssTimer();
   const isFocused = useIsFocused();
   const { feed } = useFeed();
   const [error] = useState<string | null>(null);
@@ -93,6 +102,14 @@ export default function CategoryChallengesScreen() {
   const { snapshot } = useLiveSnapshot();
 
   useEffect(() => {
+    async function load() {
+      const feed = await getFeedList("rss");
+      applyCycleFromFeed(feed.cycle);
+    }
+    load();
+  }, []);
+
+useEffect(() => {
     if (!isFocused) return;
 
     const handler = () => navigation.navigate('CategoryList');
@@ -424,13 +441,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
-  },
-  emptyMessage: {
-    color: 'rgba(255,255,255,0.72)',
-    fontSize: 15,
-    textAlign: 'center',
-    marginTop: -2,
-    marginBottom: 2,
   },
   center: {
     flex: 1,

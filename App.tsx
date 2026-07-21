@@ -3,8 +3,6 @@ import React, { useEffect, useState } from "react";
 import { View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-import { CycleTimerProvider } from "./src/components/CycleTimerContext";
 import { OfflineContext } from "./src/context/OfflineContext";
 import { OfflineBanner } from "./src/components/OfflineBanner";
 import { OfflineOverlay } from "./src/components/OfflineOverlay";
@@ -71,7 +69,6 @@ export default function App() {
   return (
     <OfflineContext.Provider value={{ isOffline }}>
       <FeedProvider>
-        <CycleTimerProvider>
           <View style={{ flex: 1 }}>
             <OfflineBanner />
             <OfflineOverlay />
@@ -80,7 +77,6 @@ export default function App() {
               <AuthGate />
             </NavigationContainer>
           </View>
-        </CycleTimerProvider>
       </FeedProvider>
     </OfflineContext.Provider>
   );
