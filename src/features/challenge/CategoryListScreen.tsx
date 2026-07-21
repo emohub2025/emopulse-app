@@ -173,13 +173,9 @@ export default function CategoryListScreen() {
                   pressed && styles.cardPressed,
                 ]}
                 onPress={() => {
-                  if (item.name === "Polls") {
-                    navigation.navigate("PollingList");
-                  } else {
-                    navigation.navigate("CategoryChallenges", {
-                      category: item.name
-                    });
-                  }
+                  navigation.navigate("CategoryChallenges", {
+                    category: item.name
+                  });
                 }}              >
                 <ImageBackground
                   source={categoryImages[item.name] ?? null}

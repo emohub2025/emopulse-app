@@ -267,7 +267,7 @@ useEffect(() => {
                       style={styles.card}
                       onPress={() => {
                         if (played && !previous) {
-                          navigation.navigate("ChallengeCountdown", { challengeId: ch.id });
+                          navigation.navigate("ChallengeCountdown", { challengeId: ch.id, from: "play" });
                         } else if (isPolling && !previous) {
                           navigation.navigate("PollingChallenge", { challengeId: ch.id });
                         } else {
