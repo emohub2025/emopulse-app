@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, Image, ImageBackground, StyleSheet, FlatList, Pressable } from 'react-native';
+import { View, Text, Image, ImageBackground, StyleSheet, FlatList, Pressable, BackHandler } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -78,6 +78,22 @@ export default function CategoryListScreen() {
       load();
       return () => { isActive = false };
     }, [setFeed])
+  );
+
+  // Don't allow the user to exit the app from here with the android Back button
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        // Prevent exiting the app from the home screen
+        return true;
+      };
+
+      const sub = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+
+      return () => {
+        sub.remove(); // ✔ correct cleanup
+      };
+    }, [])
   );
 
   if (loading) {
