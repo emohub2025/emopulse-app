@@ -19,7 +19,7 @@ export default function EmotionSelector({ selected, onSelect, category }: Props)
   const baseTile = isVeryCompact ? 150 : 180;
 
   // Android DP grid shrinks visuals → boost size slightly
-  const androidBoost = Platform.OS === 'android' ? 1.05 : 1;
+  const androidBoost = Platform.OS === 'android' ? 1.03 : 1;
 
   // System zoom increases DP scale → compensate
   const dpScale = PixelRatio.getFontScale(); // increases with system zoom

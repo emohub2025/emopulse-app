@@ -10,7 +10,6 @@ import { useFeed } from "../../context/FeedContext";
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
 import eventBus from '../../components/EventBus';
 import { usePlayedChallenges } from '../../hooks/usePlayedChallenges';
-import { useLiveSnapshot } from "../../api/getLiveSnapshot";
 import { getFeedList } from '../../api/getFeedList';
 
 type NavProp = NativeStackNavigationProp<
@@ -99,7 +98,6 @@ function CategoryChallengesScreenInner() {
   );
 
   const playedIds = usePlayedChallenges();
-  const { snapshot } = useLiveSnapshot();
 
   useEffect(() => {
     async function load() {

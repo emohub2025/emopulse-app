@@ -9,10 +9,25 @@ export const emotionSlotMap: Record<string, 1 | 2 | 3 | 4> = {
   angry: 4,
 };
 
-export function getEmotionLabel(raw: string | null, category: string) {
-  if (!raw) return null;
-  const slot = emotionSlotMap[raw];   // happy → 1, sad → 2, anxious → 3, angry → 4
-  return emotionLookup[slot][category];
+export const emotionFeelingText: Record<string, string> = {
+  happy: "Feeling good about this",
+  anxious: "Something feels wrong",
+  angry: "Not convinced by this",
+  sad: "Feeling bad about this",
+};
+
+export const emotionFeelingTextWacky: Record<string, string> = {
+  happy: "This is hilarious",
+  anxious: "Uhhh, what did I just read?",
+  angry: "Nope.",
+  sad: "My brain hurts",
+};
+
+export function getFeelingSentence(emotion: string, category: string) {
+  if (category === "Wacky") {
+    return emotionFeelingTextWacky[emotion] || null;
+  }
+  return emotionFeelingText[emotion] || null;
 }
 
 export const emotionLookup: Record<EmotionSlot, Record<string, string>> = {
@@ -44,7 +59,7 @@ export const emotionLookup: Record<EmotionSlot, Record<string, string>> = {
     Entertainment: 'Nervous',
     Music: 'Torn',
     Tech: 'Concerned',
-    Finance: 'Panicked',
+    Finance: 'Nervous',
     Health: 'Concerned',
     Gaming: 'Tilted',
     Wacky: 'Confused',
@@ -55,7 +70,7 @@ export const emotionLookup: Record<EmotionSlot, Record<string, string>> = {
     Entertainment: 'Cringe',
     Music: 'Angry',
     Tech: 'Frustrated',
-    Finance: 'Irrational',
+    Finance: 'Skeptical',
     Health: 'Angry',
     Gaming: 'Salty',
     Wacky: 'Stupid',

@@ -4,7 +4,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Platform, View, Text, StyleSheet, Image, Animated, ImageBackground, TouchableOpacity, ScrollView } from 'react-native';
+import { Platform, View, Text, StyleSheet, Image, Animated, TouchableOpacity, ScrollView } from 'react-native';
 import EmotionSelector from '../../components/EmotionSelector';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
@@ -15,6 +15,7 @@ import { useCurrentUserId } from "../../state/useUserSelectors";
 import { useFeed } from "../../context/FeedContext";
 import { markChallengePlayed } from '../../hooks/usePlayedChallenges';
 import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
+import { getFeelingSentence } from '../../utils/emotionList';
 
 type ChallengeRouteProp = RouteProp<RootStackParamList, 'Challenge'>;
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'Challenge'>;
@@ -175,93 +176,110 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
     );
   }
 
+  const feelingText = emotion ? getFeelingSentence(emotion, challenge?.category) : null;
+
   return (
     <View style={{ flex: 1 }}>
-      <ImageBackground
-        source={require('../../assets/images/background.png')}
-        style={{ flex: 1, marginBottom: 42 }}
-        resizeMode="cover"
-      >
-        <SafeAreaView style={styles.safe} edges={['bottom']}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <Text style={[styles.topLabel, { fontSize: 26 }]} numberOfLines={1}>What's your reaction?</Text>
-            <Text style={[styles.subLabel, { fontSize: 16 }]} numberOfLines={1}>Select the best matching emotion.</Text>
+      <View style={StyleSheet.absoluteFill}>
+        <Image
+          source={require('../../assets/images/background.png')}
+          style={{ width: '100%', height: '95%', paddingTop: 0 }}
+          resizeMode="stretch"
+        />
 
-            <View style={styles.content}>
-              <View style={styles.mainCard}>
-
-                <AutoShrinkBlock
-                  height={110}
-                  width={"100%"}
-                  fontWeight="600"
-                >
-                  {challenge?.topic}
-                </AutoShrinkBlock>
-              </View>
-
-              <View style={styles.selectorWrap}>
-                <EmotionSelector
-                  selected={emotion}
-                  onSelect={setEmotion}
-                  category={challenge?.category}
-                />
-              </View>
-            </View>
-
-          </ScrollView>
-        </SafeAreaView>
-        
-        {/* ⭐ Bottom bar stays fixed */}
-        <View style={styles.bottomBar}>
-          <Text style={[styles.costText]}>Cost: 1 Coin</Text>
-          <TouchableOpacity
-            onPress={handleSubmit}
-            disabled={isDisabled}
-            style={[
-              styles.submitWrapper,
-              { width: submitWidth, height: submitHeight },
-              isDisabled && { opacity: 0.6 },
-            ]}
-          >
-            <Image
-              source={require('../../assets/buttons/submit.png')}
-              style={[styles.submitButton]}
-            />
-          </TouchableOpacity>
-          {!errorMessage && (
-            <View style={{ justifyContent: "center", alignItems: "center" }}>
-              <Animated.View
-                style={{
-                  position: "absolute",
-                  opacity: 100,
-                  width: "100%",
-                  alignItems: "center",
-                }}
-              >
-                <Text style={styles.timer}>{bottomStatusText}</Text>
-              </Animated.View>
-            </View>
+        {/* ⭐ Dim overlay ONLY affects the image */}
+        <View style={{
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: 'rgba(0,0,0,0.0)'
+        }} />
+      </View>
+              
+      <SafeAreaView style={styles.safe} edges={['bottom']}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={[styles.topLabel, { fontSize: 26 }]} numberOfLines={1}>What's your reaction?</Text>
+          {emotion ? (
+            <Text style={styles.subLabel}>
+              <Text style={[styles.subLabel, { fontSize: 20 }]} >{feelingText}</Text>
+            </Text>
+          ) : (
+            <Text style={[styles.subLabel, { fontSize: 20 }]} numberOfLines={1}>
+              Select the best matching emotion.
+            </Text>
           )}
-          {errorMessage && (
-            <View style={{ justifyContent: "center", alignItems: "center" }}>
-              <Animated.View
-                style={{
-                  position: "absolute",
-                  opacity: 100,
-                  width: "100%",
-                  alignItems: "center",
-                }}
-              >
-                <Text style={styles.errorText}>{errorMessage}</Text>
-              </Animated.View>
-            </View>
-          )}
-        </View>
 
-      </ImageBackground>
+          <View style={styles.content}>
+            <View style={styles.mainCard}>
+
+              <AutoShrinkBlock
+                height={110}
+                width={"100%"}
+                fontWeight="600"
+              >
+                {challenge?.topic}
+              </AutoShrinkBlock>
+            </View>
+
+            <View style={styles.selectorWrap}>
+              <EmotionSelector
+                selected={emotion}
+                onSelect={setEmotion}
+                category={challenge?.category}
+              />
+            </View>
+          </View>
+
+        </ScrollView>
+      </SafeAreaView>
+      
+      {/* ⭐ Bottom bar stays fixed */}
+      <View style={styles.bottomBar}>
+        <Text style={[styles.costText]}>Cost: 1 Coin</Text>
+        <TouchableOpacity
+          onPress={handleSubmit}
+          disabled={isDisabled}
+          style={[
+            styles.submitWrapper,
+            { width: submitWidth, height: submitHeight },
+            isDisabled && { opacity: 0.6 },
+          ]}
+        >
+          <Image
+            source={require('../../assets/buttons/submit.png')}
+            style={[styles.submitButton]}
+          />
+        </TouchableOpacity>
+        {!errorMessage && (
+          <View style={{ justifyContent: "center", alignItems: "center" }}>
+            <Animated.View
+              style={{
+                position: "absolute",
+                opacity: 100,
+                width: "100%",
+                alignItems: "center",
+              }}
+            >
+              <Text style={styles.timer}>{bottomStatusText}</Text>
+            </Animated.View>
+          </View>
+        )}
+        {errorMessage && (
+          <View style={{ justifyContent: "center", alignItems: "center" }}>
+            <Animated.View
+              style={{
+                position: "absolute",
+                opacity: 100,
+                width: "100%",
+                alignItems: "center",
+              }}
+            >
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            </Animated.View>
+          </View>
+        )}
+      </View>
     </View>
   );
 }
@@ -269,7 +287,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
 const styles = StyleSheet.create({
   bottomBar: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 42,
     left: 0,
     right: 0,
     paddingBottom: isIOS ? 34 : 20, // safe area lift
@@ -280,7 +298,6 @@ const styles = StyleSheet.create({
   },
   safe: {
     flex: 1,
-    marginBottom: -137,
   },
   scrollContent: {
     paddingBottom: 90,

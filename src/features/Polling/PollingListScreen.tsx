@@ -1,6 +1,5 @@
-import { CommonActions } from "@react-navigation/native";
 import { useEffect, useState } from 'react';
-import { Image, ImageBackground, View, Text, StyleSheet, FlatList, Pressable, BackHandler } from 'react-native';
+import { Image, ImageBackground, View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { PollTimerProvider, usePollTimer } from '../../components/TimerProviderPolls';
@@ -187,43 +186,6 @@ function PollingListScreenInner() {
     load();
     return () => { isActive = false };
   }, [applyCycleFromFeed, setFeed]);
-
-  useEffect(() => {
-    const onBackPress = () => {
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: "CategoryList" }],
-        })
-      );
-      return true; // prevent default exit behavior
-    };
-
-    const subscription = BackHandler.addEventListener(
-      "hardwareBackPress",
-      onBackPress
-    );
-
-    return () => subscription.remove();
-  }, [navigation]);
-
-  // Always go back to the home screen and reset the navigation stack
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
-      // Only intercept if the user is actually going BACK
-      if (e.data.action.type === "GO_BACK") {
-        e.preventDefault();
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "CategoryList" }],
-          })
-        );
-      }
-    });
-
-    return unsubscribe;
-  }, [navigation]);
 
   if (loading) {
     return (

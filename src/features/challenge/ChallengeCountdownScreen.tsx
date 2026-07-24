@@ -165,6 +165,8 @@ export default function ChallengeCountdownScreen() {
     anxious: { pct: 0, count: 0 },
   });
 
+  const isResettingRef = useRef(false);
+
   async function handlePostComment() {
     if (!commentText.trim()) return;
 
@@ -591,12 +593,16 @@ export default function ChallengeCountdownScreen() {
           onLayout={e => setBottomBarHeight(e.nativeEvent.layout.height)}
         >
           <Pressable
-            onPress={() =>
+            onPress={() => {
+              isResettingRef.current = true;
               navigation.reset({
-                index: 0,
-                routes: [{ name: isPoll ? 'PollingList' : 'CategoryList' }],
-              })
-            }
+                index: 1,
+                routes: [
+                  { name: 'CategoryList' },
+                  { name: isPoll ? 'PollingList' : 'CategoryList' }
+                ]
+              });
+            }}
           >
             <Image source={isPoll ? activePollButton : activeButton} style={styles.buttonImage} />
           </Pressable>
