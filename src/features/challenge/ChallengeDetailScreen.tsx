@@ -6,11 +6,15 @@ import { useNavigation, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import playButton from '../../assets/buttons/play.png';
+import historyButton from '../../assets/buttons/history.png';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useRssTimer } from "../../components/TimerProviderEmotion";
 import { useFeed } from "../../context/FeedContext";
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
 import { Dimensions } from "react-native";
+import { getChallengeResults } from '../../api/getChallengeResults';
+import { useUserStore } from '../../state/useUserStore';
+import { emotionLookup, emotionSlotMap } from '../../utils/emotionList';
 
 const isIOS = Platform.OS === 'ios';
 
@@ -123,6 +127,36 @@ export default function ChallengeDetailScreen({ route }: Props) {
   const previous = challenge?._origin === 'recent';
   const imageSource = getChallengeImageSource(challenge);
   const isYouTube = challenge?.source?.startsWith('YouTube');
+
+  const user = useUserStore((state) => state.user);
+
+  // state to track whether the user played
+  const [userPlayed, setUserPlayed] = useState(false);
+
+  useEffect(() => {
+    if (!previous) return;
+    if (!user?.id) return;
+
+    let mounted = true;
+
+    getChallengeResults(challengeId, user.id, 0)
+      .then(result => {
+        if (!mounted) return;
+
+        const played =
+          (result.user_main?.amount ?? 0) > 0 ||
+          !!result.user_main?.emotion;
+
+        setUserPlayed(played);
+      })
+      .catch(err => {
+        console.log("Error fetching challenge results:", err);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [challengeId, previous, user?.id]);
 
   // Combined snippet/stat/quote
   const combinedDetails = (() => {
@@ -324,6 +358,7 @@ return (
         onLayout={e => setBottomBarHeight(e.nativeEvent.layout.height)}
       >
         {!previous ? (
+          // ACTIVE CHALLENGE
           <>
             <Pressable
               onPress={() =>
@@ -342,18 +377,37 @@ return (
             <Text style={styles.timer}>{formattedTime}</Text>
           </>
         ) : (
-              <Text style={styles.winningEmotion}>
-                {challenge.winning_emotion && (
-                  <Text style={styles.winningEmotionContainer}>
-                    <Text style={styles.winningEmotionLabel}>
-                      Winning Emotion:{' '}
-                    </Text>
-                    <Text style={styles.winningEmotionValue}>
-                      {challenge.winning_emotion}
-                    </Text>
+          // PREVIOUS CHALLENGE
+          <>
+            {/* Conditionally show summary button only if user played */}
+            {userPlayed && (
+              <Pressable
+                onPress={() =>
+                  navigation.navigate("ChallengeResults", { challengeId: challenge?.id, fromHistory: true, })
+                }
+              >
+                <Image
+                  source={historyButton}   // your custom icon
+                  style={styles.playImage}
+                />
+              </Pressable>
+            )}
+            {/* Always show winning emotion */}
+            <Text style={styles.winningEmotion}>
+              {challenge.winning_emotion && (
+                <Text style={styles.winningEmotionContainer}>
+                  <Text style={styles.winningEmotionLabel}>
+                    Winning Emotion:{' '}
                   </Text>
-                )}
-              </Text>
+                  <Text style={styles.winningEmotionValue}>
+                    {emotionLookup[emotionSlotMap[challenge.winning_emotion]]?.[challenge.category] 
+                      ?? challenge.winning_emotion}
+                  </Text>
+                </Text>
+              )}
+            </Text>
+
+          </>
         )}
       </View>
 

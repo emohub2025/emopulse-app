@@ -9,6 +9,12 @@ export const emotionSlotMap: Record<string, 1 | 2 | 3 | 4> = {
   angry: 4,
 };
 
+export function getEmotionLabel(raw: string | null, category: string) {
+  if (!raw) return null;
+  const slot = emotionSlotMap[raw];   // happy → 1, sad → 2, anxious → 3, angry → 4
+  return emotionLookup[slot][category];
+}
+
 export const emotionFeelingText: Record<string, string> = {
   happy: "Feeling good about this",
   anxious: "Something feels wrong",

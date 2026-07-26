@@ -251,6 +251,7 @@ export default function TransactionsScreen() {
       }>(`wallet/transactions/${userId}?cursor=${nextCursor}&limit=50`);
 
       const merged = [...transactions, ...data.transactions];
+      //console.log("📦 MERGED TRANSACTIONS:", JSON.stringify(merged, null, 2));
 
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 

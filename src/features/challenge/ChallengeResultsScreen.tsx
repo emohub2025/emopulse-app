@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Image, ImageBackground, StyleSheet, Animated, ScrollView, BackHandler, Platform } from 'react-native';
+import { View, Text, Image, ImageBackground, StyleSheet, Animated, ScrollView, BackHandler } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
@@ -215,16 +215,18 @@ function ResultCard(props: ResultCardProps) {
 export default function ChallengeResultScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<any>();
-  const { challenge, challengeId, fromHistory } = route.params || {};
+
+  const { challenge, challengeId, fromHistory, results: passedResults } = route.params || {};
   const effectiveId = challenge?.id ?? challengeId;
   const userId = useCurrentUserId();
 
   // ⭐ ALL HOOKS MUST COME FIRST
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<ChallengeResult | null>(null);
+  const [results, setResults] = useState<ChallengeResult | null>(passedResults ?? null);
   const fetchedRef = useRef(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
+  // Fade animation
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: loading ? 1 : 0,
@@ -233,9 +235,18 @@ export default function ChallengeResultScreen() {
     }).start();
   }, [loading, fadeAnim]);
 
+  // If results were passed in, use them immediately
+  useEffect(() => {
+    if (passedResults) {
+      setResults(passedResults);
+    }
+  }, [passedResults]);
+
   const fetchResults = async () => {
-    if (!effectiveId) return;              // ⭐ guard here
+    if (!effectiveId) return;
     if (fetchedRef.current) return;
+    if (results) return;   // already have results (passed-in or previously fetched)
+
     fetchedRef.current = true;
 
     try {
@@ -249,9 +260,9 @@ export default function ChallengeResultScreen() {
     }
   };
 
+  // Fetch only if needed
   useEffect(() => {
-    // Always fetch as soon as we have a valid challenge ID.
-    if (!effectiveId) return;             // ⭐ guard here
+    if (!effectiveId) return;
     fetchResults();
   }, [effectiveId, userId]);
 
@@ -270,11 +281,9 @@ export default function ChallengeResultScreen() {
   }, [fromHistory, navigation]);
 
   //console.log("📦 Challenge param:", results?.challenge);
-
   const isPolling = results?.challenge?.source === "polling";
   //console.log("❌IS POLLING:", isPolling);
 
-  // ⭐ EARLY RETURN — SAFE NOW (AFTER ALL HOOKS)
   if (!effectiveId) {
     console.log("❌ ChallengeResults missing challenge or challenge.id:", challenge);
     return (

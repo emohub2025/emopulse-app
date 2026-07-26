@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import loginButton from '../../assets/buttons/login.png';
 // import googleButton from '../../assets/buttons/google.png';
 import { useNavigation } from '@react-navigation/native';
@@ -62,9 +61,11 @@ export default function LoginScreen() {
       await AsyncStorage.setItem("refreshToken", response.refreshToken);
       await AsyncStorage.setItem("userId", String(response.userId));
       await AsyncStorage.setItem("walletId", String(response.walletId));
-
       const fullUser = await getUserInfo(response.userId.toString());
       useUserStore.getState().setUser(fullUser);
+      
+      // Log for debug purposes
+      //console.log("authToken:", response.accessToken);
 
       setLoginSuccess(true);
     } catch (err: any) {
