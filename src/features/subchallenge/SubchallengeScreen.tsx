@@ -6,7 +6,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList, SubchallengeList } from '../../navigation/types';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import * as Haptics from 'expo-haptics';
-import { useRssTimer } from "../../components/TimerProviderEmotion";
+import { useCycleTimer } from "../../components/CycleTimerProvider";
 import answerButton from '../../assets/buttons/answer.png';
 import skipButton from '../../assets/buttons/skip.png';
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
@@ -15,7 +15,7 @@ import { useCurrentUserId } from "../../state/useUserSelectors";
 import { useFeed } from "../../context/FeedContext";
 import { Dimensions } from "react-native";
 
-const isIOS = Platform.OS === "ios";
+//const isIOS = Platform.OS === "ios";
 
 type SubchallengeRouteProp = RouteProp<
   RootStackParamList,
@@ -39,7 +39,7 @@ export default function SubchallengeScreen({
 
   // ⭐ ALL HOOKS MUST COME FIRST
   const [loading, setLoading] = useState(false);
-  const { applyCycleFromFeed, formattedTime } = useRssTimer();
+  const { rss, applyCycleFromFeed } = useCycleTimer();
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const current: SubchallengeList = subchallenges[index];
@@ -48,9 +48,10 @@ export default function SubchallengeScreen({
   const errorOpacity = useRef(new Animated.Value(0)).current;
   const timerOpacity = useRef(new Animated.Value(1)).current;
   const [lastTap, setLastTap] = useState<number | null>(null);
-  const { feed, setSuppressGlobalReset } = useFeed();
+  const { rssFeed, setSuppressGlobalReset } = useFeed();
   const SCREEN_HEIGHT = Dimensions.get("window").height - 160;   // 68 should be height of logo
   const [bottomBarHeight, setBottomBarHeight] = useState(0);
+  const { showBack } = route.params;
 
   const handleDoubleTapSubmit = () => {
     const now = Date.now();
@@ -69,10 +70,9 @@ export default function SubchallengeScreen({
     if (index + 1 < subchallenges?.length) {
       setIndex(index + 1);
       setSelected(null);
-      navigation.setParams({ showBack: true });
     } else {
       // If this was the last question, go to results
-      navigation.navigate("ChallengeCountdown", { challengeId, from: "play" });
+      navigation.navigate("ChallengeCountdown", { challengeId, from: "live" });
     }
   };
 
@@ -117,7 +117,7 @@ export default function SubchallengeScreen({
         setIndex(index + 1);
         setSelected(null);
       } else {
-        navigation.navigate("ChallengeCountdown", { challengeId, from: "play" });
+        navigation.navigate("ChallengeCountdown", { challengeId, from: "live" });
       }
 
     } catch (err: any) {
@@ -147,10 +147,27 @@ export default function SubchallengeScreen({
   };
 
   useEffect(() => {
-    if (feed?.cycle) {
-      applyCycleFromFeed(feed.cycle);
+    navigation.setOptions({
+      headerBackVisible: showBack,
+    });
+  }, [navigation, showBack]);
+
+  useEffect(() => {
+    if (!showBack) return;
+
+    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
+      e.preventDefault();       // stop default goBack()
+      handleLocalBack();        // use your custom logic
+    });
+
+    return unsubscribe;
+  }, [navigation, showBack, handleLocalBack]);
+
+  useEffect(() => {
+    if (rssFeed?.cycle) {
+      applyCycleFromFeed(rssFeed.cycle);
     }
-  }, [feed, applyCycleFromFeed]);
+  }, [rssFeed, applyCycleFromFeed]);
 
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
@@ -159,13 +176,6 @@ export default function SubchallengeScreen({
     });
 
     return () => sub.remove();
-  }, [index]);
-  
-  useEffect(() => {
-    navigation.setParams({
-      showBack: index > 0,
-      localBackHandler: handleLocalBack,
-    });
   }, [index]);
 
   useEffect(() => {
@@ -222,11 +232,11 @@ export default function SubchallengeScreen({
   }, []);
 
   // ⭐ SAFE TO USE feed NOW
-  const challenge = feed?.categories
+  const challenge = rssFeed?.categories
     .flatMap(c => [...c.active, ...c.recent])
     .find(ch => ch.id === challengeId);
 
-  if (!feed || !challenge || !current || !current.options) {
+  if (!rssFeed || !challenge || !current || !current.options) {
     return (
       <SafeAreaView style={styles.safe} edges={['bottom']}>
         <Text style={styles.loadingText}>Missing challenge data</Text>
@@ -323,7 +333,7 @@ export default function SubchallengeScreen({
             }}
           >
             <Text style={styles.timer}>
-              {typeof formattedTime === "string" ? formattedTime : ""}
+              {typeof rss.formattedTime === "string" ? rss.formattedTime : ""}
             </Text>
           </Animated.View>
 

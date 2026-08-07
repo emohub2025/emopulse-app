@@ -5,10 +5,9 @@ import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../../navigation/types';
-import { RssTimerProvider, useRssTimer } from '../../components/TimerProviderEmotion';
+import { CycleTimerProvider, useCycleTimer } from '../../components/CycleTimerProvider';
 import { useFeed } from "../../context/FeedContext";
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
-import eventBus from '../../components/EventBus';
 import { usePlayedChallenges } from '../../hooks/usePlayedChallenges';
 import { getFeedList } from '../../api/getFeedList';
 
@@ -38,7 +37,7 @@ const categoryMeta: Record<string, { icon: any; label: string }> = {
   },
   Tech: {
     icon: require("../../assets/icons/tech.png"),
-    label: "Technology & Science",
+    label: "Science & Technology",
   },
   Music: {
     icon: require("../../assets/icons/music.png"),
@@ -54,7 +53,7 @@ const categoryMeta: Record<string, { icon: any; label: string }> = {
   },
   Health: {
     icon: require("../../assets/icons/health.png"),
-    label: "Health",
+    label: "Health & Fitness",
   },
   Wacky: {
     icon: require("../../assets/icons/wacky.png"),
@@ -62,101 +61,88 @@ const categoryMeta: Record<string, { icon: any; label: string }> = {
   },
 };
 
-// Ensure polls go last
-function sortPollingLast(list: any) {
-  return [...list].sort((a, b) => {
-    const aPoll = a.source === "polling";
-    const bPoll = b.source === "polling";
-
-    if (aPoll && !bPoll) return 1;   // a goes after b
-    if (!aPoll && bPoll) return -1;  // a goes before b
-    return 0;                        // keep original order
-  });
-}
-
-export default function CategoryChallengesScreen() {
-  return (
-    <RssTimerProvider>
-      <CategoryChallengesScreenInner />
-    </RssTimerProvider>
-  );
-}
-
-function CategoryChallengesScreenInner() {
+export default function CategoryChallenges() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<RouteProps>();
   const { category } = route.params;
- const { applyCycleFromFeed, formattedTime } = useRssTimer();
-  const isFocused = useIsFocused();
-  const { feed } = useFeed();
-  const [error] = useState<string | null>(null);
+  const { rssFeed, setRssFeed } = useFeed();
+  const { rss, applyCycleFromFeed } = useCycleTimer();
+  const played = usePlayedChallenges();
 
-  // ⭐ ALL HOOKS MUST COME FIRST
-  useMemo(
-    () => (formattedTime?.toLowerCase?.() === 'expired' ? 'Expired Challenges' : formattedTime),
-    [formattedTime]
-  );
+  // ⭐ If feed is missing, redirect immediately
+  if (!rssFeed) {
+    navigation.navigate("CategoryList");
+    return null;
+  }
 
-  const playedIds = usePlayedChallenges();
+  // ⭐ Now feed is guaranteed to exist
+  const categoryData = rssFeed.categories.find(c => c.name === category);
 
-  useEffect(() => {
-    async function load() {
-      const feed = await getFeedList("rss");
-      applyCycleFromFeed(feed.cycle);
-    }
-    load();
-  }, []);
-
-useEffect(() => {
-    if (!isFocused) return;
-
-    const handler = () => navigation.navigate('CategoryList');
-    eventBus.on('cycleExpired', handler);
-
-    return () => {
-      eventBus.off('cycleExpired', handler);
-    };
-  }, [isFocused, navigation]);
-
-  // ⭐ SAFE TO USE feed NOW
-  const categoryData = feed ? feed.categories.find(c => c.name === category) : undefined;
-  const active = Array.isArray(categoryData?.active) ? categoryData.active : [];
-  const recent = Array.isArray(categoryData?.recent) ? categoryData.recent : [];
-
-  if (error) {
+  if (!categoryData) {
     return (
-      <View style={styles.center}>
-        <Text style={{ color: 'white' }}>{error}</Text>
-      </View>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+        <Text style={{ color: "white", textAlign: "center", marginTop: 40 }}>
+          Category not found
+        </Text>
+      </SafeAreaView>
     );
   }
+  //console.log("categoryData:" + JSON.stringify(categoryData, null, 2));
+  //console.log("feed.categories:" + JSON.stringify(feed.categories, null, 2));
+  //console.log("category:" + JSON.stringify(category, null, 2));
 
-  function enrichChallenge(ch: any) {
-    return {
-      ...ch,
-    };
-  }
+  // ⭐ Move async logic into useEffect
+  useEffect(() => {
+    async function ensureFreshFeed() {
+      const cycle = rssFeed?.cycle;
 
-  const enrichedActive = active.map(enrichChallenge);
-  const enrichedRecent = recent.map(enrichChallenge);
+      const needsReload =
+        !cycle ||
+        cycle.status === "expired";
 
-  // --------------------------------------------------
-  // CORRECT LOGIC:
-  // Played = ONLY active challenges the user played
-  // Active = active challenges NOT played
-  // Recent = ALL recent challenges (played or not)
-  // --------------------------------------------------
+      if (needsReload) {
+        const feedResponse = await getFeedList("rss");
+        setRssFeed(feedResponse);
+      }
+    }
 
-  const enrichedPlayed = enrichedActive.filter(ch =>
-    playedIds.includes(ch.id)
+    ensureFreshFeed();
+  }, [rssFeed, setRssFeed]);
+
+  // ⭐ Apply cycle from existing feed
+  useEffect(() => {
+    applyCycleFromFeed(rssFeed.cycle);
+  }, [rssFeed, applyCycleFromFeed]);
+
+  // ⭐ Timer display
+  const formattedTime = rss?.formattedTime;
+  useMemo(() => {
+    if (!formattedTime) return "";
+    const lower = formattedTime.toLowerCase();
+    return lower === "expired" ? "Expired Challenges" : formattedTime;
+  }, [formattedTime]);
+
+  // ⭐ Active / recent RSS challenges
+  const activeChallenges = categoryData.active;
+  const recentChallenges = categoryData.recent;
+
+  // ⭐ Normalize played IDs
+  const playedChallengeIds = played.map(p =>
+    typeof p === "string" ? p : p.challenge_id
   );
 
-  const filteredActive = enrichedActive.filter(ch =>
-    !playedIds.includes(ch.id)
+  // ⭐ Played = active challenges the user played
+  const playedActive = activeChallenges.filter(ch =>
+    playedChallengeIds.includes(ch.id)
   );
 
-  // Sort previous challenges newest → oldest
-  const sortedRecent = [...enrichedRecent].sort((a, b) => {
+  // ⭐ Active = active challenges NOT played
+  const unplayedActive = activeChallenges.filter(ch =>
+    !playedChallengeIds.includes(ch.id)
+  );
+
+  // ⭐ Previous = resolved recent challenges
+  const sortedRecent = [...recentChallenges].sort((a, b) => {
     const aTime = new Date(a.resolved_at || 0).getTime();
     const bTime = new Date(b.resolved_at || 0).getTime();
 
@@ -167,54 +153,34 @@ useEffect(() => {
 
     if (bArchive !== aArchive) return bArchive - aArchive;
 
-    // Final fallback: reverse ID order (ensures deterministic ordering)
     return b.id.localeCompare(a.id);
   });
 
-  const finalActive = sortPollingLast(filteredActive);
-  const finalPlayed = sortPollingLast(enrichedPlayed);
-  const finalRecent = sortPollingLast(sortedRecent);
-
-  // --------------------------------------------------
-  // Build Sectioned List (Active → Played → Previous)
-  // --------------------------------------------------
+  // ⭐ Build Sectioned List
   const listData: any[] = [];
 
   // Active first
-  if (finalActive.length > 0) {
+  if (unplayedActive.length > 0) {
     listData.push({ type: "header", title: "Active Challenges" });
-    finalActive.forEach(ch =>
+    unplayedActive.forEach(ch =>
       listData.push({ type: "item", data: ch, section: "active" })
     );
   }
 
-  // Played second — ONLY for active challenges the user has played
-  if (finalPlayed.length > 0) {
+  // Played second — ONLY active challenges the user has played
+  if (playedActive.length > 0) {
     listData.push({ type: "header", title: "Played Challenges" });
-    finalPlayed.forEach(ch => {
-      // ❗ Skip if resolved
+    playedActive.forEach(ch => {
       if (ch.resolved_at) return;
-
       listData.push({ type: "item", data: ch, section: "played" });
     });
   }
 
   // Previous last — resolved challenges
-  if (finalRecent.length > 0) {
+  if (sortedRecent.length > 0) {
     listData.push({ type: "header", title: "Previous Challenges" });
-    finalRecent.forEach(ch =>
+    sortedRecent.forEach(ch =>
       listData.push({ type: "item", data: ch, section: "previous" })
-    );
-  }
-
-  if (!feed) {
-    navigation.navigate('CategoryList');
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
-        <Text style={{ color: "white", textAlign: "center", marginTop: 40 }}>
-          Challenge not found
-        </Text>
-      </SafeAreaView>
     );
   }
 
@@ -255,7 +221,7 @@ useEffect(() => {
                   }
 
                   const ch = item.data;
-                  const played = playedIds.includes(ch.id);
+                  const played = playedChallengeIds.includes(ch.id);
                   const previous = item.section === "previous";
                   const isVideo = ch.source?.startsWith('YouTube');
                   const isPolling = ch.source === "polling";

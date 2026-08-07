@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Image, ImageBackground, View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { PollTimerProvider, usePollTimer } from '../../components/TimerProviderPolls';
+import { useCycleTimer } from '../../components/CycleTimerProvider';
 import { useFeed } from "../../context/FeedContext";
 import { getFeedList } from "../../api/getFeedList";
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
@@ -64,7 +64,7 @@ const categoryMeta: Record<string, { icon: any; label: string }> = {
   },
   Tech: {
     icon: require("../../assets/icons/tech.png"),
-    label: "Technology & Science",
+    label: "Science & Technology",
   },
   Music: {
     icon: require("../../assets/icons/music.png"),
@@ -100,36 +100,55 @@ export function PollResults({ ch }: { ch: any }) {
           
           {/* Percent + Answer */}
           <View style={{ flexDirection: "row", marginBottom: 4 }}>
-            <Text style={{ color: 'white', fontSize: 18, width: 50 }}>
-              {(opt.pct * 100).toFixed(0)}%
-            </Text>
-
             <Text
-              style={{ color: 'white', fontSize: 18, flex: 1, marginLeft: 8 }}
+              style={{ color: 'white', fontSize: 18, flex: 1, marginLeft: 0 }}
               ellipsizeMode="tail"
             >
               {ch.polling_answers?.[opt.index]}
             </Text>
           </View>
+          <View style={{ 
+            flexDirection: 'row', 
+            alignItems: 'center', 
+            marginBottom: 4 
+          }}>
+            
+            {/* Percent (fixed width, right aligned) */}
+            <Text 
+              style={{ 
+                color: 'white', 
+                fontSize: 18, 
+                width: "20%", 
+                textAlign: 'left' 
+              }}
+            >
+              {(opt.pct * 100).toFixed(0)}%
+            </Text>
 
-          {/* Progress bar */}
-          <View
-            style={{
-              height: 10,
-              backgroundColor: '#766e6e',
-              borderRadius: 5,
-              overflow: 'hidden',
-            }}
-          >
+            {/* Spacer */}
+            <View style={{ width: 10 }} />
+
+            {/* Progress bar (fixed width so everything aligns) */}
             <View
               style={{
-                width: `${Math.max(opt.pct * 100, 1)}%`,
-                height: '100%',
-                backgroundColor: '#4da6ff',
-                borderTopRightRadius: 5,
-                borderBottomRightRadius: 5,
+                width: "84%",          // ⭐ FIXED WIDTH
+                height: 10,
+                backgroundColor: '#766e6e',
+                borderRadius: 5,
+                marginLeft: -15,
+                overflow: 'hidden',
               }}
-            />
+            >
+              <View
+                style={{
+                  width: `${Math.max(opt.pct * 100, 1)}%`,
+                  height: '100%',
+                  backgroundColor: '#6a96f5',
+                  borderTopRightRadius: 5,
+                  borderBottomRightRadius: 5,
+                }}
+              />
+            </View>
           </View>
         </View>
       ))}
@@ -138,54 +157,74 @@ export function PollResults({ ch }: { ch: any }) {
 }
 
 export default function PollingListScreen() {
-  return (
-    <PollTimerProvider>
-      <PollingListScreenInner />
-    </PollTimerProvider>
-  );
-}
-
-function PollingListScreenInner() {
   const navigation = useNavigation<NavProp>();
-  const { applyCycleFromFeed, formattedTime } = usePollTimer();
-  const { setFeed } = useFeed();
-  const playedIds = usePlayedChallenges();
+  const { pollFeed, setPollFeed } = useFeed();
+  const { poll, applyCycleFromFeed } = useCycleTimer();
+  const rawPlayed = usePlayedChallenges();
+
+  const playedChallengeIds = rawPlayed.map(p =>
+    typeof p === "string" ? p : p.challenge_id
+  );
 
   const [allActivePolls, setAllActivePolls] = useState<any[]>([]);
   const [allRecentPolls, setAllRecentPolls] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load feed ONCE
+  // ⭐ Fetch feed ONCE when screen mounts
   useEffect(() => {
-    let isActive = true;
-
     async function load() {
-      try {
-        const feed = await getFeedList("polling");
-        if (!isActive) return;
+      const feedResponse = await getFeedList("polling");
+      setPollFeed(feedResponse);
+      applyCycleFromFeed(feedResponse.cycle);
 
-        applyCycleFromFeed(feed.cycle);
-        setFeed(feed);
+      const active = feedResponse.categories.flatMap(c =>
+        c.active.filter(ch => ch.source === "polling")
+      );
 
-        const active = feed.categories.flatMap(c =>
+      const recent = feedResponse.categories.flatMap(c =>
+        c.recent.filter(ch => ch.source === "polling")
+      );
+
+      setAllActivePolls(active);
+      setAllRecentPolls(recent);
+      setLoading(false);
+    }
+
+    load();
+  }, []); // ⭐ no dependencies — runs once
+
+  // ⭐ Reload feed ONLY if cycle expired
+  useEffect(() => {
+    async function refreshIfExpired() {
+      const cycle = pollFeed?.cycle;
+      if (!cycle || cycle.status === "expired") {
+        const feedResponse = await getFeedList("polling");
+        setPollFeed(feedResponse);
+        applyCycleFromFeed(feedResponse.cycle);
+
+        const active = feedResponse.categories.flatMap(c =>
           c.active.filter(ch => ch.source === "polling")
         );
 
-        const recent = feed.categories.flatMap(c =>
+        const recent = feedResponse.categories.flatMap(c =>
           c.recent.filter(ch => ch.source === "polling")
         );
 
         setAllActivePolls(active);
         setAllRecentPolls(recent);
-
-      } finally {
-        if (isActive) setLoading(false);
       }
     }
 
-    load();
-    return () => { isActive = false };
-  }, [applyCycleFromFeed, setFeed]);
+    refreshIfExpired();
+  }, [pollFeed?.cycle?.status]); // ⭐ only runs when cycle status changes
+
+  // ⭐ Timer display
+  const formattedTime = poll?.formattedTime;
+  useMemo(() => {
+    if (!formattedTime) return "";
+    const lower = formattedTime.toLowerCase();
+    return lower === "expired" ? "Expired Challenges" : formattedTime;
+  }, [formattedTime]);
 
   if (loading) {
     return (
@@ -197,18 +236,18 @@ function PollingListScreenInner() {
     );
   }
 
-  // ⭐ Compute played + active dynamically (like RSS screen)
+  // ⭐ Played polls
   const playedPolls = allActivePolls.filter(ch =>
-    playedIds.includes(ch.id)
+    playedChallengeIds.includes(ch.id)
   );
 
+  // ⭐ Active polls
   const activePolls = allActivePolls.filter(ch =>
-    !playedIds.includes(ch.id)
+    !playedChallengeIds.includes(ch.id)
   );
-
   const recentPolls = allRecentPolls;
 
-  // ⭐ Sort them
+  // ⭐ Sort
   const finalActive = sortByCategoryOrder(activePolls);
   const finalPlayed = sortByCategoryOrder(playedPolls);
   const finalRecent = sortByCategoryOrder(recentPolls);

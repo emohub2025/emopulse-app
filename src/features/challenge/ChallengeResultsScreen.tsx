@@ -1,15 +1,16 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Image, ImageBackground, StyleSheet, Animated, ScrollView, BackHandler } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { View, Text, Image, ImageBackground, StyleSheet, Animated, ScrollView } from 'react-native';
+import { useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ButtonPanel from '../../components/ButtonPanel';
-import { ChallengeResult, getChallengeResults } from '../../api/getChallengeResults';
-import { LinearGradient } from "expo-linear-gradient";
+import { ChallengeResult, getBatchResults, getChallengeResults } from '../../api/getChallengeResults';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useCurrentUserId } from "../../state/useUserSelectors";
 import { getEmotionLabel } from '../../utils/emotionList';
+import { usePlayedChallenges } from '../../hooks/usePlayedChallenges';
+import { CATEGORIES } from '../../navigation/types';
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -27,6 +28,24 @@ const categoryIcons: Record<string, any> = {
   Health: require("../../assets/icons/health.png"),
   Wacky: require("../../assets/icons/wacky.png"),
 };
+
+function hexToRgba(hex: string, alpha: number) {
+  const bigint = parseInt(hex.replace('#', ''), 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+type Category = keyof typeof CATEGORIES;
+
+function normalizeCategory(category: string | undefined): Category {
+  if (category && category in CATEGORIES) {
+    return category as Category;
+  }
+  return "Politics";
+}
 
 interface ResultCardProps {
   title: string;
@@ -59,27 +78,11 @@ function PollBreakdownCard({
   winningAnswer: string | null;
 }) {
   return (
-    <LinearGradient
-      colors={[
-        'rgba(255, 0, 204, 0.7)',
-        'rgba(138, 43, 226, 0.5)',
-        'rgba(75, 0, 130, 0.2)'
-      ]}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
+    <View
       style={styles.cardGradient}
     >
       <View style={styles.cardInner}>
-        <Text
-          style={{
-            color: 'white',
-            fontSize: 20,
-            fontWeight: '700',
-            textAlign: 'center',
-            marginTop: 16,
-            marginBottom: 10
-          }}
-        >
+        <Text style={styles.headerPill}>
           Poll Breakdown
         </Text>
 
@@ -88,32 +91,48 @@ function PollBreakdownCard({
 
           return (
             <View key={opt.index} style={{ marginBottom: 14, paddingHorizontal: 20 }}>
-              <Text style={{ color: 'white', fontSize: 18, marginBottom: 4 }}>
-                {opt.text} — {opt.percent}%
+              <Text style={{ color: 'white', fontSize: 18, marginBottom: 2 }}>
+                {opt.text}
               </Text>
 
               <View
                 style={{
-                  height: 8,
-                  backgroundColor: '#333',
-                  borderRadius: 4,
-                  overflow: 'hidden'
+                  flexDirection: 'row',
+                  alignItems: 'center',
                 }}
               >
+                {/* Left-aligned percent */}
+                <View style={{ width: 50, paddingRight: 10, alignItems: 'flex-start' }}>
+                  <Text style={{ color: 'gold', fontSize: 16, fontWeight: '800' }}>
+                    {opt.percent}%
+                  </Text>
+                </View>
+
+                {/* Fixed-width bar */}
                 <View
                   style={{
-                    width: `${opt.percent}%`,
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor: isWinner ? 'lime' : 'red'
+                    width: "85%",        // ⭐ fixed width for alignment
+                    height: 12,
+                    backgroundColor: '#010101ab',
+                    borderRadius: 6,
+                    overflow: 'hidden',
+                    marginRight: 12,   // spacing before percent
                   }}
-                />
+                >
+                  <View
+                    style={{
+                      width: `${opt.percent}%`,
+                      height: 12,
+                      backgroundColor: isWinner ? 'lime' : 'red',
+                    }}
+                  />
+                </View>
               </View>
             </View>
           );
         })}
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -123,26 +142,23 @@ function SummaryCard({
   totalDelta,
   totalPayout
 }: SummaryCardProps) {
-  const categoryKey = category ?? "politics";
+
+  const categoryKey = normalizeCategory(category);
+  const displayLabel = CATEGORIES[categoryKey].label;
 
   return (
-    <LinearGradient
-      colors={['#ff00cc', '#8a2be2', '#4b0082']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      style={[styles.cardGradient, styles.summaryGradient]}
+    <View
+      style={[
+        styles.summaryGradient
+      ]}
     >
       <View style={styles.summarycard}>
-        <View style={styles.summaryHeaderPill}>
-          <Text style={styles.summaryHeaderPillText}>Challenge Summary</Text>
-        </View>
-
         <View style={styles.summaryCategory}>
           <Image
             source={categoryIcons[categoryKey] ?? null}
             style={styles.icon}
           />
-          <Text style={styles.category}>{category}</Text>
+          <Text style={styles.category}>{displayLabel}</Text>
         </View>
 
         <View style={{ paddingHorizontal: 5 }}>
@@ -161,11 +177,11 @@ function SummaryCard({
           </AutoShrinkBlock>
         </View>
 
-        <Text style={[styles.cardLabel, { marginTop: -22 }]}>Net Coins:</Text>
+        <Text style={[styles.cardLabel, { marginTop: -15 }]}>Net Coins:</Text>
         <Text
           style={[
             styles.cardValue,
-            { color: totalDelta >= 0 ? 'lime' : 'gold' }
+            { color: 'white' }
           ]}
         >
           {totalDelta >= 0 ? `+${format(totalDelta)}` : format(totalDelta)}
@@ -176,7 +192,7 @@ function SummaryCard({
           {format(totalPayout)}
         </Text>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -188,10 +204,7 @@ function ResultCard(props: ResultCardProps) {
       : require('../../assets/images/loser.png');
 
   return (
-    <LinearGradient
-      colors={[ 'rgba(255, 0, 204, 0.7)', 'rgba(138, 43, 226, 0.5)', 'rgba(75, 0, 130, 0.2)' ]}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
+    <View
       style={styles.cardGradient}
     >
       <View style={styles.cardInner}>
@@ -208,23 +221,122 @@ function ResultCard(props: ResultCardProps) {
         <Text style={styles.cardLabel}>Payout:</Text>
         <Text style={styles.cardValue}>{props.payout}</Text>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
-export default function ChallengeResultScreen() {
-  const navigation = useNavigation<NavProp>();
+export default function ChallengeResultsScreen() {
   const route = useRoute<any>();
-
-  const { challenge, challengeId, fromHistory, results: passedResults } = route.params || {};
-  const effectiveId = challenge?.id ?? challengeId;
+  const { fromHistory, results: passedResults } = route.params || {};
+  if (!route.params || !route.params.batchId) {
+    console.log("❌ ResultsScreen mounted without params — exiting");
+    return null;
+  }
+  const batchFetchedRef = useRef(false);
   const userId = useCurrentUserId();
+  const played = usePlayedChallenges();
+  const { challengeId } = route.params || {};
+
+  const effectiveId =
+    challengeId ??
+    played[played.length - 1]?.challenge_id;
 
   // ⭐ ALL HOOKS MUST COME FIRST
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<ChallengeResult | null>(passedResults ?? null);
+  const [results, setResults] = useState<ChallengeResult[]>([]);
   const fetchedRef = useRef(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // If results were passed in, use them immediately
+  useEffect(() => {
+    if (passedResults) {
+      setResults([passedResults]);
+    }
+  }, [passedResults]);
+
+  // Fetch single challenge results for history and recent challenges
+  useEffect(() => {
+    if (!fromHistory) return;
+    if (!effectiveId) return;
+
+    if (fetchedRef.current || results.length > 0) return;
+    fetchedRef.current = true;
+
+    const fetchResults = async () => {
+      try {
+        setLoading(true);
+        const data = await getChallengeResults(effectiveId, userId ?? undefined);
+        setResults([data]);
+      } catch (err) {
+        console.log("❌ ERROR LOADING RESULT:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResults();
+  }, [effectiveId, userId, fromHistory]);
+
+  // Fetch batch results from backend
+  useEffect(() => {
+    if (fromHistory) return;
+    if (!userId) return;
+    if (batchFetchedRef.current) return;
+
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    const tryFetch = async () => {
+      // ⭐ STOP if results already exist
+      if (results.length > 0) {
+        console.log("✅ Results already loaded — stopping retry loop");
+        setLoading(false);
+        return;
+      }
+
+      const batchId = route.params?.batchId;
+
+      if (!batchId) {
+        console.log("❌ No batchId yet, retrying...");
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(tryFetch, 1000);
+        } else {
+          setLoading(false);
+        }
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const data = await getBatchResults(userId, batchId);
+
+        if (data.status === "ok") {
+          batchFetchedRef.current = true;
+          setResults(data.results ?? []);
+          setLoading(false);
+        } else {
+          console.log("❌ Results not ready, retrying...");
+          attempts++;
+          if (attempts < maxAttempts) {
+            setTimeout(tryFetch, 1000);
+          } else {
+            setLoading(false);
+          }
+        }
+      } catch (err) {
+        console.log("❌ Error fetching batch results:", err);
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(tryFetch, 1000);
+        } else {
+          setLoading(false);
+        }
+      }
+    };
+
+    tryFetch();
+  }, [fromHistory, userId, results.length]);
 
   // Fade animation
   useEffect(() => {
@@ -235,69 +347,11 @@ export default function ChallengeResultScreen() {
     }).start();
   }, [loading, fadeAnim]);
 
-  // If results were passed in, use them immediately
-  useEffect(() => {
-    if (passedResults) {
-      setResults(passedResults);
-    }
-  }, [passedResults]);
-
-  const fetchResults = async () => {
-    if (!effectiveId) return;
-    if (fetchedRef.current) return;
-    if (results) return;   // already have results (passed-in or previously fetched)
-
-    fetchedRef.current = true;
-
-    try {
-      setLoading(true);
-      const data = await getChallengeResults(effectiveId, userId ?? undefined);
-      setResults(data);
-    } catch (err) {
-      console.log("❌ ERROR LOADING RESULT:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch only if needed
-  useEffect(() => {
-    if (!effectiveId) return;
-    fetchResults();
-  }, [effectiveId, userId]);
-
-  useEffect(() => {
-    if (fromHistory) return;
-
-    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "CategoryList" }],
-      });
-      return true;
-    });
-
-    return () => sub.remove();
-  }, [fromHistory, navigation]);
-
-  //console.log("📦 Challenge param:", results?.challenge);
-  const isPolling = results?.challenge?.source === "polling";
-  //console.log("❌IS POLLING:", isPolling);
-
-  if (!effectiveId) {
-    console.log("❌ ChallengeResults missing challenge or challenge.id:", challenge);
-    return (
-      <SafeAreaView style={dynamicStyles(!!fromHistory).safe} edges={['bottom']}>
-        <Text style={styles.loadingText}>Missing challenge data</Text>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <View style={{ flex: 1, backgroundColor: 'black' }}>
       <ImageBackground
         source={require('../../assets/images/background.png')}
-        style={{ flex: 1, marginBottom: 42 }}
+        style={{ flex: 1, marginBottom: 72 }}
         resizeMode="cover"
       >
         <SafeAreaView style={dynamicStyles(!!fromHistory).safe} edges={['bottom']}>
@@ -306,10 +360,19 @@ export default function ChallengeResultScreen() {
               style={{ maxHeight: fromHistory ? '105%' : '96%' }}
               showsVerticalScrollIndicator={false}
             >
-              {results && (() => {
-                const main = results.user_main;
-                const subs = results.subchallenge_results || [];
-                const totalBets = 1 + subs.length;
+              {/* Empty state */}
+              {!loading && results.length === 0 && (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>Results are not available yet.</Text>
+                </View>
+              )}
+
+              {/* Render all results */}
+              {results.map((res, idx) => {
+                const challenge = res.challenge;
+                const main = res.user_main;
+                const subs = res.subchallenge_results || [];
+                const isPolling = challenge?.source === "polling";
 
                 const totalDelta =
                   (main?.delta || 0) +
@@ -318,74 +381,67 @@ export default function ChallengeResultScreen() {
                 const totalPayout =
                   (main?.payout || 0) +
                   subs.reduce((sum, s) => sum + s.payout, 0);
+                
+                const categoryKey = normalizeCategory(challenge.category) as Category;
+                const backgroundColor = hexToRgba(CATEGORIES[categoryKey].color, 0.55);
 
                 return (
-                  <>
-                    {(isPolling || totalBets > 1) && (
+                  <View key={idx} style={[styles.challengeResultContainer, { backgroundColor }]}>
+                    {(isPolling || subs.length > 0) && (
                       <SummaryCard
-                        topic={results.challenge.topic}
-                        category={results.challenge.category}
+                        topic={challenge.topic}
+                        category={challenge.category}
                         totalDelta={totalDelta}
                         totalPayout={totalPayout}
                       />
                     )}
-                  </>
+
+                    {!isPolling && main && !main.skipped && (
+                      <ResultCard
+                        title="Main Challenge"
+                        won={main.won}
+                        skipped={main.skipped}
+                        userChoice={getEmotionLabel(main.emotion, challenge.category)}
+                        winningChoice={getEmotionLabel(challenge.winning_emotion, challenge.category)}
+                        payout={main.payout}
+                      />
+                    )}
+
+                    {isPolling && main && (
+                      <ResultCard
+                        title="Polling Result"
+                        won={main.won}
+                        skipped={main.skipped}
+                        userChoice={main.selected_answer}
+                        winningChoice={challenge.winning_answer}
+                        payout={main.payout}
+                      />
+                    )}
+
+                    {isPolling && res.poll_results && (
+                      <PollBreakdownCard
+                        pollResults={res.poll_results}
+                        winningAnswer={challenge.winning_answer}
+                      />
+                    )}
+
+                    {!isPolling &&
+                      subs
+                        .filter(sub => !sub.skipped && sub.user_option_label)
+                        .map(sub => (
+                          <ResultCard
+                            key={sub.subchallenge_id}
+                            title={sub.question_text}
+                            won={sub.won}
+                            skipped={sub.skipped}
+                            userChoice={sub.user_option_label}
+                            winningChoice={sub.winning_option_label}
+                            payout={sub.payout}
+                          />
+                        ))}
+                  </View>
                 );
-              })()}
-
-              {!isPolling && results?.user_main && !results.user_main.skipped && (
-                <ResultCard
-                  title="Main Challenge"
-                  won={results.user_main.won}
-                  skipped={results.user_main.skipped}
-                  userChoice={getEmotionLabel(
-                    results.user_main.emotion,
-                    results.challenge.category
-                  )}
-                  winningChoice={getEmotionLabel(
-                    results.challenge.winning_emotion,
-                    results.challenge.category
-                  )}
-                  payout={results.user_main.payout}
-                />
-              )}              
-              {isPolling && results?.user_main && (
-                <ResultCard
-                  title="Polling Result"
-                  won={results.user_main.won}
-                  skipped={results.user_main.skipped}
-                  userChoice={results.user_main.selected_answer}
-                  winningChoice={results.challenge.winning_answer}
-                  payout={results.user_main.payout}
-                />
-              )}
-
-              {isPolling && results?.poll_results && (
-                <PollBreakdownCard
-                  pollResults={results.poll_results}
-                  winningAnswer={results.challenge.winning_answer}
-                />
-              )}
-
-              {!isPolling && results?.subchallenge_results
-                ?.filter(sub => !sub.skipped && sub.user_option_label)
-                .map(sub => (
-                  <ResultCard
-                    key={sub.subchallenge_id}
-                    title={sub.question_text}
-                    won={sub.won}
-                    skipped={sub.skipped}
-                    userChoice={sub.user_option_label}
-                    winningChoice={sub.winning_option_label}
-                    payout={sub.payout}
-                  />
-                ))}
-
-              {!loading && !results && (
-                <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>Results are not available yet.</Text>
-                </View>
-              )}
+              })}
             </ScrollView>
           </View>
 
@@ -409,53 +465,43 @@ export const dynamicStyles = (fromHistory: boolean) => ({
   safe: {
     flex: 1,
     paddingTop: 0,
-    paddingBottom: 50,
+    paddingBottom: 35,
     paddingHorizontal: 20,
     marginBottom: fromHistory ? -20 : -75,
   }
 });
 
 const styles = StyleSheet.create({
+  challengeResultContainer: {
+    borderWidth: 2,
+    borderColor: 'white',
+    borderRadius: 18,
+    padding: 0,
+    marginTop: 10,
+    marginBottom: 25,
+  },
   resultsShell: {
     backgroundColor: 'transparent',
     paddingTop: 0,
     borderRadius: 18,
-    marginTop: 0,
+    marginTop: 10,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
   },
   summaryGradient: {
-    marginBottom: 24,
-    marginHorizontal: 15,
+    marginBottom: 0,
+    marginHorizontal: 0,
   },
   summarycard: {
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    borderRadius: 42,
+    marginTop: 10,
     paddingBottom: 20,
-    borderWidth: 3,
-    borderColor: '#ed84df',
-  },
-  summaryHeaderPill: {
-    alignSelf: 'center',
-    backgroundColor: 'rgba(194, 139, 210, 0.54)',
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  summaryHeaderPillText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: '700',
-    textAlign: 'center',
   },
   summaryCategory: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 2,
+    marginTop: 0,
   },
   category: {
     color: "rgba(255,255,255,0.9)",
@@ -469,12 +515,23 @@ const styles = StyleSheet.create({
     marginRight: 6,
     resizeMode: "contain",
   },
-  cardImage: {
-    width: 270,
-    height: 65,
-    resizeMode: 'cover',
+  headerPill: {
     alignSelf: 'center',
-    marginTop: 18,
+    color: "white",
+    fontSize: 20,
+    textAlign: "center",
+    width: '70%',
+    backgroundColor: 'rgba(48, 23, 56, 0.44)',
+    borderRadius: 22,
+    paddingVertical: 6,
+    marginBottom: 8,
+  },
+  cardImage: {
+    width: 290,
+    height: 60,
+    resizeMode: 'stretch',
+    alignSelf: 'center',
+    marginTop: 8,
     marginBottom: 12,
   },
   cardTitle: {
@@ -487,29 +544,29 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   cardLabel: {
-    color: '#AAA',
-    fontSize: 16,
+    textAlign: 'center',
+    color: 'gold',
+    fontSize: 18,
     marginTop: 4,
-    marginLeft: 44,
+    marginLeft: 0,
   },
   cardValue: {
+    textAlign: 'center',
     color: 'white',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
-    marginLeft: 60,
-    marginRight: 10,
+    marginLeft: 15,
+    marginRight: 15,
   },
   cardGradient: {
-    borderRadius: 44,
+    borderRadius: 0,
     padding: 0,
-    marginBottom: 20,
+    marginBottom: 0,
   },
   cardInner: {
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    borderRadius: 42,
+    borderRadius: 0,
     paddingBottom: 20,
-    borderWidth: 3,
-    borderColor: '#ed84df',
+    borderWidth: 0,
   },
   timer: {
     color: 'yellow',

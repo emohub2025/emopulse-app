@@ -1,5 +1,11 @@
 import { apiGet } from "./engineClient";
 
+export interface BatchChallengeResults {
+  status: "ok" | "empty";
+  batch_id: string;
+  results: ChallengeResult[];
+}
+
 export interface ChallengeResult {
   status: "ok";
 
@@ -70,16 +76,12 @@ export interface ChallengeResult {
 export function getChallengeResults(
   id: string,
   userId?: string,
-  delayMs: number = 1500   // ⭐ adjustable delay
+  delayMs: number = 800   // ⭐ adjustable delay
 ): Promise<ChallengeResult> {
 
   const url = userId
-    ? `challenge-results/${encodeURIComponent(id)}?user_id=${encodeURIComponent(
-        userId
-      )}`
+    ? `challenge-results/${encodeURIComponent(id)}?user_id=${encodeURIComponent(userId)}`
     : `challenge-results/${encodeURIComponent(id)}`;
-
-  console.log("⏳ Waiting before fetching challenge results…", delayMs, "ms");
 
   return new Promise(resolve => setTimeout(resolve, delayMs))
     .then(() => apiGet<ChallengeResult>(url))
@@ -90,6 +92,23 @@ export function getChallengeResults(
     })
     .catch(err => {
       console.log("❌ GET error body:", err?.response?.data ?? err);
+      throw err;
+    });
+}
+
+export function getBatchResults(
+  userId: string,
+  batchId: string,
+  delayMs: number = 800   // ⭐ adjustable delay
+): Promise<BatchChallengeResults> {
+
+  const url = `batch-challenge-results?user_id=${encodeURIComponent(userId)}&batch_id=${encodeURIComponent(batchId)}`;
+
+  return new Promise(resolve => setTimeout(resolve, delayMs))
+    .then(() => apiGet<BatchChallengeResults>(url))
+    .then(response => response)
+    .catch(err => {
+      console.log("❌ GET batch error body:", err?.response?.data ?? err);
       throw err;
     });
 }

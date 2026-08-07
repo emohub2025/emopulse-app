@@ -8,14 +8,15 @@ import { Platform, View, Text, StyleSheet, Image, Animated, TouchableOpacity, Sc
 import EmotionSelector from '../../components/EmotionSelector';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
-import { useRssTimer } from "../../components/TimerProviderEmotion";
+import { useCycleTimer } from "../../components/CycleTimerProvider";
 import { postPlaceUserBet } from '../../api/postPlaceUserBet';
 import { getSubchallengeList } from '../../api/subchallenges';
 import { useCurrentUserId } from "../../state/useUserSelectors";
 import { useFeed } from "../../context/FeedContext";
-import { markChallengePlayed } from '../../hooks/usePlayedChallenges';
+import { markChallengePlayed, usePlayedChallenges } from '../../hooks/usePlayedChallenges';
 import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import { getFeelingSentence } from '../../utils/emotionList';
+import eventBus from '../../components/EventBus';
 
 type ChallengeRouteProp = RouteProp<RootStackParamList, 'Challenge'>;
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'Challenge'>;
@@ -26,15 +27,15 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   const [emotion, setEmotion] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation<NavProp>();
-  const { applyCycleFromFeed, formattedTime } = useRssTimer();
+  const { rss, applyCycleFromFeed } = useCycleTimer();
   const userId = useCurrentUserId();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const errorOpacity = useRef(new Animated.Value(0)).current;
   const timerOpacity = useRef(new Animated.Value(1)).current;
   const [lastTap, setLastTap] = useState<number | null>(null);
-  const bottomStatusText = formattedTime?.toLowerCase?.() === 'expired' ? 'Expired' : formattedTime;
+  const bottomStatusText = rss?.formattedTime?.toLowerCase?.() === 'expired' ? 'Expired' : rss?.formattedTime;
   const { challengeId } = route.params;
-  const { feed } = useFeed();   // hook is fine here — early return must be below all hooks
+  const { rssFeed } = useFeed();   // hook is fine here — early return must be below all hooks
 
   const { scale, font, isVeryCompact } = useResponsiveLayout();
   const submitWidth = scale(isVeryCompact ? 230 : 265, 220, 265);
@@ -42,15 +43,30 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   const titleFontSize = font(28, 22, 28);
   const subtitleFontSize = font(18, 15, 18);
 
+  // ⭐ Include previously played challenges
+  const played = usePlayedChallenges();
+  const playedIds = played.map(p =>
+    typeof p === "string" ? p : p.challenge_id
+  );
+  
   let isYouTube = false;
   let challenge = null;
 
   // ⭐ SAFE TO USE feed NOW
-  challenge = feed?.categories
+  challenge = rssFeed?.categories
     .flatMap(c => [...c.active, ...c.recent])
     .find(ch => ch.id === challengeId);
 
   isYouTube = challenge?.source?.startsWith('YouTube');
+
+  if (!rssFeed) {
+    console.error("❌ ChallengeScreen missing feed");
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+        <Text style={{ color: "white" }}>Loading…</Text>
+      </SafeAreaView>
+    );
+  }
 
   const handleDoubleTapSubmit = () => {
     const now = Date.now();
@@ -76,38 +92,40 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
       setLoading(true);
       setErrorMessage(null);
 
-      const response = await postPlaceUserBet({
+      await postPlaceUserBet({
         challenge_id: challenge.id,
         user_id: userId,
         emotion,
         amount: 1
       });
 
-      console.log("Prediction submitted:", response);
-      await markChallengePlayed(challengeId);
+      console.log("batchId:", rssFeed!.cycle!.batchId!);
 
-      // Allow subchallenges now for Youtube!
-      // if (isYouTube) {
-      //   setLoading(false);
-      //   navigation.navigate("ChallengeCountdown", { challengeId: challenge.id })
-      //   return;
-      // }
+      const category = rssFeed.categories.find(c => c.name === challenge.category);
+      const activeIds = category?.active?.map(ch => ch.id) ?? [];
+      const recentIds = category?.recent?.map(ch => ch.id) ?? [];
+      const visibleIds = [...activeIds, ...recentIds, ...playedIds];
+
+      await markChallengePlayed(challengeId, rssFeed!.cycle!.batchId!, visibleIds);
+
+      // Indicate the user played something
+      eventBus.emit("userPlayed", {
+        mode: "rss",
+        challengeId: challenge.id,
+      });
 
       const listResults = await getSubchallengeList(challenge.id);
 
       // ⭐ If no subchallenges → go straight to countdown
       if (!listResults || listResults.length === 0) {
-        navigation.navigate("ChallengeCountdown", { 
-          challengeId: challenge.id, 
-          from: "play" 
-        });
+        navigation.navigate("ChallengeCountdown", { challengeId: challenge.id, from: "live" });
         return;
       }
 
       // Otherwise → go to Subchallenge screen
       navigation.navigate("Subchallenge", {
         challengeId: challenge.id,
-        subchallenges: listResults
+        subchallenges: listResults,
       });
     } catch (err: any) {
       console.log("❌ Prediction failed:", err);
@@ -122,10 +140,10 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
   };
 
   useEffect(() => {
-    if (feed?.cycle) {
-      applyCycleFromFeed(feed.cycle);
+    if (rssFeed?.cycle) {
+      applyCycleFromFeed(rssFeed.cycle);
     }
-  }, [feed, applyCycleFromFeed]);
+  }, [rssFeed, applyCycleFromFeed]);
 
   useEffect(() => {
     if (errorMessage) {
@@ -166,7 +184,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
 
   const isDisabled = !emotion || loading;
 
-  if (!feed || !challenge) {
+  if (!rssFeed || !challenge) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
         <Text style={{ color: "white", textAlign: "center", marginTop: 40 }}>

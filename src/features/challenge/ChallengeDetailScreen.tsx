@@ -8,7 +8,7 @@ import type { RootStackParamList } from '../../navigation/types';
 import playButton from '../../assets/buttons/play.png';
 import historyButton from '../../assets/buttons/history.png';
 import AutoShrinkBlock from '../../components/AutoShrinkBlock';
-import { useRssTimer } from "../../components/TimerProviderEmotion";
+import { useCycleTimer } from "../../components/CycleTimerProvider";
 import { useFeed } from "../../context/FeedContext";
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
 import { Dimensions } from "react-native";
@@ -34,9 +34,9 @@ type Props = {
 
 export default function ChallengeDetailScreen({ route }: Props) {
   const navigation = useNavigation<NavProp>();
-  const { applyCycleFromFeed, formattedTime } = useRssTimer();
+  const { rss, applyCycleFromFeed } = useCycleTimer();
   const { challengeId } = route.params;
-  const { feed } = useFeed();
+  const { rssFeed } = useFeed();
   const SCREEN_HEIGHT = Dimensions.get("window").height - 141;   // 68 should be height of logo
   const [bottomBarHeight, setBottomBarHeight] = useState(0);
   //console.log("DetailScreen SCREEN_HEIGHT:", SCREEN_HEIGHT);
@@ -49,10 +49,10 @@ export default function ChallengeDetailScreen({ route }: Props) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    if (feed?.cycle) {
-      applyCycleFromFeed(feed.cycle);
+    if (rssFeed?.cycle) {
+      applyCycleFromFeed(rssFeed.cycle);
     }
-  }, [feed, applyCycleFromFeed]);
+  }, [rssFeed, applyCycleFromFeed]);
 
   // ⭐ Animate on expand/collapse
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function ChallengeDetailScreen({ route }: Props) {
   const playerStyle = expanded ? expandedPlayer : collapsedPlayer;
   const title = expanded ? "Remove player" : "Challenge Details";
   // ⭐ Now safe to use feed
-  const challenge = feed?.categories
+  const challenge = rssFeed?.categories
     .flatMap(c => [
       ...c.active.map(ch => ({ ...ch, _origin: 'active' as const })),
       ...c.recent.map(ch => ({ ...ch, _origin: 'recent' as const })),
@@ -131,7 +131,7 @@ export default function ChallengeDetailScreen({ route }: Props) {
   const user = useUserStore((state) => state.user);
 
   // state to track whether the user played
-  const [userPlayed, setUserPlayed] = useState(false);
+  const [userPlayedThisChallenge, setUserPlayedThisChallenge] = useState(false);
 
   useEffect(() => {
     if (!previous) return;
@@ -139,7 +139,7 @@ export default function ChallengeDetailScreen({ route }: Props) {
 
     let mounted = true;
 
-    getChallengeResults(challengeId, user.id, 0)
+    getChallengeResults(challengeId, user.id)
       .then(result => {
         if (!mounted) return;
 
@@ -147,7 +147,7 @@ export default function ChallengeDetailScreen({ route }: Props) {
           (result.user_main?.amount ?? 0) > 0 ||
           !!result.user_main?.emotion;
 
-        setUserPlayed(played);
+        setUserPlayedThisChallenge(played); // local state only
       })
       .catch(err => {
         console.log("Error fetching challenge results:", err);
@@ -169,7 +169,7 @@ export default function ChallengeDetailScreen({ route }: Props) {
   
   //console.log("📦 TEST:", challenge?.polling_answers?.slice(0,4));
 
-  if (!feed || !challenge) {
+  if (!rssFeed || !challenge) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
         <Text style={{ color: "white", textAlign: "center", marginTop: 40 }}>
@@ -374,13 +374,13 @@ return (
               />
             </Pressable>
 
-            <Text style={styles.timer}>{formattedTime}</Text>
+            <Text style={styles.timer}>{rss.formattedTime}</Text>
           </>
         ) : (
           // PREVIOUS CHALLENGE
           <>
             {/* Conditionally show summary button only if user played */}
-            {userPlayed && (
+            {userPlayedThisChallenge && (
               <Pressable
                 onPress={() =>
                   navigation.navigate("ChallengeResults", { challengeId: challenge?.id, fromHistory: true, })

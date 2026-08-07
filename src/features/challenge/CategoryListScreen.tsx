@@ -1,15 +1,16 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { View, Text, Image, ImageBackground, StyleSheet, FlatList, Pressable, BackHandler } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../navigation/types';
 import ButtonPanel from '../../components/ButtonPanel';
 import { useFeed } from "../../context/FeedContext";
 import { getFeedList } from "../../api/getFeedList";
-import type { FeedCategory, FeedResponse } from "../../navigation/types";
+import { CATEGORIES, type RootStackParamList } from '../../navigation/types';
+import type { FeedCategory } from "../../navigation/types";
 import { Platform } from "react-native";
 import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
+import eventBus from '../../components/EventBus';
 
 const isIOS = Platform.OS === "ios";
 const screenBackground = require('../../assets/images/background.png');
@@ -22,11 +23,11 @@ type NavProp = NativeStackNavigationProp<
 const CATEGORY_ORDER = [
   'Wacky',
   'Entertainment',
-  'Politics',
   'Sports',
+  'Politics',
+  'Music',
   'Tech',
   'Gaming',
-  'Music',
   'Finance',
   'Health',
 ];
@@ -46,7 +47,7 @@ const categoryImages: Record<string, any> = {
 export default function CategoryListScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute();
-  const { setFeed } = useFeed();   // ⭐ NEW
+  const { rssFeed, setRssFeed } = useFeed();
   const [categories, setCategories] = useState<FeedCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const { width, scale, font, isVeryCompact } = useResponsiveLayout();
@@ -57,28 +58,65 @@ export default function CategoryListScreen() {
   const titleFontSize = font(28, 22, 28);
   const subtitleFontSize = font(18, 14, 18);
 
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-      setLoading(true);
+  useEffect(() => {
+    let isActive = true;
+    async function load() {
+      if (!rssFeed) {
+        setLoading(true);
+        const feedResponse = await getFeedList("rss");
 
-      async function load() {
-        try {
-          const feed: FeedResponse = await getFeedList("rss");
-
-          if (isActive) {
-            setCategories(feed.categories); // ⭐ Store categories locally
-            setFeed(feed);   // ⭐ Store feed globally
-          }
-        } finally {
-          if (isActive) setLoading(false);
+        if (isActive) {
+          setRssFeed(feedResponse);
+          setCategories(feedResponse.categories);
         }
       }
+      setLoading(false);
+    }
 
-      load();
-      return () => { isActive = false };
-    }, [setFeed])
+    load();
+    return () => { isActive = false };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      // If feed is missing or expired, reload it
+      const cycle = rssFeed?.cycle;
+
+      const needsReload =
+        !cycle ||
+        !cycle.endTime ||
+        Date.now() > Number(cycle.endTime) ||   // expired
+        cycle.status === "expired";
+
+      if (needsReload) {
+        (async () => {
+          setLoading(true);
+          const feedResponse = await getFeedList("rss");
+          setRssFeed(feedResponse);
+          setLoading(false);
+        })();
+      }
+    }, [rssFeed])
   );
+
+  useEffect(() => {
+    const reload = async () => {
+      setLoading(true);
+      const feedResponse = await getFeedList("rss");
+      setRssFeed(feedResponse);
+      setLoading(false);
+    };
+
+    const handler = () => {
+      reload();
+    };
+
+    eventBus.on("cycleExpired", handler);
+
+    return () => {
+      eventBus.off("cycleExpired", handler);
+    };
+  }, []);
 
   // Don't allow the user to exit the app from here with the android Back button
   useFocusEffect(
@@ -96,36 +134,26 @@ export default function CategoryListScreen() {
     }, [])
   );
 
-  if (loading) {
-    return (
-      <View style={styles.root}>
-        <ImageBackground
-          source={screenBackground}
-          style={styles.background}
-          resizeMode="cover"
-        >
-          {!isIOS && (
-            <Image
-              source={screenBackground}
-              style={styles.androidBackgroundImage}
-              resizeMode="cover"
-            />
-          )}
+  if (categories.length === 0) {
+    const staticCategories: FeedCategory[] = Object.entries(CATEGORIES).map(([name, info]) => ({
+      id: `static-${name}`,
+      name,
+      challengeCount: 0,
+      active: [],
+      recent: [],
+      // optional UI fields
+      label: info.label,
+      color: info.color,
+    })) as FeedCategory[];
 
-      <SafeAreaView style={styles.safe} edges={[]}>
-        <View style={styles.center}>
-          <Text style={{ color: 'white' }}>Loading categories…</Text>
-        </View>
-      </SafeAreaView>
-        </ImageBackground>
-      </View>
-    );
+    setCategories(staticCategories);
   }
 
   const normalizedCategories = categories.map(c => ({
     ...c,
     name: c.name.trim()
   }));
+// console.log("normalizedCategories:" + normalizedCategories.map(c => c.name).join(", "));
 
   // ⭐ Category ordering
   const sortedCategories = [...normalizedCategories].sort((a, b) => {

@@ -2,10 +2,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Platform, View, Text, Image, ImageBackground, StyleSheet, Pressable, BackHandler, TextInput, Animated, KeyboardAvoidingView, ScrollView, Keyboard } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../navigation/types';
+import type { FeedResponse, RootStackParamList } from '../../navigation/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { usePollTimer } from '../../components/TimerProviderPolls';
-import { useRssTimer } from '../../components/TimerProviderEmotion';
+import { useCycleTimer } from '../../components/CycleTimerProvider';
 import { useLiveSnapshot, normalizeEmotions, type EnrichedLiveSnapshotItem } from '../../api/getLiveSnapshot';
 import activeButton from '../../assets/buttons/active.png';
 import activePollButton from '../../assets/buttons/active-polls.png';
@@ -18,18 +17,6 @@ import { Dimensions } from "react-native";
 
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'ChallengeCountdown'>;
 const isIOS = Platform.OS === "ios";
-
-function useChallengeTimer(liveChallenge : EnrichedLiveSnapshotItem | undefined) {
-  const isPoll = liveChallenge?.isPoll === true;
-  const timer = isPoll ? usePollTimer() : useRssTimer();
-  //console.log("📦 isPoll:", isPoll);
-  //console.log("📦 liveChallenge:", liveChallenge);
-
-  return {
-    ...timer,
-    isPoll,   // ⭐ expose the correct value
-  };
-}
 
 /* -------------------------------------------------------
    Helpers
@@ -131,9 +118,10 @@ export default function ChallengeCountdownScreen() {
   const from = route.params?.from;
   //console.log("📦 from:", from);
   const { challengeId } = route.params;
-  const { feed, setSuppressGlobalReset } = useFeed();
+  const { rssFeed, pollFeed, setSuppressGlobalReset } = useFeed();
   const SCREEN_HEIGHT = Dimensions.get("window").height - 250;   // 68 should be height of logo
   const [bottomBarHeight, setBottomBarHeight] = useState(0);
+  const { rss, poll, setActiveChallengeId } = useCycleTimer();
 
   /* -------------------------------------------------------
      ⭐ ALL HOOKS MUST COME FIRST
@@ -261,95 +249,88 @@ export default function ChallengeCountdownScreen() {
     }
   }, [from]);
 
-  let isPoll = false;
-  let pollData = [];
-  let paddedPollData = [];
-  let polling_answers = [];
-  let rawEmotion = null;
-  let isWacky = false;
-  let wobbled = null;
-
   /* -------------------------------------------------------
-     ⭐ SAFE TO USE feed NOW
+    Live snapshot (enriched)
   ------------------------------------------------------- */
-  const challenge = feed?.categories
-    .flatMap(c => [...c.active, ...c.recent])
-    .find(ch => ch.id === challengeId);
+  const liveChallenge: EnrichedLiveSnapshotItem | undefined =
+    snapshot?.find((item: EnrichedLiveSnapshotItem) => item.id === challengeId);
 
-  /* -------------------------------------------------------
-     Live snapshot (enriched)
-  ------------------------------------------------------- */
-  const liveChallenge = snapshot?.find(
-    (item: EnrichedLiveSnapshotItem) => item.id === challenge?.id
-  );
+  // ⭐ Define isPoll BEFORE any hook uses it
+  const isPoll: boolean = liveChallenge?.isPoll === true;
 
-  const { formattedTime } = useChallengeTimer(liveChallenge);
+  // ⭐ Define activeFeed BEFORE any hook uses it
+  const activeFeed: FeedResponse | null = isPoll ? pollFeed : rssFeed;
 
-  /* -------------------------------------------------------
-     Polling data
-  ------------------------------------------------------- */
-  isPoll = liveChallenge?.isPoll === true;
-  pollData = isPoll && liveChallenge?.pollResults ? liveChallenge.pollResults : [];
+  // ⭐ Define challenge BEFORE any hook uses it
+  const challenge = activeFeed?.categories
+    ?.flatMap(c => [...c.active, ...c.recent])
+    ?.find(ch => ch.id === challengeId);
 
-  // ⭐ Ensure 4 poll options always exist
-  paddedPollData = [...pollData];
-  while (paddedPollData.length < 4) {
-    paddedPollData.push({ index: paddedPollData.length, pct: 0 });
-  }
+  // ⭐ Hooks must come BEFORE any early return
+  useEffect(() => {
+    if (!liveChallenge) return;
 
-  polling_answers = challenge?.polling_answers ?? [];
+    const mode = isPoll ? "poll" : "rss";
+    setActiveChallengeId(mode, challengeId);
 
-  /* -------------------------------------------------------
-     Emotion Data
-  ------------------------------------------------------- */
-  rawEmotion =
-    !isPoll && liveChallenge
-      ? normalizeEmotions(liveChallenge.main)
-      : {
-          angry: { pct: 0, count: 0 },
-          happy: { pct: 0, count: 0 },
-          sad: { pct: 0, count: 0 },
-          anxious: { pct: 0, count: 0 },
-        };
-
-  isWacky =
-    challenge?.category === 'Wacky' ||
-    (typeof challenge?.source === 'string' &&
-      challenge?.source.startsWith('WackyPulse:'));
+    return () => setActiveChallengeId(mode, null);
+  }, [challengeId, isPoll, liveChallenge]);
 
   useEffect(() => {
     if (isPoll) return;
 
-    if (!isWacky) {
-      setWEmotion(normalizeTo100(rawEmotion));
+    if (!challenge) return;
+    if (!liveChallenge) return;
+
+    const rawEmotionLocal =
+      !isPoll
+        ? normalizeEmotions(liveChallenge.main)
+        : {
+            angry: { pct: 0, count: 0 },
+            happy: { pct: 0, count: 0 },
+            sad: { pct: 0, count: 0 },
+            anxious: { pct: 0, count: 0 },
+          };
+
+    const isWackyLocal =
+      challenge.category === 'Wacky' ||
+      (typeof challenge.source === 'string' &&
+        challenge.source.startsWith('WackyPulse:'));
+
+    if (!isWackyLocal) {
+      setWEmotion(normalizeTo100(rawEmotionLocal));
       return;
     }
 
-    wobbled = {
-      happy: { ...rawEmotion.happy, pct: wobblePct(rawEmotion.happy.pct) },
-      angry: { ...rawEmotion.angry, pct: wobblePct(rawEmotion.angry.pct) },
-      sad: { ...rawEmotion.sad, pct: wobblePct(rawEmotion.sad.pct) },
-      anxious: { ...rawEmotion.anxious, pct: wobblePct(rawEmotion.anxious.pct) },
+    const wobbledLocal = {
+      happy: { ...rawEmotionLocal.happy, pct: wobblePct(rawEmotionLocal.happy.pct) },
+      angry: { ...rawEmotionLocal.angry, pct: wobblePct(rawEmotionLocal.angry.pct) },
+      sad: { ...rawEmotionLocal.sad, pct: wobblePct(rawEmotionLocal.sad.pct) },
+      anxious: { ...rawEmotionLocal.anxious, pct: wobblePct(rawEmotionLocal.anxious.pct) },
     };
 
-    setWEmotion(normalizeTo100(wobbled));
-  }, [tick, isWacky, isPoll]);
+    setWEmotion(normalizeTo100(wobbledLocal));
+  }, [tick, isPoll, challenge, liveChallenge]);
 
   /* -------------------------------------------------------
-     ⭐ EARLY RETURN #1 — SAFE NOW
-     (feed is allowed to be null here)
+    ⭐ EARLY RETURN — DO NOT TOUCH feed yet
   ------------------------------------------------------- */
-  if (!feed) {
+  if (!liveChallenge) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
         <Text style={{ color: 'white' }}>Loading…</Text>
-       </SafeAreaView>
+      </SafeAreaView>
     );
   }
 
-  /* -------------------------------------------------------
-     ⭐ EARLY RETURN #2 — SAFE
-  ------------------------------------------------------- */
+  if (!activeFeed) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
+        <Text style={{ color: 'white' }}>Loading…</Text>
+      </SafeAreaView>
+    );
+  }
+
   if (!challenge) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -357,6 +338,19 @@ export default function ChallengeCountdownScreen() {
       </SafeAreaView>
     );
   }
+
+  /* -------------------------------------------------------
+     Polling data
+  ------------------------------------------------------- */
+  let pollData = isPoll && liveChallenge?.pollResults ? liveChallenge.pollResults : [];
+
+  // ⭐ Ensure 4 poll options always exist
+  let paddedPollData = [...pollData];
+  while (paddedPollData.length < 4) {
+    paddedPollData.push({ index: paddedPollData.length, pct: 0 });
+  }
+
+  let polling_answers = challenge?.polling_answers ?? [];
 
   /* -------------------------------------------------------
      Render
@@ -607,7 +601,7 @@ export default function ChallengeCountdownScreen() {
             <Image source={isPoll ? activePollButton : activeButton} style={styles.buttonImage} />
           </Pressable>
 
-          <Text style={styles.timer}>{formattedTime}</Text>
+          <Text style={styles.timer}>{isPoll ? poll.formattedTime : rss.formattedTime}</Text>
         </View>
         
       </ImageBackground>

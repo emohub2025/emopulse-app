@@ -18,7 +18,7 @@ import ButtonPanel from "../../components/ButtonPanel";
 import { apiGet } from "../../api/engineClient";
 import { useCurrentUserId } from "../../state/useUserSelectors";
 
-const isIOS = Platform.OS === "ios";
+//const isIOS = Platform.OS === "ios";
 
 type ChallengeItem = {
   challenge_id: string;

@@ -11,6 +11,7 @@ import { getUserInfo } from "./src/api/getUserInfo";
 import { useUserStore } from "./src/state/useUserStore";
 import { navigationRef } from "./src/navigation/navigationRef";
 import { FeedProvider } from "./src/context/FeedContext";
+import { CycleTimerProvider } from "./src/components/CycleTimerProvider";
 
 export default function App() {
   const [isOffline, setIsOffline] = useState(false);
@@ -69,6 +70,7 @@ export default function App() {
   return (
     <OfflineContext.Provider value={{ isOffline }}>
       <FeedProvider>
+        <CycleTimerProvider>
           <View style={{ flex: 1 }}>
             <OfflineBanner />
             <OfflineOverlay />
@@ -77,6 +79,7 @@ export default function App() {
               <AuthGate />
             </NavigationContainer>
           </View>
+        </CycleTimerProvider>
       </FeedProvider>
     </OfflineContext.Provider>
   );

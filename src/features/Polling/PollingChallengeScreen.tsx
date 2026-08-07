@@ -8,11 +8,12 @@ import type { RouteProp } from "@react-navigation/native";
 import type { RootStackParamList } from "../../navigation/types";
 import { postPlaceUserPollingBet } from "../../api/postPlaceUserBet";
 import AutoShrinkBlock from "../../components/AutoShrinkBlock";
-import { usePollTimer } from "../../components/TimerProviderPolls";
+import { useCycleTimer } from "../../components/CycleTimerProvider";
 import { useCurrentUserId } from "../../state/useUserSelectors";
 import { useFeed } from "../../context/FeedContext";
-import { markChallengePlayed } from '../../hooks/usePlayedChallenges';
+import { markChallengePlayed, usePlayedChallenges } from '../../hooks/usePlayedChallenges';
 import { Dimensions } from "react-native";
+import eventBus from '../../components/EventBus';
 
 const isIOS = Platform.OS === "ios";
 
@@ -22,6 +23,7 @@ const isIOS = Platform.OS === "ios";
 
 interface PollingChallenge {
   id: string;
+  batch_id: string;
   topic: string;
   image_url: string;
   category: string;
@@ -41,8 +43,8 @@ export default function PollingChallengeScreen() {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<RouteProps>();
   const userId = useCurrentUserId();
-  const { applyCycleFromFeed, formattedTime } = usePollTimer();
-  const { feed } = useFeed();
+  const { poll, applyCycleFromFeed } = useCycleTimer();
+  const { pollFeed } = useFeed();
   const SCREEN_HEIGHT = Dimensions.get("window").height - 80;   // 80 should be height of logo
   const [bottomBarHeight, setBottomBarHeight] = useState(0);
   //console.log("PollingScreen SCREEN_HEIGHT:", SCREEN_HEIGHT);
@@ -52,13 +54,19 @@ export default function PollingChallengeScreen() {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // ⭐ Include previously played challenges
+  const played = usePlayedChallenges();
+  const playedIds = played.map(p =>
+    typeof p === "string" ? p : p.challenge_id
+  );
+
   // ✔ selected is an index (0,1,2,...)
   const [selected, setSelected] = useState<number | null>(null);
 
   const { challengeId } = route.params;
 
   // ⭐ EARLY RETURN — SAFE NOW
-  if (!feed) {
+  if (!pollFeed) {
     console.error("❌ PollingChallengeScreen missing feed");
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
@@ -68,7 +76,7 @@ export default function PollingChallengeScreen() {
   }
 
   // ⭐ SAFE TO USE feed NOW
-  const challenge: PollingChallenge | undefined = feed?.categories
+  const challenge: PollingChallenge | undefined = pollFeed?.categories
     .flatMap(c => [...c.active, ...c.recent])
     .find(ch => ch.id === challengeId);
 
@@ -81,10 +89,10 @@ export default function PollingChallengeScreen() {
   }
 
   useEffect(() => {
-    if (feed?.cycle) {
-      applyCycleFromFeed(feed.cycle);
+    if (pollFeed?.cycle) {
+      applyCycleFromFeed(pollFeed.cycle);
     }
-  }, [feed, applyCycleFromFeed]);
+  }, [pollFeed, applyCycleFromFeed]);
 
   /* ---------------------------------------------
      HANDLE ANSWER
@@ -107,14 +115,21 @@ export default function PollingChallengeScreen() {
         selected_answer: selectedAnswer,
         amount: 1
       });
+  
+      const category = pollFeed.categories.find(c => c.name === challenge.category);
+      const activeIds = category?.active?.map(ch => ch.id) ?? [];
+      const recentIds = category?.recent?.map(ch => ch.id) ?? [];
+      const visibleIds = [...activeIds, ...recentIds, ...playedIds];
 
-      console.log("Polling prediction submitted:", response);
-      await markChallengePlayed(challengeId);
+      await markChallengePlayed(challengeId, pollFeed!.cycle!.batchId!, visibleIds);
 
-      navigation.navigate("ChallengeCountdown", {
+      // Indicate the user played something
+      eventBus.emit("userPlayed", {
+        mode: "poll",
         challengeId: challenge.id,
-        from: "live"
       });
+
+      navigation.navigate("ChallengeCountdown", { challengeId: challenge.id, from: "live" });
     } catch (err: any) {
       console.log("🟥 UI CATCH (Polling):", err);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -231,7 +246,7 @@ export default function PollingChallengeScreen() {
                 style={styles.submitButton}
               />
             </TouchableOpacity>
-            <Text style={styles.timer}>{formattedTime}</Text>
+            <Text style={styles.timer}>{poll.formattedTime}</Text>
           </View>
         </View>
       </ImageBackground>

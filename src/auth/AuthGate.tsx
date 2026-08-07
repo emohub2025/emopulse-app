@@ -3,9 +3,6 @@ import { View, ActivityIndicator } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import RootNavigator from "../navigation/RootNavigator";
 import { clearAuthStorage, refreshAuthToken } from "../api/engineClient";
-import { RssTimerProvider } from "../components/TimerProviderEmotion";
-import { PollTimerProvider } from "../components/TimerProviderPolls";
-import { FeedProvider } from "../context/FeedContext";
 
 export default function AuthGate() {
   const [booting, setBooting] = useState(true);
@@ -93,12 +90,6 @@ export default function AuthGate() {
   }
 
   return (
-    <RssTimerProvider>
-      <PollTimerProvider>
-        <FeedProvider>
-          <RootNavigator initialRouteName={isLoggedIn ? "CategoryList" : "Login"} />
-        </FeedProvider>
-      </PollTimerProvider>
-    </RssTimerProvider>
+    <RootNavigator initialRouteName={isLoggedIn ? "CategoryList" : "Login"} />
   );
 }

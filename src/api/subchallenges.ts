@@ -2,12 +2,6 @@ import type { SubchallengeList, SubchallengeTemplate, UserSubchallengeResponse }
 import { apiGet } from "./engineClient";
 
 export async function getSubchallengeList(challengeId: string) {
-  console.log("🧠 Running getSubchallengeList() with:", {
-    activeChallenge: {
-      id: challengeId,
-    }
-  });
-
   return apiGet<SubchallengeList[]>(
     `/subchallenge/list/${challengeId}`
   );

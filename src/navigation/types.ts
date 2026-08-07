@@ -124,19 +124,58 @@ export type RootStackParamList = {
     challenge?: Challenge;
     challengeId?: string;
     fromHistory?: boolean;
+    batchId?: string | null;
   };
 
   Subchallenge: {
     challengeId: string;
     subchallenges: SubchallengeList[];
     showBack?: boolean;
-    localBackHandler?: () => void;
   };
 
   PollingChallenge: {
     challengeId: string;
   };
 };
+
+export const CATEGORIES = {
+  Wacky: {
+    color: '#1b359c',
+    label: 'Wacky Pulse',
+  },
+  Entertainment: {
+    color: '#ff00cc',
+    label: 'Entertainment',
+  },
+  Sports: {
+    color: '#00c6ff',
+    label: 'Sports',
+  },
+  Politics: {
+    color: '#35db1b',
+    label: 'Politics',
+  },
+  Music: {
+    color: '#1b359c',
+    label: 'Music',
+  },
+  Tech: {
+    color: '#f8990a',
+    label: 'Science & Technology',
+  },
+  Finance: {
+    color: '#1b9a01',
+    label: 'Finance',
+  },
+  Gaming: {
+    color: '#a4b90b',
+    label: 'Gaming',
+  },
+  Health: {
+    color: '#e10000',
+    label: 'Health',
+  },
+} as const;
 
 export interface SubchallengeList {
   id: string;
@@ -154,12 +193,16 @@ export interface SubchallengeList {
   }[];
 }
 
+export type CycleMode = "rss" | "poll";
+
 export interface CycleInfo {
+  mode: CycleMode;
   batchId: string | null;
   startTime: number | null;
   durationMs: number | null;
   endTime: number | null;
   timeRemainingMs: number | null;
+  status?: "active" | "expired";
 }
 
 export interface FeedCategory {
