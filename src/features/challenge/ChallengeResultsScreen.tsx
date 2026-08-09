@@ -445,12 +445,12 @@ export default function ChallengeResultsScreen() {
             </ScrollView>
           </View>
 
-          <Animated.View
+          {/* <Animated.View
             pointerEvents={loading ? 'auto' : 'none'}
             style={[styles.loadingOverlay, { opacity: fadeAnim }]}
           >
             <Text style={styles.loadingText}>Loading challenge results…</Text>
-          </Animated.View>
+          </Animated.View> */}
         </SafeAreaView>
       </ImageBackground>
 
