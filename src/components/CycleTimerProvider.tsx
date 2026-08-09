@@ -306,6 +306,7 @@ export function CycleTimerProvider({ children }: Props) {
                     name: "ChallengeResults",
                     params: {
                       batchId,
+                      mode: "rss",
                       fromHistory: false,
                     },
                   },
@@ -330,6 +331,7 @@ export function CycleTimerProvider({ children }: Props) {
                     name: "ChallengeResults",
                     params: {
                       batchId,
+                      mode: "poll",
                       fromHistory: false,
                     },
                   },

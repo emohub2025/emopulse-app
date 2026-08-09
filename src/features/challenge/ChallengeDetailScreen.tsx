@@ -383,7 +383,7 @@ return (
             {userPlayedThisChallenge && (
               <Pressable
                 onPress={() =>
-                  navigation.navigate("ChallengeResults", { challengeId: challenge?.id, fromHistory: true, })
+                  navigation.navigate("ChallengeResults", { challengeId: challenge?.id, fromHistory: true, mode: "rss" })
                 }
               >
                 <Image

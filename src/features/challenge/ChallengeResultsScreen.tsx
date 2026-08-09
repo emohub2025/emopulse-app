@@ -227,8 +227,8 @@ function ResultCard(props: ResultCardProps) {
 
 export default function ChallengeResultsScreen() {
   const route = useRoute<any>();
-  const { fromHistory, results: passedResults } = route.params || {};
-  if (!route.params || !route.params.batchId) {
+  const { fromHistory, results: passedResults, mode } = route.params || {};
+  if (!route.params) {
     console.log("❌ ResultsScreen mounted without params — exiting");
     return null;
   }
@@ -241,11 +241,20 @@ export default function ChallengeResultsScreen() {
     challengeId ??
     played[played.length - 1]?.challenge_id;
 
+  const effectiveMode = mode ?? "rss";
+
   // ⭐ ALL HOOKS MUST COME FIRST
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<ChallengeResult[]>([]);
   const fetchedRef = useRef(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // ⭐ Clear stale results when switching between RSS and Poll
+    setResults([]);
+    fetchedRef.current = false;
+    batchFetchedRef.current = false;
+  }, [effectiveMode]);
 
   // If results were passed in, use them immediately
   useEffect(() => {
@@ -284,7 +293,7 @@ export default function ChallengeResultsScreen() {
     if (batchFetchedRef.current) return;
 
     let attempts = 0;
-    const maxAttempts = 10;
+    const maxAttempts = 20;
 
     const tryFetch = async () => {
       // ⭐ STOP if results already exist

@@ -1,3 +1,5 @@
+import { ChallengeResult } from "../api/getChallengeResults";
+
 export type LoginResponse = {
   accessToken: string;
   refreshToken: string;
@@ -125,6 +127,8 @@ export type RootStackParamList = {
     challengeId?: string;
     fromHistory?: boolean;
     batchId?: string | null;
+    mode?: "rss" | "poll";
+    results?: ChallengeResult;
   };
 
   Subchallenge: {

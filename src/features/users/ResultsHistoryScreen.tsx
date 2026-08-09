@@ -163,6 +163,7 @@ export default function ChallengeHistoryScreen() {
                       onPress={() =>
                         navigation.navigate("ChallengeResults", {
                           challengeId: c.challenge_id,
+                          mode: "rss",
                           fromHistory: true,
                         })
                       }
