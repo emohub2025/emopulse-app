@@ -21,6 +21,17 @@ const isIOS = Platform.OS === 'ios';
 type ChallengeDetailRouteProp = RouteProp<RootStackParamList, 'ChallengeDetail'>;
 type NavProp = NativeStackNavigationProp<RootStackParamList, 'ChallengeDetail'>;
 
+export const WACKY_TITLES: Record<string, any> = {
+  PiratesAndNauticalAbsurdity: "Pirates and Nautical Absurdity",
+  VegetonPrime: "Vegeton Prime",
+  WhenDogsTakeOver: "When Dogs Take Over",
+  WhenCatsTakeOver: "When Cats Take Over",
+  AliensVisitEarth: "Aliens Visit Earth",
+  FloridaBecomesIndependent: "New Florida",
+  CavemanBecomesPotus: "Caveman Becomes POTUS",
+  ParallelUniverseHeadlines: "Parallel Universe Headlines",
+};
+
 // Shorts-only extractor
 function extractShortsId(url: string | undefined) {
   if (!url) return '';
@@ -339,6 +350,8 @@ return (
                     Source:{' '}
                     {!challenge?.source
                       ? 'Emopulse'
+                      : challenge?.source.startsWith('Wacky')
+                      ? WACKY_TITLES[challenge.source.split(':')[1]] ?? challenge.source
                       : challenge?.source}
                   </Text>
                     <ScrollView style={{ height: 182 }} showsVerticalScrollIndicator={false}>

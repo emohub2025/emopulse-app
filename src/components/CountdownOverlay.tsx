@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.8)", // or fully transparent if you prefer
+    backgroundColor: "rgba(0,0,0,0.7)", // or fully transparent if you prefer
     justifyContent: "center",
     alignItems: "center",
     zIndex: 9999,
