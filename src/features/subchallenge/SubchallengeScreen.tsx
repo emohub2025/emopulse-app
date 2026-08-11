@@ -295,7 +295,7 @@ export default function SubchallengeScreen({
                       </Text>
                     </View>
 
-                    <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+                    <Text allowFontScaling={false} style={[styles.optionText, isSelected && styles.optionTextSelected]}>
                       {optionText}
                     </Text>
                   </TouchableOpacity>

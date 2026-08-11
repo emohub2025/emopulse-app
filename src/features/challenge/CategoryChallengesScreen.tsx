@@ -319,14 +319,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.6)',
   },
-  cardSubmitted: {
-    borderColor: 'rgba(168,255,159,0.45)',
-    backgroundColor: 'rgba(24, 36, 48, 0.92)',
-  },
-  cardPressed: {
-    transform: [{ scale: 0.985 }],
-    opacity: 0.94,
-  },
   imageShell: {
     paddingTop: 8,
     paddingBottom: 0,

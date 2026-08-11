@@ -520,6 +520,7 @@ const styles = StyleSheet.create({
   categoryLabel: {
     color: "white",
     fontSize: 22,
+    marginHorizontal: 5,
     fontWeight: "600",
   },
   polltitle: {

@@ -90,7 +90,7 @@ const ProgressBar = ({ label, pct, color, labelColor }: ProgressBarProps) => {
         </View>
 
         {/* Overlay text */}
-        <Text
+        <Text allowFontScaling={false}
           style={{
             position: 'absolute',
             width: '100%',

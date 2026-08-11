@@ -214,7 +214,7 @@ export default function PollingChallengeScreen() {
                       </Text>
                     </View>
 
-                    <Text
+                    <Text allowFontScaling={false}
                       style={[
                         styles.optionText,
                         isSelected && styles.optionTextSelected
@@ -360,6 +360,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 0,
     marginBottom: 0,
+    opacity: 0.0,   // no room in large font mode, so hide it for now
   },
   timer: {
     color: 'yellow',
