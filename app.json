@@ -31,7 +31,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.emopulse.app",
-      "buildNumber": "1.0.19",
+      "buildNumber": "1.0.20",
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": false
@@ -48,7 +48,7 @@
       "predictiveBackGestureEnabled": false,
       "usesCleartextTraffic": false,
       "package": "com.emopulseai.app",
-      "versionCode": 17,
+      "versionCode": 18,
       "permissions": [
         "android.permission.VIBRATE"
       ]
