@@ -10,24 +10,12 @@ import AutoShrinkBlock from '../../components/AutoShrinkBlock';
 import { useCurrentUserId } from "../../state/useUserSelectors";
 import { getEmotionLabel } from '../../utils/emotionList';
 import { usePlayedChallenges } from '../../hooks/usePlayedChallenges';
-import { CATEGORIES } from '../../navigation/types';
+import { getIcon, getLabel, getColor } from '../../navigation/types';
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
   'ChallengeResults'
 >;
-
-const categoryIcons: Record<string, any> = {
-  Politics: require("../../assets/icons/politics.png"),
-  Sports: require("../../assets/icons/sports.png"),
-  Entertainment: require("../../assets/icons/entertainment.png"),
-  Music: require("../../assets/icons/music.png"),
-  Tech: require("../../assets/icons/tech.png"),
-  Finance: require("../../assets/icons/finance.png"),
-  Gaming: require("../../assets/icons/gaming.png"),
-  Health: require("../../assets/icons/health.png"),
-  Wacky: require("../../assets/icons/wacky.png"),
-};
 
 function hexToRgba(hex: string, alpha: number) {
   const bigint = parseInt(hex.replace('#', ''), 16);
@@ -36,15 +24,6 @@ function hexToRgba(hex: string, alpha: number) {
   const b = bigint & 255;
 
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-type Category = keyof typeof CATEGORIES;
-
-function normalizeCategory(category: string | undefined): Category {
-  if (category && category in CATEGORIES) {
-    return category as Category;
-  }
-  return "Politics";
 }
 
 interface ResultCardProps {
@@ -143,9 +122,6 @@ function SummaryCard({
   totalPayout
 }: SummaryCardProps) {
 
-  const categoryKey = normalizeCategory(category);
-  const displayLabel = CATEGORIES[categoryKey].label;
-
   return (
     <View
       style={[
@@ -155,10 +131,10 @@ function SummaryCard({
       <View style={styles.summarycard}>
         <View style={styles.summaryCategory}>
           <Image
-            source={categoryIcons[categoryKey] ?? null}
+            source={getIcon(category)}
             style={styles.icon}
           />
-          <Text style={styles.category}>{displayLabel}</Text>
+          <Text style={styles.category}>{getLabel(category)}</Text>
         </View>
 
         <View style={{ paddingHorizontal: 5 }}>
@@ -391,8 +367,7 @@ export default function ChallengeResultsScreen() {
                   (main?.payout || 0) +
                   subs.reduce((sum, s) => sum + s.payout, 0);
                 
-                const categoryKey = normalizeCategory(challenge.category) as Category;
-                const backgroundColor = hexToRgba(CATEGORIES[categoryKey].color, 0.55);
+                const backgroundColor = hexToRgba(getColor(challenge.category), 0.55);
 
                 return (
                   <View key={idx} style={[styles.challengeResultContainer, { backgroundColor }]}>

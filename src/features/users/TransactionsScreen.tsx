@@ -9,6 +9,7 @@ import payoutSubIcon from "../../assets/images/payout-sub.png";
 import betIcon from "../../assets/images/bet.png";
 import betSubIcon from "../../assets/images/bet-sub.png";
 import { useCurrentUserId } from "../../state/useUserSelectors";
+import { getIcon } from '../../navigation/types';
 
 const isIOS = Platform.OS === "ios";
 
@@ -21,17 +22,6 @@ type Transaction = {
   challenge_id: string | null;
   challenge_topic?: string | null;
   challenge_category?: string | null;
-};
-
-const topicIcons: Record<string, any> = {
-  politics: require("../../assets/icons/politics.png"),
-  sports: require("../../assets/icons/sports.png"),
-  entertainment: require("../../assets/icons/entertainment.png"),
-  tech: require("../../assets/icons/tech.png"),
-  music: require("../../assets/icons/music.png"),
-  finance: require("../../assets/icons/finance.png"),
-  gaming: require("../../assets/icons/gaming.png"),
-  health: require("../../assets/icons/health.png"),
 };
 
 function formatAmount(amount: string) {
@@ -312,7 +302,6 @@ export default function TransactionsScreen() {
                 )}
                 renderItem={({ item }) => {
                   if (item.type === "challengeHeader") {
-                    const icon = topicIcons[item.topicKey] || topicIcons.politics;
 
                     return (
                       <Pressable onPress={() => toggleGroup(item.groupKey)}>
@@ -326,7 +315,7 @@ export default function TransactionsScreen() {
                           style={styles.challengeHeaderRow}
                         >
                           <View style={styles.challengeIconWrap}>
-                            <Image source={icon} style={styles.challengeIcon} />
+                            <Image source={getIcon(item.topicKey)} style={styles.challengeIcon} />
                           </View>
 
                           <View style={styles.challengeTextWrap}>

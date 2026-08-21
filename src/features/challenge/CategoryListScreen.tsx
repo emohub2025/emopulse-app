@@ -6,8 +6,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ButtonPanel from '../../components/ButtonPanel';
 import { useFeed } from "../../context/FeedContext";
 import { getFeedList } from "../../api/getFeedList";
-import { CATEGORIES, type RootStackParamList } from '../../navigation/types';
-import type { FeedCategory } from "../../navigation/types";
+import { categoryMeta, type RootStackParamList } from '../../navigation/types';
+import { type FeedCategory, getImage, getSortOrder } from "../../navigation/types";
 import { Platform } from "react-native";
 import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import eventBus from '../../components/EventBus';
@@ -19,30 +19,6 @@ type NavProp = NativeStackNavigationProp<
   RootStackParamList,
   'CategoryList'
 >;
-
-const CATEGORY_ORDER = [
-  'Wacky',
-  'Entertainment',
-  'Sports',
-  'Politics',
-  'Music',
-  'Tech',
-  'Gaming',
-  'Finance',
-  'Health',
-];
-
-const categoryImages: Record<string, any> = {
-  Wacky: require('../../assets/images/category-wacky.png'),
-  Politics: require('../../assets/images/category-politics.png'),
-  Sports: require('../../assets/images/category-sports.png'),
-  Entertainment: require('../../assets/images/category-entertainment.png'),
-  Tech: require('../../assets/images/category-tech.png'),
-  Music: require('../../assets/images/category-music.png'),
-  Gaming: require('../../assets/images/category-gaming.png'),
-  Finance: require('../../assets/images/category-finance.png'),
-  Health: require('../../assets/images/category-health.png'),
-};
 
 export default function CategoryListScreen() {
   const navigation = useNavigation<NavProp>();
@@ -135,37 +111,23 @@ export default function CategoryListScreen() {
   );
 
   if (categories.length === 0) {
-    const staticCategories: FeedCategory[] = Object.entries(CATEGORIES).map(([name, info]) => ({
-      id: `static-${name}`,
-      name,
+    const staticCategories: FeedCategory[] = Object.entries(categoryMeta).map(([key, meta]) => ({
+      id: `static-${key}`,
+      name: key,                 // already lowercase
       challengeCount: 0,
       active: [],
       recent: [],
-      // optional UI fields
-      label: info.label,
-      color: info.color,
+      label: meta.label,
+      color: meta.color,
     })) as FeedCategory[];
 
     setCategories(staticCategories);
   }
 
-  const normalizedCategories = categories.map(c => ({
-    ...c,
-    name: c.name.trim()
-  }));
-// console.log("normalizedCategories:" + normalizedCategories.map(c => c.name).join(", "));
-
-  // ⭐ Category ordering
-  const sortedCategories = [...normalizedCategories].sort((a, b) => {
-    const indexA = CATEGORY_ORDER.indexOf(a.name);
-    const indexB = CATEGORY_ORDER.indexOf(b.name);
-
-    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-    if (indexA !== -1) return -1;
-    if (indexB !== -1) return 1;
-
-    return a.name.localeCompare(b.name);
-  });
+  // const CATEGORY_ORDER = Object.keys(categoryMeta);
+  const sortedCategories = categories.sort(
+    (a, b) => getSortOrder(a.name) - getSortOrder(b.name)
+  );
 
   return (
     <View style={styles.root}>
@@ -206,7 +168,7 @@ export default function CategoryListScreen() {
                   });
                 }}              >
                 <ImageBackground
-                  source={categoryImages[item.name] ?? null}
+                  source={getImage(item.name)}
                   style={styles.cardBackground}
                   resizeMode="stretch"
                 >

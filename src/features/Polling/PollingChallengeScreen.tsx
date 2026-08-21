@@ -235,7 +235,7 @@ export default function PollingChallengeScreen() {
           onLayout={e => setBottomBarHeight(e.nativeEvent.layout.height)}
         >
           <View>
-            <Text style={styles.costText}>Cost: 1 Coin</Text>
+            <Text style={styles.costText}>1 Coin</Text>
             <TouchableOpacity
               onPress={handleAnswer}
               disabled={submitting}
@@ -309,8 +309,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 0,
-    paddingLeft: 14,
-    paddingRight: 12,
+    paddingLeft: 10,
+    paddingRight: 5,
     borderRadius: 14,
     backgroundColor: "rgba(0,0,0,0.55)",
     marginBottom: 6,
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.30)",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12
+    marginRight: 10
   },
   optionLetterBubbleSelected: {
     backgroundColor: "#c43dff"
@@ -355,12 +355,11 @@ const styles = StyleSheet.create({
   },
   costText: {
     color: 'gold',
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '800',
     textAlign: 'center',
     marginTop: 0,
     marginBottom: 0,
-    opacity: 0.0,   // no room in large font mode, so hide it for now
   },
   timer: {
     color: 'yellow',

@@ -43,7 +43,7 @@ const widthConstraint = (width - scale(54, 36, 62)) / (Platform.OS === 'android'
   const labelSize = font(
     (isVeryCompact ? 20 : 24) * (Platform.OS === 'android' ? 1.08 : 1),
     16,
-    24
+    23
   );
 
   return (
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   button: {
-    marginTop: 4,
+    marginTop: 5,
     paddingBottom: 0,
   },
   icon: {

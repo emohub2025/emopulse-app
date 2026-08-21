@@ -1,15 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  FlatList,
-  StyleSheet,
-  LayoutAnimation,
-  ImageBackground,
-  Pressable,
-  Platform,
-} from "react-native";
+import { View, Text, Image, FlatList, StyleSheet, LayoutAnimation, ImageBackground, Pressable, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../navigation/types";
@@ -17,6 +7,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import ButtonPanel from "../../components/ButtonPanel";
 import { apiGet } from "../../api/engineClient";
 import { useCurrentUserId } from "../../state/useUserSelectors";
+import { getIcon } from '../../navigation/types';
 
 //const isIOS = Platform.OS === "ios";
 
@@ -25,18 +16,6 @@ type ChallengeItem = {
   topic: string | null;
   category: string | null;
   resolved_at: string | null;
-};
-
-const categoryIcons: Record<string, any> = {
-  Politics: require("../../assets/icons/politics.png"),
-  Sports: require("../../assets/icons/sports.png"),
-  Entertainment: require("../../assets/icons/entertainment.png"),
-  Music: require("../../assets/icons/music.png"),
-  Tech: require("../../assets/icons/tech.png"),
-  Finance: require("../../assets/icons/finance.png"),
-  Gaming: require("../../assets/icons/gaming.png"),
-  Health: require("../../assets/icons/health.png"),
-  Wacky: require("../../assets/icons/wacky.png"),
 };
 
 function getRelativeLabel(dateString?: string | null): string {
@@ -155,8 +134,8 @@ export default function ChallengeHistoryScreen() {
                   }
 
                   const c = item.item;
-                  const categoryKey = c.category ?? "Politics";
-                  const iconSource = categoryIcons[categoryKey] ?? categoryIcons.Politics;
+                  const key = c.category?.toLowerCase().trim() ?? "politics";
+                  const iconSource = getIcon(c.category);
 
                   return (
                     <Pressable

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Platform, View, Text, Image, ImageBackground, StyleSheet, Pressable, BackHandler, TextInput, Animated, KeyboardAvoidingView, ScrollView, Keyboard } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { FeedResponse, RootStackParamList } from '../../navigation/types';
+import { getIcon, type FeedResponse, type RootStackParamList } from '../../navigation/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCycleTimer } from '../../components/CycleTimerProvider';
 import { useLiveSnapshot, normalizeEmotions, type EnrichedLiveSnapshotItem } from '../../api/getLiveSnapshot';
@@ -406,18 +406,26 @@ export default function ChallengeCountdownScreen() {
                 shadowOffset: { width: 0, height: 0 },
               }}
             >
-              <Text
-                style={{
-                  marginTop: 12,
-                  marginBottom: -16,
-                  color: 'white',
-                  fontWeight: '700',
-                  fontSize: 24,
-                  alignSelf: 'center',
-                }}
-              >
-                Live Results
-              </Text>
+
+            <View style={{ marginTop: -2, marginBottom: -15, alignSelf: 'center', flexDirection: 'row' }}>
+              <Image
+                source={getIcon(challenge?.category)}
+                style={styles.icon}
+              />
+                <Text
+                  style={{
+                    marginTop: 10,
+                    marginBottom: 0,
+                    marginLeft: 10,
+                    color: 'white',
+                    fontWeight: '700',
+                    fontSize: 24,
+                    alignSelf: 'center',
+                  }}
+                >
+                  Live Results
+                </Text>
+              </View>
 
               <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
                 {isPoll ? (
@@ -524,9 +532,9 @@ export default function ChallengeCountdownScreen() {
                   <Text
                     style={{
                       color: 'yellow',
-                      fontSize: 23,
+                      fontSize: 18,
                       fontWeight: '800',
-                      maxHeight: 55,
+                      maxHeight: 70,
                       fontStyle: 'italic',
                     }}
                   >
@@ -539,6 +547,7 @@ export default function ChallengeCountdownScreen() {
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
+                  marginTop: 10,
                   marginLeft: 14,
                 }}
               >
@@ -632,6 +641,14 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: isIOS ? 120 : 90,
   },
+  icon: {
+    width: 40,
+    height: 40,
+    marginLeft: 0,
+    marginRight: 0,
+    marginTop: 10,
+    resizeMode: "contain",
+  },
   loadingText: {
     color: 'white',
     fontSize: 22,
@@ -657,8 +674,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(47, 23, 116, 0.78)',
     borderWidth: 0.5,
     borderColor: 'rgba(255,255,255,0.58)',
-    paddingHorizontal: 10,
     marginHorizontal: 20,
+    height: 110,
   },
   timer: {
     color: 'yellow',

@@ -142,44 +142,94 @@ export type RootStackParamList = {
   };
 };
 
-export const CATEGORIES = {
-  Wacky: {
-    color: '#1b359c',
-    label: 'Wacky Pulse',
+// -----------------------------
+// Category Icons
+// -----------------------------
+export const categoryMeta: Record<string, { icon: any; image: any; label: string; color: string }> = {
+  wacky: {
+    icon: require("../assets/icons/wacky.png"),
+    image: require('../assets/images/category-wacky.png'),
+    label: "Wacky Pulse",   // ← your custom display name
+    color: "#1b359c",
+    },
+  entertainment: {
+    icon: require("../assets/icons/entertainment.png"),
+    image: require('../assets/images/category-entertainment.png'),
+    label: "Entertainment",
+    color: "#ff00cc",
   },
-  Entertainment: {
-    color: '#ff00cc',
-    label: 'Entertainment',
+  sports: {
+    icon: require("../assets/icons/sports.png"),
+    image: require('../assets/images/category-sports.png'),
+    label: "Sports",
+    color: "#00c6ff",
   },
-  Sports: {
-    color: '#00c6ff',
-    label: 'Sports',
+  politics: {
+    icon: require("../assets/icons/politics.png"),
+    image: require('../assets/images/category-politics.png'),
+    label: "Politics",
+    color: "#35db1b",
   },
-  Politics: {
-    color: '#35db1b',
-    label: 'Politics',
+  music: {
+    icon: require("../assets/icons/music.png"),
+    image: require('../assets/images/category-music.png'),
+    label: "Music",
+    color: "#1b359c",
   },
-  Music: {
-    color: '#1b359c',
-    label: 'Music',
+  tech: {
+    icon: require("../assets/icons/tech.png"),
+    image: require('../assets/images/category-tech.png'),
+    label: "Science & Technology",
+    color: "#f8990a",
   },
-  Tech: {
-    color: '#f8990a',
-    label: 'Science & Technology',
+  gaming: {
+    icon: require("../assets/icons/gaming.png"),
+    image: require('../assets/images/category-gaming.png'),
+    label: "Gaming",
+    color: "#a4b90b",
   },
-  Finance: {
-    color: '#1b9a01',
-    label: 'Finance',
+  finance: {
+    icon: require("../assets/icons/finance.png"),
+    image: require('../assets/images/category-finance.png'),
+    label: "Finance",
+    color: "#1b9a01",
   },
-  Gaming: {
-    color: '#a4b90b',
-    label: 'Gaming',
+  health: {
+    icon: require("../assets/icons/health.png"),
+    image: require('../assets/images/category-health.png'),
+    label: "Health",
+    color: "#e10000",
   },
-  Health: {
-    color: '#e10000',
-    label: 'Health',
-  },
-} as const;
+};
+
+const normalizeCategory = (category: string | null | undefined) =>
+  category?.toLowerCase().trim() || "";
+
+export const getIcon = (category: string | null | undefined) => {
+  const key = normalizeCategory(category);
+  return categoryMeta[key]?.icon ?? categoryMeta.politics.icon;
+};
+
+export const getImage = (category: string | null | undefined) => {
+  const key = normalizeCategory(category);
+  return categoryMeta[key]?.image ?? null;
+};
+
+export const getLabel = (category: string | null | undefined) => {
+  const key = normalizeCategory(category);
+  return categoryMeta[key]?.label ?? categoryMeta.politics.label;
+};
+
+export const getColor = (category: string | null | undefined) => {
+  const key = normalizeCategory(category);
+  return categoryMeta[key]?.color ?? categoryMeta.politics.color;
+};
+
+const CATEGORY_ORDER = Object.keys(categoryMeta);
+export const getSortOrder = (category: string | null | undefined) => {
+  const key = normalizeCategory(category);
+  return CATEGORY_ORDER.indexOf(key);
+};
 
 export interface SubchallengeList {
   id: string;
@@ -221,19 +271,6 @@ export interface FeedResponse {
   status: "ok";
   cycle: CycleInfo;
   categories: FeedCategory[];
-}
-
-export interface FeedChallenge {
-  id: string;
-  category: string;
-  headline: string;
-  source: string;
-  image_url: string | null;
-  snippet: string | null;
-  quote: string | null;
-  stat: string | null;
-  winning_emotion: string | null;
-  resolved_at: string | null;
 }
 
 export interface FeedSubchallengeSummary {

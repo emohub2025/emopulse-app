@@ -54,6 +54,8 @@ export default function ChallengeDetailScreen({ route }: Props) {
 
   // ⭐ All hooks MUST come before any early return
   const [expanded, setExpanded] = useState(false);
+  const [shouldPlay, setShouldPlay] = useState(false);
+  const autoExpandedOnce = useRef(false);
   
   // ⭐ Animation values
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -138,6 +140,17 @@ export default function ChallengeDetailScreen({ route }: Props) {
   const previous = challenge?._origin === 'recent';
   const imageSource = getChallengeImageSource(challenge);
   const isYouTube = challenge?.source?.startsWith('YouTube');
+
+  useEffect(() => {
+    if (challenge && isYouTube && !autoExpandedOnce.current) {
+      autoExpandedOnce.current = true;   // prevent future auto-expands
+      setExpanded(true);
+
+      setTimeout(() => {
+        setShouldPlay(true);
+      }, 400);
+    }
+  }, [challenge, isYouTube]);
 
   const user = useUserStore((state) => state.user);
 
@@ -275,7 +288,7 @@ return (
                     <YoutubePlayer
                       height={playerStyle.height}
                       width={playerStyle.width}
-                      play={false}
+                      play={shouldPlay}
                       videoId={extractShortsId(challenge?.url)}
                       initialPlayerParams={{
                         controls: true,

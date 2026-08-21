@@ -217,14 +217,13 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={[styles.topLabel, { fontSize: 26 }]} numberOfLines={1}>What's your reaction?</Text>
+          <Text style={[styles.topLabel, { fontSize: 26 }]} numberOfLines={1}>What's your take?</Text>
           {emotion ? (
             <Text style={styles.subLabel}>
               <Text style={[styles.subLabel, { fontSize: 20 }]} >{feelingText}</Text>
             </Text>
           ) : (
             <Text style={[styles.subLabel, { fontSize: 20 }]} numberOfLines={1}>
-              Select the best matching emotion.
             </Text>
           )}
 
@@ -254,7 +253,7 @@ export default function ChallengeScreen({ route }: { route: ChallengeRouteProp }
       
       {/* ⭐ Bottom bar stays fixed */}
       <View style={styles.bottomBar}>
-        <Text style={[styles.costText]}>Cost: 1 Coin</Text>
+        <Text style={[styles.costText]}>1 Coin</Text>
         <TouchableOpacity
           onPress={handleSubmit}
           disabled={isDisabled}
@@ -374,7 +373,7 @@ const styles = StyleSheet.create({
   },
   costText: {
     color: 'gold',
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '900',
     textAlign: 'center',
     marginTop: 2,

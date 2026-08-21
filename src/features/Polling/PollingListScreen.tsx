@@ -9,6 +9,7 @@ import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSou
 import { usePlayedChallenges } from '../../hooks/usePlayedChallenges';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
+import { getIcon, getLabel } from '../../navigation/types';
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -45,48 +46,6 @@ function sortByCategoryOrder(list: any[]) {
     return a.category.localeCompare(b.category);
   });
 }
-
-// -----------------------------
-// Category Icons
-// -----------------------------
-const categoryMeta: Record<string, { icon: any; label: string }> = {
-  Politics: {
-    icon: require("../../assets/icons/politics.png"),
-    label: "Politics",
-  },
-  Sports: {
-    icon: require("../../assets/icons/sports.png"),
-    label: "Sports",
-  },
-  Entertainment: {
-    icon: require("../../assets/icons/entertainment.png"),
-    label: "Entertainment",
-  },
-  Tech: {
-    icon: require("../../assets/icons/tech.png"),
-    label: "Science & Technology",
-  },
-  Music: {
-    icon: require("../../assets/icons/music.png"),
-    label: "Music",
-  },
-  Finance: {
-    icon: require("../../assets/icons/finance.png"),
-    label: "Finance",
-  },
-  Gaming: {
-    icon: require("../../assets/icons/gaming.png"),
-    label: "Gaming",
-  },
-  Health: {
-    icon: require("../../assets/icons/health.png"),
-    label: "Health",
-  },
-  Wacky: {
-    icon: require("../../assets/icons/wacky.png"),
-    label: "Wacky Pulse",   // ← your custom display name
-  },
-};
 
 export function PollResults({ ch }: { ch: any }) {
   const results = ch.main?.poll_results ?? [];
@@ -326,11 +285,11 @@ export default function PollingListScreen() {
                       <Pressable style={styles.card}>
                         <View style={styles.categoryRow}>
                           <Image
-                            source={categoryMeta[ch.category]?.icon}
+                            source={getIcon(ch.category)}
                             style={styles.categoryIcon}
                           />
                           <Text style={styles.categoryLabel}>
-                            {categoryMeta[ch.category]?.label}
+                            {getLabel(ch.category)}
                           </Text>
                         </View>
 
@@ -358,11 +317,11 @@ export default function PollingListScreen() {
                       >
                         <View style={styles.categoryRow}>
                           <Image
-                            source={categoryMeta[ch.category]?.icon}
+                            source={getIcon(ch.category)}
                             style={styles.categoryIcon}
                           />
                           <Text style={styles.categoryLabel}>
-                            {categoryMeta[ch.category]?.label}
+                            {getLabel(ch.category)}
                           </Text>
                         </View>
 
@@ -387,11 +346,11 @@ export default function PollingListScreen() {
                     >
                       <View style={styles.categoryRow}>
                         <Image
-                          source={categoryMeta[ch.category]?.icon}
+                          source={getIcon(ch.category)}
                           style={styles.categoryIcon}
                         />
                         <Text style={styles.categoryLabel}>
-                          {categoryMeta[ch.category]?.label}
+                          {getLabel(ch.category)}
                         </Text>
                       </View>
 

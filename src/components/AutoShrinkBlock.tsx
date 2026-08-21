@@ -30,7 +30,7 @@ export default function AutoShrinkBlock({
   marginBottom,
   marginHorizontal,
   minFontSize = 15,
-  maxFontSize = 24,
+  maxFontSize = 22,
   textAlign = "center",
   fontWeight = "700",
   fontStyle = "normal",

@@ -10,6 +10,7 @@ import { useFeed } from "../../context/FeedContext";
 import { getChallengeImageSource } from '../../assets/wacky/getChallengeImageSource';
 import { usePlayedChallenges } from '../../hooks/usePlayedChallenges';
 import { getFeedList } from '../../api/getFeedList';
+import { getIcon, getLabel } from '../../navigation/types';
 
 type NavProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -18,48 +19,6 @@ type NavProp = NativeStackNavigationProp<
 
 type RouteProps = RouteProp<RootStackParamList, 'CategoryChallenges'>;
 const isIOS = Platform.OS === "ios";
-
-// -----------------------------
-// Topic Icons
-// -----------------------------
-const categoryMeta: Record<string, { icon: any; label: string }> = {
-  Politics: {
-    icon: require("../../assets/icons/politics.png"),
-    label: "Politics",
-  },
-  Sports: {
-    icon: require("../../assets/icons/sports.png"),
-    label: "Sports",
-  },
-  Entertainment: {
-    icon: require("../../assets/icons/entertainment.png"),
-    label: "Entertainment",
-  },
-  Tech: {
-    icon: require("../../assets/icons/tech.png"),
-    label: "Science & Technology",
-  },
-  Music: {
-    icon: require("../../assets/icons/music.png"),
-    label: "Music",
-  },
-  Finance: {
-    icon: require("../../assets/icons/finance.png"),
-    label: "Finance",
-  },
-  Gaming: {
-    icon: require("../../assets/icons/gaming.png"),
-    label: "Gaming",
-  },
-  Health: {
-    icon: require("../../assets/icons/health.png"),
-    label: "Health & Fitness",
-  },
-  Wacky: {
-    icon: require("../../assets/icons/wacky.png"),
-    label: "Wacky Pulse",   // ← your custom display name
-  },
-};
 
 export default function CategoryChallenges() {
   const navigation = useNavigation<NavProp>();
@@ -76,7 +35,8 @@ export default function CategoryChallenges() {
   }
 
   // ⭐ Now feed is guaranteed to exist
-  const categoryData = rssFeed.categories.find(c => c.name === category);
+  const categoryData = rssFeed.categories.find(c => c.name.toLowerCase().trim() === category.toLowerCase().trim());
+  //console.log("rssFeed.categories:", rssFeed.categories);
 
   if (!categoryData) {
     return (
@@ -199,11 +159,11 @@ export default function CategoryChallenges() {
             marginTop: 0
           }}>
             <Image
-              source={categoryMeta[category]?.icon}
+              source={getIcon(category)}
               style={styles.icon}
             />
             <Text style={styles.topLabel}>
-              {categoryMeta[category]?.label}
+              {getLabel(category)}
             </Text>
           </View>
           <View style={styles.content}>
